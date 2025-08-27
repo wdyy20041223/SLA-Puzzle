@@ -21,15 +21,25 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
 
   // 初始化游戏
   const initializeGame = useCallback((config: PuzzleConfig) => {
-    const shuffledPieces = shufflePieces([...config.pieces]);
+    const totalSlots = config.gridSize.rows * config.gridSize.cols;
+    
+    // 初始化答题卡网格（所有槽位都是空的）
+    const answerGrid: (PuzzlePiece | null)[] = new Array(totalSlots).fill(null);
+    
+    // 重置所有拼图块到处理区
+    const resetPieces = config.pieces.map(piece => ({
+      ...piece,
+      currentSlot: null, // 所有拼图块都在处理区
+    }));
     
     const newGameState: GameState = {
-      config: { ...config, pieces: shuffledPieces },
+      config: { ...config, pieces: resetPieces },
       startTime: new Date(),
       moves: 0,
       isCompleted: false,
       elapsedTime: 0,
       history: [],
+      answerGrid,
     };
 
     setGameState(newGameState);
@@ -45,41 +55,43 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
     }, 1000);
   }, []);
 
-  // 打乱拼图块
-  const shufflePieces = useCallback((pieces: PuzzlePiece[]): PuzzlePiece[] => {
-    const shuffled = [...pieces];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    
-    // 为每个拼图块设置随机位置
-    return shuffled.map((piece, index) => ({
-      ...piece,
-      currentPosition: {
-        x: Math.random() * 600,
-        y: Math.random() * 400,
-      },
-    }));
-  }, []);
-
-  // 移动拼图块
-  const movePiece = useCallback((pieceId: string, newPosition: { x: number; y: number }) => {
+  // 将拼图块放置到槽位
+  const placePieceToSlot = useCallback((pieceId: string, targetSlot: number) => {
     if (!gameState) return;
 
     setGameState(prev => {
       if (!prev) return null;
 
-      const updatedPieces = prev.config.pieces.map(piece =>
-        piece.id === pieceId ? { ...piece, currentPosition: newPosition } : piece
+      const piece = prev.config.pieces.find(p => p.id === pieceId);
+      if (!piece) return prev;
+
+      // 检查目标槽位是否已有拼图块
+      const existingPiece = prev.answerGrid[targetSlot];
+      
+      // 更新答题卡网格
+      const newAnswerGrid = [...prev.answerGrid];
+      
+      // 如果目标槽位有拼图块，将其移回处理区
+      if (existingPiece) {
+        const updatedExistingPiece = { ...existingPiece, currentSlot: null };
+        const existingPieceIndex = prev.config.pieces.findIndex(p => p.id === existingPiece.id);
+        prev.config.pieces[existingPieceIndex] = updatedExistingPiece;
+      }
+      
+      // 将当前拼图块放入目标槽位
+      newAnswerGrid[targetSlot] = { ...piece, currentSlot: targetSlot };
+      
+      // 更新拼图块列表
+      const updatedPieces = prev.config.pieces.map(p =>
+        p.id === pieceId ? { ...p, currentSlot: targetSlot } : p
       );
 
       const move: GameMove = {
         id: Date.now().toString(),
         pieceId,
-        action: 'move',
-        fromPosition: prev.config.pieces.find(p => p.id === pieceId)?.currentPosition,
-        toPosition: newPosition,
+        action: 'place',
+        fromSlot: piece.currentSlot,
+        toSlot: targetSlot,
         timestamp: new Date(),
       };
 
@@ -88,10 +100,11 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
         config: { ...prev.config, pieces: updatedPieces },
         moves: prev.moves + 1,
         history: [...prev.history, move],
+        answerGrid: newAnswerGrid,
       };
 
-      // 检查是否完成
-      if (checkPuzzleComplete(updatedPieces)) {
+      // 检查是否完成拼图
+      if (checkPuzzleComplete(newAnswerGrid)) {
         newGameState.isCompleted = true;
         newGameState.endTime = new Date();
         if (timerRef.current) {
@@ -100,6 +113,44 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
       }
 
       return newGameState;
+    });
+  }, [gameState]);
+
+  // 将拼图块从槽位移回处理区
+  const removePieceFromSlot = useCallback((pieceId: string) => {
+    if (!gameState) return;
+
+    setGameState(prev => {
+      if (!prev) return null;
+
+      const piece = prev.config.pieces.find(p => p.id === pieceId);
+      if (!piece || piece.currentSlot === null) return prev;
+
+      // 更新答题卡网格
+      const newAnswerGrid = [...prev.answerGrid];
+      newAnswerGrid[piece.currentSlot] = null;
+      
+      // 更新拼图块列表
+      const updatedPieces = prev.config.pieces.map(p =>
+        p.id === pieceId ? { ...p, currentSlot: null } : p
+      );
+
+      const move: GameMove = {
+        id: Date.now().toString(),
+        pieceId,
+        action: 'remove',
+        fromSlot: piece.currentSlot,
+        toSlot: null,
+        timestamp: new Date(),
+      };
+
+      return {
+        ...prev,
+        config: { ...prev.config, pieces: updatedPieces },
+        moves: prev.moves + 1,
+        history: [...prev.history, move],
+        answerGrid: newAnswerGrid,
+      };
     });
   }, [gameState]);
 
@@ -158,12 +209,20 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
   }, [gameState]);
 
   // 检查拼图是否完成
-  const checkPuzzleComplete = useCallback((pieces: PuzzlePiece[]): boolean => {
-    const tolerance = 20; // 位置容差
-    return pieces.every(piece => {
-      const dx = Math.abs(piece.currentPosition.x - piece.correctPosition.x);
-      const dy = Math.abs(piece.currentPosition.y - piece.correctPosition.y);
-      return dx <= tolerance && dy <= tolerance && piece.rotation === 0;
+  const checkPuzzleComplete = useCallback((answerGrid: (PuzzlePiece | null)[]): boolean => {
+    // 检查所有槽位是否都被填满
+    if (answerGrid.some(slot => slot === null)) {
+      return false;
+    }
+    
+    // 检查每个拼图块是否在正确的位置（考虑旋转和翻转）
+    return answerGrid.every((piece, slotIndex) => {
+      if (!piece) return false;
+      // 基础位置检查
+      const isCorrectPosition = piece.correctSlot === slotIndex;
+      // 旋转和翻转检查（预留接口，当前阶段返回true）
+      const isCorrectOrientation = piece.rotation === 0 && !piece.isFlipped;
+      return isCorrectPosition && isCorrectOrientation;
     });
   }, []);
 
@@ -177,26 +236,50 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
     setGameState(prev => {
       if (!prev) return null;
 
+      let newAnswerGrid = [...prev.answerGrid];
       let updatedPieces = [...prev.config.pieces];
 
       switch (lastMove.action) {
-        case 'move':
-          if (lastMove.fromPosition) {
-            updatedPieces = updatedPieces.map(piece =>
-              piece.id === lastMove.pieceId 
-                ? { ...piece, currentPosition: lastMove.fromPosition! }
-                : piece
-            );
+        case 'place':
+          // 撤销放置：将拼图块从槽位移回原位置
+          if (lastMove.toSlot !== null && lastMove.toSlot !== undefined) {
+            newAnswerGrid[lastMove.toSlot] = null;
+          }
+          updatedPieces = updatedPieces.map(piece =>
+            piece.id === lastMove.pieceId 
+              ? { ...piece, currentSlot: lastMove.fromSlot || null }
+              : piece
+          );
+          // 如果从其他槽位移动，需要恢复原槽位
+          if (lastMove.fromSlot !== null && lastMove.fromSlot !== undefined) {
+            const originalPiece = updatedPieces.find(p => p.id === lastMove.pieceId);
+            if (originalPiece) {
+              newAnswerGrid[lastMove.fromSlot] = { ...originalPiece, currentSlot: lastMove.fromSlot };
+            }
+          }
+          break;
+        case 'remove':
+          // 撤销移除：将拼图块放回槽位
+          if (lastMove.fromSlot !== null && lastMove.fromSlot !== undefined) {
+            const piece = updatedPieces.find(p => p.id === lastMove.pieceId);
+            if (piece) {
+              newAnswerGrid[lastMove.fromSlot] = { ...piece, currentSlot: lastMove.fromSlot };
+              updatedPieces = updatedPieces.map(p =>
+                p.id === lastMove.pieceId ? { ...p, currentSlot: lastMove.fromSlot } : p
+              );
+            }
           }
           break;
         case 'rotate':
+          // 撤销旋转（预留功能）
           updatedPieces = updatedPieces.map(piece =>
             piece.id === lastMove.pieceId 
-              ? { ...piece, rotation: piece.rotation - 90 }
+              ? { ...piece, rotation: (piece.rotation - 90 + 360) % 360 }
               : piece
           );
           break;
         case 'flip':
+          // 撤销翻转（预留功能）
           updatedPieces = updatedPieces.map(piece =>
             piece.id === lastMove.pieceId 
               ? { ...piece, isFlipped: !piece.isFlipped }
@@ -210,6 +293,7 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
         config: { ...prev.config, pieces: updatedPieces },
         moves: Math.max(0, prev.moves - 1),
         history: newHistory,
+        answerGrid: newAnswerGrid,
       };
     });
   }, [gameState]);
@@ -236,10 +320,12 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
     setSelectedPiece,
     timer,
     initializeGame,
-    movePiece,
+    placePieceToSlot,
+    removePieceFromSlot,
     rotatePiece,
     flipPiece,
     undo,
     resetGame,
+    checkPuzzleComplete,
   };
 }

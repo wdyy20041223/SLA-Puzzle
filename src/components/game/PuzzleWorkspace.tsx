@@ -1,0 +1,66 @@
+import React from 'react';
+import { PuzzlePiece, GameState } from '../../types';
+import { PuzzlePieceArea } from './PuzzlePieceArea';
+import { AnswerGrid } from './AnswerGrid';
+import './PuzzleWorkspace.css';
+
+interface PuzzleWorkspaceProps {
+  gameState: GameState;
+  selectedPiece: string | null;
+  onPieceSelect: (pieceId: string) => void;
+  onPlacePiece: (pieceId: string, slotIndex: number) => void;
+  onRemovePiece: (pieceId: string) => void;
+  onRotatePiece?: (pieceId: string) => void;
+  onFlipPiece?: (pieceId: string) => void;
+}
+
+export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
+  gameState,
+  selectedPiece,
+  onPieceSelect,
+  onPlacePiece,
+  onRemovePiece,
+  onRotatePiece,
+  onFlipPiece,
+}) => {
+  // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
+  const processingAreaPieces = gameState.config.pieces.filter(piece => piece.currentSlot === null);
+  
+  return (
+    <div className="puzzle-workspace">
+      {/* 左侧：拼图处理区 */}
+      <div className="processing-area">
+        <div className="area-header">
+          <h3>拼图处理区</h3>
+          <span className="piece-count">{processingAreaPieces.length} 块</span>
+        </div>
+        <PuzzlePieceArea
+          pieces={processingAreaPieces}
+          selectedPieceId={selectedPiece}
+          onPieceSelect={onPieceSelect}
+          onRotatePiece={onRotatePiece}
+          onFlipPiece={onFlipPiece}
+        />
+      </div>
+
+      {/* 右侧：答题卡 */}
+      <div className="answer-area">
+        <div className="area-header">
+          <h3>拼图答题卡</h3>
+          <span className="grid-info">
+            {gameState.config.gridSize.rows} × {gameState.config.gridSize.cols}
+          </span>
+        </div>
+        <AnswerGrid
+          gridSize={gameState.config.gridSize}
+          answerGrid={gameState.answerGrid}
+          originalImage={gameState.config.originalImage}
+          selectedPieceId={selectedPiece}
+          onPlacePiece={onPlacePiece}
+          onRemovePiece={onRemovePiece}
+          onPieceSelect={onPieceSelect}
+        />
+      </div>
+    </div>
+  );
+};

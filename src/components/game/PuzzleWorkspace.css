@@ -1,0 +1,87 @@
+.puzzle-workspace {
+  display: flex;
+  gap: 20px;
+  height: 100%;
+  min-height: 600px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.processing-area,
+.answer-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.processing-area {
+  max-width: 40%;
+}
+
+.answer-area {
+  max-width: 60%;
+}
+
+.area-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.area-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.piece-count,
+.grid-info {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .puzzle-workspace {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .processing-area,
+  .answer-area {
+    max-width: 100%;
+  }
+  
+  .processing-area {
+    order: 2;
+  }
+  
+  .answer-area {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .puzzle-workspace {
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .area-header {
+    padding: 12px 16px;
+  }
+  
+  .area-header h3 {
+    font-size: 16px;
+  }
+}

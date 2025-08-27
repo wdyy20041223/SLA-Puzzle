@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Asset, PuzzleConfig, DifficultyLevel, PieceShape } from '../types';
 import { AssetLibrary } from '../components/game/AssetLibrary';
 import { Button } from '../components/common/Button';
+import { GameHelpButton } from '../components/common/GameHelp';
 import { PuzzleGenerator } from '../utils/puzzleGenerator';
 import './MainMenu.css';
 
@@ -58,8 +59,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   return (
     <div className="main-menu">
       <div className="menu-header">
-        <h1>🧩 拼图大师</h1>
-        <p>选择素材，开始你的拼图之旅</p>
+        <div className="header-content">
+          <h1>🧩 拼图大师</h1>
+          <p>选择素材，开始你的拼图之旅</p>
+        </div>
+        <div className="header-actions">
+          <GameHelpButton />
+        </div>
       </div>
 
       <div className="menu-content">
@@ -172,7 +178,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
       {/* 页脚 */}
       <div className="menu-footer">
-        <p>🎮 拖拽移动拼图块 | 双击旋转 | Ctrl+Z 撤销</p>
+        <p>🎮 点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销</p>
+        <p>💡 详细游戏说明请查看项目目录下的 <code>GAME_GUIDE.md</code> 文件</p>
         <p>© 2024 拼图大师 - Tauri + React + TypeScript</p>
       </div>
     </div>

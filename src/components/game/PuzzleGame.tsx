@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { usePuzzleGame } from '../../hooks/usePuzzleGame';
 import { PuzzleConfig } from '../../types';
-import { PuzzleBoard } from './PuzzleBoard';
+import { PuzzleWorkspace } from './PuzzleWorkspace';
 import { Button } from '../common/Button';
 import { Timer } from '../common/Timer';
+import { GameHelpButton } from '../common/GameHelp';
 import './PuzzleGame.css';
 
 interface PuzzleGameProps {
@@ -17,8 +18,6 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   onGameComplete,
   onBackToMenu,
 }) => {
-  const [showPreview, setShowPreview] = useState(false);
-  
   const {
     gameState,
     isGameStarted,
@@ -26,8 +25,10 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     setSelectedPiece,
     timer,
     initializeGame,
-    movePiece,
+    placePieceToSlot,
+    removePieceFromSlot,
     rotatePiece,
+    flipPiece,
     undo,
     resetGame,
   } = usePuzzleGame({ initialConfig: puzzleConfig });
@@ -47,12 +48,18 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   // 处理键盘快捷键
   React.useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (!selectedPiece) return;
-      
       switch (e.key) {
         case 'r':
         case 'R':
-          rotatePiece(selectedPiece, 0);
+          if (selectedPiece) {
+            rotatePiece(selectedPiece, 0);
+          }
+          break;
+        case 'f':
+        case 'F':
+          if (selectedPiece) {
+            flipPiece(selectedPiece);
+          }
           break;
         case 'z':
         case 'Z':
@@ -69,7 +76,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [selectedPiece, rotatePiece, undo, setSelectedPiece]);
+  }, [selectedPiece, rotatePiece, flipPiece, undo, setSelectedPiece]);
 
   if (!isGameStarted) {
     return (
@@ -108,51 +115,32 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         </div>
         
         <div className="game-controls">
-          <Button 
-            onClick={() => setShowPreview(!showPreview)} 
-            variant="secondary"
-            size="small"
-          >
-            {showPreview ? '隐藏预览' : '显示预览'}
-          </Button>
+          <GameHelpButton />
           <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
-            撤销
+            撤销 (Ctrl+Z)
           </Button>
           <Button onClick={resetGame} variant="secondary" size="small">
-            重置
+            重置游戏
           </Button>
           <Button onClick={onBackToMenu} variant="danger" size="small">
-            退出
+            退出游戏
           </Button>
         </div>
       </div>
 
       {/* 游戏主体 */}
       <div className="game-content">
-        {/* 预览区域 */}
-        {showPreview && (
-          <div className="preview-panel">
-            <h4>预览图</h4>
-            <img 
-              src={puzzleConfig.originalImage} 
-              alt="预览" 
-              className="preview-image"
-            />
-          </div>
-        )}
-
-        {/* 拼图板 */}
-        <div className="board-container">
-          <PuzzleBoard
-            pieces={gameState?.config.pieces || []}
-            selectedPieceId={selectedPiece}
+        {gameState && (
+          <PuzzleWorkspace
+            gameState={gameState}
+            selectedPiece={selectedPiece}
             onPieceSelect={setSelectedPiece}
-            onPieceMove={movePiece}
-            onPieceRotate={rotatePiece}
-            backgroundImage={showPreview ? puzzleConfig.originalImage : undefined}
-            boardSize={{ width: 800, height: 600 }}
+            onPlacePiece={placePieceToSlot}
+            onRemovePiece={removePieceFromSlot}
+            onRotatePiece={rotatePiece}
+            onFlipPiece={flipPiece}
           />
-        </div>
+        )}
 
         {/* 游戏完成提示 */}
         {gameState?.isCompleted && (
@@ -176,7 +164,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
       {/* 操作提示 */}
       <div className="game-tips">
-        <p>💡 操作提示：拖拽移动拼图块 | 双击旋转 | Ctrl+Z 撤销 | ESC 取消选择</p>
+        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | ESC 取消选择</p>
       </div>
     </div>
   );

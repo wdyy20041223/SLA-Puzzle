@@ -11,43 +11,32 @@ export class PuzzleGenerator {
   static async generatePuzzle(params: GeneratePuzzleParams): Promise<PuzzleConfig> {
     const { imageData, gridSize, pieceShape, name } = params;
     
-    // 对于SVG，使用固定尺寸，对于图片则动态获取
-    let imageWidth = 400;
-    let imageHeight = 400;
+    // 确保图片是正方形，统一处理尺寸
+    const targetSize = 400; // 统一的目标尺寸
     
-    if (!imageData.includes('svg')) {
-      // 创建图片元素来获取原始尺寸
-      const img = new Image();
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imageData;
-      });
-      imageWidth = img.width;
-      imageHeight = img.height;
-    }
-    
-    const pieceWidth = imageWidth / gridSize.cols;
-    const pieceHeight = imageHeight / gridSize.rows;
-
-    // 生成拼图块
+    // 生成正方形拼图块
     const pieces: PuzzlePiece[] = [];
-    for (let row = 0; row < gridSize.rows; row++) {
-      for (let col = 0; col < gridSize.cols; col++) {
-        const piece = await this.generatePiece({
-          imageData,
-          row,
-          col,
-          gridSize,
-          pieceWidth,
-          pieceHeight,
-          pieceShape,
-          imageWidth,
-          imageHeight,
-        });
-        pieces.push(piece);
-      }
+    const totalPieces = gridSize.rows * gridSize.cols;
+    const pieceSize = targetSize / gridSize.rows; // 每个拼图块的尺寸
+
+    for (let i = 0; i < totalPieces; i++) {
+      const row = Math.floor(i / gridSize.cols);
+      const col = i % gridSize.cols;
+      
+      const piece = await this.generateSquarePiece({
+        imageData,
+        index: i,
+        row,
+        col,
+        gridSize,
+        pieceSize,
+        targetSize,
+      });
+      pieces.push(piece);
     }
+
+    // 打乱拼图块顺序
+    const shuffledPieces = this.shufflePieces(pieces);
 
     const difficulty = this.calculateDifficulty(gridSize, pieceShape);
 
@@ -58,34 +47,22 @@ export class PuzzleGenerator {
       gridSize,
       pieceShape,
       difficulty,
-      pieces,
+      pieces: shuffledPieces,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
   }
 
-  private static async generatePiece(params: {
+  private static async generateSquarePiece(params: {
     imageData: string;
+    index: number;
     row: number;
     col: number;
     gridSize: { rows: number; cols: number };
-    pieceWidth: number;
-    pieceHeight: number;
-    pieceShape: PieceShape;
-    imageWidth: number;
-    imageHeight: number;
+    pieceSize: number;
+    targetSize: number;
   }): Promise<PuzzlePiece> {
-    const {
-      imageData,
-      row,
-      col,
-      gridSize,
-      pieceWidth,
-      pieceHeight,
-      pieceShape,
-      imageWidth,
-      imageHeight,
-    } = params;
+    const { imageData, index, row, col, gridSize, pieceSize, targetSize } = params;
 
     // 创建canvas来裁剪图片
     const canvas = document.createElement('canvas');
@@ -94,8 +71,8 @@ export class PuzzleGenerator {
       throw new Error('无法获取canvas上下文');
     }
 
-    canvas.width = pieceWidth;
-    canvas.height = pieceHeight;
+    canvas.width = pieceSize;
+    canvas.height = pieceSize;
 
     // 创建原始图片
     const img = new Image();
@@ -105,124 +82,49 @@ export class PuzzleGenerator {
       img.src = imageData;
     });
 
-    // 裁剪对应区域
+    // 计算源图片的实际尺寸和缩放比例
+    const sourceSize = Math.min(img.width, img.height);
+    const scale = targetSize / sourceSize;
+    const offsetX = (img.width - sourceSize) / 2;
+    const offsetY = (img.height - sourceSize) / 2;
+
+    // 裁剪对应区域（从正方形区域中裁剪）
     ctx.drawImage(
       img,
-      col * pieceWidth,
-      row * pieceHeight,
-      pieceWidth,
-      pieceHeight,
-      0,
-      0,
-      pieceWidth,
-      pieceHeight
+      offsetX + col * (sourceSize / gridSize.cols), // 源x
+      offsetY + row * (sourceSize / gridSize.rows), // 源y
+      sourceSize / gridSize.cols, // 源宽度
+      sourceSize / gridSize.rows, // 源高度
+      0, // 目标x
+      0, // 目标y
+      pieceSize, // 目标宽度
+      pieceSize  // 目标高度
     );
-
-    // 如果是异形拼图，添加形状遮罩
-    if (pieceShape === 'triangle' || pieceShape === 'irregular') {
-      this.applyShapeMask(ctx, pieceWidth, pieceHeight, pieceShape, row, col, gridSize);
-    }
 
     const pieceImageData = canvas.toDataURL('image/png');
 
     return {
-      id: `piece_${row}_${col}`,
-      originalIndex: row * gridSize.cols + col,
-      currentPosition: { x: 0, y: 0 },
-      correctPosition: { x: col * pieceWidth, y: row * pieceHeight },
+      id: `piece_${index}`,
+      originalIndex: index,
+      currentSlot: null, // 初始在处理区
+      correctSlot: index, // 正确的槽位就是其原始索引
       rotation: 0,
       isFlipped: false,
       imageData: pieceImageData,
-      width: pieceWidth,
-      height: pieceHeight,
-      shape: pieceShape,
+      width: pieceSize,
+      height: pieceSize,
+      shape: 'square',
     };
   }
 
-  private static applyShapeMask(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    shape: PieceShape,
-    row: number,
-    col: number,
-    gridSize: { rows: number; cols: number }
-  ): void {
-    // 创建遮罩
-    ctx.save();
-    ctx.globalCompositeOperation = 'destination-in';
-
-    switch (shape) {
-      case 'triangle':
-        // 创建三角形拼图块
-        ctx.beginPath();
-        const isUpward = (row + col) % 2 === 0;
-        if (isUpward) {
-          ctx.moveTo(0, height);
-          ctx.lineTo(width, height);
-          ctx.lineTo(width / 2, 0);
-        } else {
-          ctx.moveTo(0, 0);
-          ctx.lineTo(width, 0);
-          ctx.lineTo(width / 2, height);
-        }
-        ctx.closePath();
-        ctx.fill();
-        break;
-
-      case 'irregular':
-        // 创建不规则形状拼图块
-        this.createIrregularShape(ctx, width, height, row, col, gridSize);
-        break;
+  // 打乱拼图块顺序
+  private static shufflePieces(pieces: PuzzlePiece[]): PuzzlePiece[] {
+    const shuffled = [...pieces];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-
-    ctx.restore();
-  }
-
-  private static createIrregularShape(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number,
-    row: number,
-    col: number,
-    gridSize: { rows: number; cols: number }
-  ): void {
-    ctx.beginPath();
-    
-    // 基础矩形路径
-    const hasTopTab = row > 0 && Math.random() > 0.5;
-    const hasBottomTab = row < gridSize.rows - 1 && Math.random() > 0.5;
-    const hasLeftTab = col > 0 && Math.random() > 0.5;
-    const hasRightTab = col < gridSize.cols - 1 && Math.random() > 0.5;
-
-    const tabSize = Math.min(width, height) * 0.2;
-
-    // 左边
-    ctx.moveTo(hasLeftTab ? tabSize : 0, 0);
-    if (hasLeftTab) {
-      ctx.quadraticCurveTo(0, tabSize / 2, tabSize, tabSize);
-    }
-
-    // 底边
-    ctx.lineTo(width - (hasBottomTab ? tabSize : 0), height);
-    if (hasBottomTab) {
-      ctx.quadraticCurveTo(width - tabSize / 2, height, width, height - tabSize);
-    }
-
-    // 右边
-    ctx.lineTo(width, height - (hasRightTab ? tabSize : 0));
-    if (hasRightTab) {
-      ctx.quadraticCurveTo(width, height - tabSize / 2, width - tabSize, height - tabSize * 2);
-    }
-
-    // 顶边
-    ctx.lineTo(hasTopTab ? tabSize : 0, 0);
-    if (hasTopTab) {
-      ctx.quadraticCurveTo(tabSize / 2, 0, 0, tabSize);
-    }
-
-    ctx.closePath();
-    ctx.fill();
+    return shuffled;
   }
 
   private static calculateDifficulty(
@@ -232,11 +134,11 @@ export class PuzzleGenerator {
     const totalPieces = gridSize.rows * gridSize.cols;
     
     if (totalPieces <= 9) {
-      return pieceShape === 'square' ? 'easy' : 'medium';
+      return 'easy';
     } else if (totalPieces <= 16) {
-      return pieceShape === 'square' ? 'medium' : 'hard';
+      return 'medium';
     } else if (totalPieces <= 25) {
-      return pieceShape === 'square' ? 'hard' : 'expert';
+      return 'hard';
     } else {
       return 'expert';
     }
@@ -251,7 +153,7 @@ export class PuzzleGenerator {
       case 'hard':
         return { gridSize: { rows: 5, cols: 5 }, pieceShape: 'square' as PieceShape };
       case 'expert':
-        return { gridSize: { rows: 6, cols: 6 }, pieceShape: 'irregular' as PieceShape };
+        return { gridSize: { rows: 6, cols: 6 }, pieceShape: 'square' as PieceShape };
     }
   }
 }
