@@ -1,0 +1,38 @@
+.puzzle-board {
+  position: relative;
+  border: 2px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #F9FAFB;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.puzzle-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* 拼图板尺寸变体 */
+.puzzle-board.size-small {
+  width: 400px;
+  height: 400px;
+}
+
+.puzzle-board.size-medium {
+  width: 600px;
+  height: 600px;
+}
+
+.puzzle-board.size-large {
+  width: 800px;
+  height: 800px;
+}

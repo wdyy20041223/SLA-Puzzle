@@ -1,0 +1,33 @@
+.puzzle-piece {
+  position: absolute;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  user-select: none;
+  z-index: 1;
+}
+
+.puzzle-piece:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  z-index: 10;
+}
+
+.puzzle-piece.selected {
+  box-shadow: 0 0 0 3px #4F46E5, 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+}
+
+.puzzle-piece img {
+  border-radius: 4px;
+  display: block;
+}
+
+/* 不同形状的拼图块样式 */
+.puzzle-piece[data-shape="triangle"] {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.puzzle-piece[data-shape="irregular"] {
+  /* 不规则形状将在生成时通过canvas处理 */
+  border-radius: 8px;
+}

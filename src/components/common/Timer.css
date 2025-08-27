@@ -1,0 +1,36 @@
+.timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #F3F4F6;
+  border-radius: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.timer-running {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+  animation: pulse 2s infinite;
+}
+
+.timer-icon {
+  font-size: 20px;
+}
+
+.timer-text {
+  min-width: 60px;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
