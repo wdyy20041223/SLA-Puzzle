@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+GAME_GUIDE.md
+IMPLEMENTATION_SUMMARY.md
+.claude/
