@@ -151,26 +151,17 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
       {/* 游戏主体 */}
       <div className="game-content">
-        {!gameState ? (
-          <div style={{ padding: '20px', background: 'red', color: 'white' }}>
-            DEBUG: gameState 为空！
-          </div>
-        ) : (
-          <div>
-            <div style={{ padding: '10px', background: 'green', color: 'white' }}>
-              DEBUG: gameState 存在，拼图块数量: {gameState.config.pieces.length}
-            </div>
-            <PuzzleWorkspace
-              gameState={gameState}
-              selectedPiece={selectedPiece}
-              showAnswers={showAnswers}
-              onPieceSelect={setSelectedPiece}
-              onPlacePiece={placePieceToSlot}
-              onRemovePiece={removePieceFromSlot}
-              onRotatePiece={rotatePiece}
-              onFlipPiece={flipPiece}
-            />
-          </div>
+        {gameState && (
+          <PuzzleWorkspace
+            gameState={gameState}
+            selectedPiece={selectedPiece}
+            showAnswers={showAnswers}
+            onPieceSelect={setSelectedPiece}
+            onPlacePiece={placePieceToSlot}
+            onRemovePiece={removePieceFromSlot}
+            onRotatePiece={rotatePiece}
+            onFlipPiece={flipPiece}
+          />
         )}
 
 

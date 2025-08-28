@@ -1,17 +1,14 @@
 .puzzle-workspace {
   display: flex;
-  gap: 12px;
+  gap: 20px;
   height: 100%;
   min-height: 600px;
-  padding: 10px;
+  padding: 20px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   width: 100%;
   box-sizing: border-box;
-
-
-  /* 防止内容溢出 */
-  overflow: hidden;
-
+  /* 确保完全占满父容器 */
+  flex: 1;
 }
 
 .processing-area,
@@ -31,13 +28,13 @@
 }
 
 .processing-area {
-  /* max-width: 35%; */
-  flex: 3.5;
+  flex: 0 0 35%;
+  min-width: 350px;
 }
 
 .answer-area {
-  /* max-width: 65%; */
-  flex: 6.5;
+  flex: 1;
+  min-width: 500px;
 }
 
 .area-header {
