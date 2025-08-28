@@ -33,6 +33,15 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     flipPiece,
     undo,
     resetGame,
+    // 拖拽相关
+    draggedPiece,
+    dragOverSlot,
+    handleDragStart,
+    handleDragEnd,
+    handleDragOver,
+    handleDragLeave,
+    handleDropToSlot,
+    handleDropToProcessingArea,
   } = usePuzzleGame({ initialConfig: puzzleConfig });
 
   // 开始游戏
@@ -161,6 +170,14 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             onRemovePiece={removePieceFromSlot}
             onRotatePiece={rotatePiece}
             onFlipPiece={flipPiece}
+            draggedPiece={draggedPiece}
+            dragOverSlot={dragOverSlot}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDropToSlot={handleDropToSlot}
+            onDropToProcessingArea={handleDropToProcessingArea}
           />
         )}
 

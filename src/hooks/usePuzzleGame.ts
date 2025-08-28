@@ -4,7 +4,6 @@ import {
   GameState, 
   GameMove, 
   PuzzleConfig, 
-  DifficultyLevel,
   PieceShape 
 } from '../types';
 
@@ -17,7 +16,11 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<string | null>(null);
   const [timer, setTimer] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<number | null>(null);
+  
+  // 拖拽状态
+  const [draggedPiece, setDraggedPiece] = useState<string | null>(null);
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
 
   // 初始化游戏
   const initializeGame = useCallback((config: PuzzleConfig) => {
@@ -123,6 +126,9 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
 
       return newGameState;
     });
+    
+    // 成功放置后自动取消选择，避免用户误操作
+    setSelectedPiece(null);
   }, []);
 
   // 将拼图块从槽位移回处理区
@@ -280,9 +286,10 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
           if (lastMove.fromSlot !== null && lastMove.fromSlot !== undefined) {
             const piece = updatedPieces.find(p => p.id === lastMove.pieceId);
             if (piece) {
-              newAnswerGrid[lastMove.fromSlot] = { ...piece, currentSlot: lastMove.fromSlot };
+              const fromSlot = lastMove.fromSlot as number;
+              newAnswerGrid[fromSlot] = { ...piece, currentSlot: fromSlot };
               updatedPieces = updatedPieces.map(p =>
-                p.id === lastMove.pieceId ? { ...p, currentSlot: lastMove.fromSlot } : p
+                p.id === lastMove.pieceId ? { ...p, currentSlot: fromSlot } : p
               );
             }
           }
@@ -290,16 +297,17 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
         case 'replace':
           // 撤销替换：将新拼图块移回原位置，恢复被替换的拼图块
           if (lastMove.toSlot !== null && lastMove.toSlot !== undefined) {
+            const toSlot = lastMove.toSlot as number;
             // 移除新放置的拼图块
-            newAnswerGrid[lastMove.toSlot] = null;
+            newAnswerGrid[toSlot] = null;
             
             // 如果被替换的拼图块存在，将其恢复到原位置
             if (lastMove.replacedPieceId) {
               const replacedPiece = updatedPieces.find(p => p.id === lastMove.replacedPieceId);
               if (replacedPiece) {
-                newAnswerGrid[lastMove.toSlot] = { ...replacedPiece, currentSlot: lastMove.toSlot };
+                newAnswerGrid[toSlot] = { ...replacedPiece, currentSlot: toSlot };
                 updatedPieces = updatedPieces.map(p =>
-                  p.id === lastMove.replacedPieceId ? { ...p, currentSlot: lastMove.toSlot } : p
+                  p.id === lastMove.replacedPieceId ? { ...p, currentSlot: toSlot } : p
                 );
               }
             }
@@ -354,6 +362,51 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
     initializeGame(gameState.config);
   }, [gameState, initializeGame]);
 
+  // 拖拽开始
+  const handleDragStart = useCallback((pieceId: string) => {
+    setDraggedPiece(pieceId);
+  }, []);
+
+  // 拖拽结束
+  const handleDragEnd = useCallback(() => {
+    setDraggedPiece(null);
+    setDragOverSlot(null);
+  }, []);
+
+  // 拖拽悬停在槽位上
+  const handleDragOver = useCallback((slotIndex: number) => {
+    setDragOverSlot(slotIndex);
+  }, []);
+
+  // 拖拽离开槽位
+  const handleDragLeave = useCallback(() => {
+    setDragOverSlot(null);
+  }, []);
+
+  // 放置到槽位
+  const handleDropToSlot = useCallback((targetSlot: number) => {
+    if (!draggedPiece || !gameState) return;
+
+    // 使用现有的放置逻辑
+    placePieceToSlot(draggedPiece, targetSlot);
+    
+    // 清理拖拽状态
+    setDraggedPiece(null);
+    setDragOverSlot(null);
+  }, [draggedPiece, gameState, placePieceToSlot]);
+
+  // 放置到处理区（移除）
+  const handleDropToProcessingArea = useCallback(() => {
+    if (!draggedPiece || !gameState) return;
+
+    // 使用现有的移除逻辑
+    removePieceFromSlot(draggedPiece);
+    
+    // 清理拖拽状态
+    setDraggedPiece(null);
+    setDragOverSlot(null);
+  }, [draggedPiece, gameState, removePieceFromSlot]);
+
   // 清理计时器
   useEffect(() => {
     return () => {
@@ -377,5 +430,14 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
     undo,
     resetGame,
     checkPuzzleComplete,
+    // 拖拽相关
+    draggedPiece,
+    dragOverSlot,
+    handleDragStart,
+    handleDragEnd,
+    handleDragOver,
+    handleDragLeave,
+    handleDropToSlot,
+    handleDropToProcessingArea,
   };
 }

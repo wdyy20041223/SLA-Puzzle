@@ -11,6 +11,14 @@ interface AnswerGridProps {
   onPlacePiece: (pieceId: string, slotIndex: number) => void;
   onRemovePiece: (pieceId: string) => void;
   onPieceSelect: (pieceId: string | null) => void;
+  // 拖拽相关
+  draggedPiece?: string | null;
+  dragOverSlot?: number | null;
+  onDragStart?: (pieceId: string) => void;
+  onDragEnd?: () => void;
+  onDragOver?: (slotIndex: number) => void;
+  onDragLeave?: () => void;
+  onDropToSlot?: (targetSlot: number) => void;
 }
 
 export const AnswerGrid: React.FC<AnswerGridProps> = ({
@@ -22,6 +30,13 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   onPlacePiece,
   onRemovePiece,
   onPieceSelect,
+  draggedPiece,
+  dragOverSlot,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDropToSlot,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,6 +106,42 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
     return index + 1;
   };
 
+  // 拖拽事件处理函数
+  const handlePieceDragStart = (e: React.DragEvent, pieceId: string) => {
+    e.dataTransfer.setData('text/plain', pieceId);
+    e.dataTransfer.effectAllowed = 'move';
+    if (onDragStart) {
+      onDragStart(pieceId);
+    }
+  };
+
+  const handlePieceDragEnd = () => {
+    if (onDragEnd) {
+      onDragEnd();
+    }
+  };
+
+  const handleSlotDragOver = (e: React.DragEvent, slotIndex: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (onDragOver) {
+      onDragOver(slotIndex);
+    }
+  };
+
+  const handleSlotDragLeave = () => {
+    if (onDragLeave) {
+      onDragLeave();
+    }
+  };
+
+  const handleSlotDrop = (e: React.DragEvent, slotIndex: number) => {
+    e.preventDefault();
+    if (onDropToSlot) {
+      onDropToSlot(slotIndex);
+    }
+  };
+
 
 
   // 计算完成度和正确率
@@ -139,8 +190,15 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
               selectedPieceId && !piece ? 'highlight' : ''
             } ${
               piece && selectedPieceId === piece.id ? 'selected' : ''
+            } ${
+              dragOverSlot === index ? 'drag-over' : ''
+            } ${
+              draggedPiece === piece?.id ? 'dragging' : ''
             }`}
             onClick={() => handleSlotClick(index)}
+            onDragOver={(e) => handleSlotDragOver(e, index)}
+            onDragLeave={handleSlotDragLeave}
+            onDrop={(e) => handleSlotDrop(e, index)}
             style={{
               width: `${cellSize}px`,
               height: `${cellSize}px`,
@@ -153,6 +211,9 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
             {piece !== null && piece !== undefined && (
               <div 
                 className="placed-piece"
+                draggable={true}
+                onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                onDragEnd={handlePieceDragEnd}
                 style={{
                   transform: `rotate(${piece.rotation}deg) ${
                     piece.isFlipped ? 'scaleX(-1)' : ''

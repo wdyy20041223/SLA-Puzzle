@@ -52,6 +52,28 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
+/* 拖拽相关样式 */
+.puzzle-piece-item.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  cursor: grabbing;
+}
+
+.puzzle-piece-area {
+  position: relative;
+}
+
+/* 拖放区域效果 */
+.puzzle-piece-area.can-drop {
+  transition: all 0.3s ease;
+}
+
+.puzzle-piece-area.can-drop:hover {
+  background: rgba(16, 185, 129, 0.05);
+  border: 2px dashed #10b981;
+  border-radius: 8px;
+}
+
 .piece-number {
   position: absolute;
   top: 4px;

@@ -124,6 +124,38 @@
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
+/* 拖拽相关样式 */
+.grid-slot.drag-over {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  border-style: dashed;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.placed-piece.dragging {
+  opacity: 0.5;
+  transform: scale(0.95);
+  cursor: grabbing;
+}
+
+.placed-piece {
+  cursor: grab;
+}
+
+.placed-piece:active {
+  cursor: grabbing;
+}
+
 .slot-number {
   position: absolute;
   top: 4px;

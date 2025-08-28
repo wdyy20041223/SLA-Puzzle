@@ -13,6 +13,15 @@ interface PuzzleWorkspaceProps {
   onRemovePiece: (pieceId: string) => void;
   onRotatePiece?: (pieceId: string) => void;
   onFlipPiece?: (pieceId: string) => void;
+  // 拖拽相关
+  draggedPiece?: string | null;
+  dragOverSlot?: number | null;
+  onDragStart?: (pieceId: string) => void;
+  onDragEnd?: () => void;
+  onDragOver?: (slotIndex: number) => void;
+  onDragLeave?: () => void;
+  onDropToSlot?: (targetSlot: number) => void;
+  onDropToProcessingArea?: () => void;
 }
 
 export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
@@ -24,6 +33,14 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   onRemovePiece,
   onRotatePiece,
   onFlipPiece,
+  draggedPiece,
+  dragOverSlot,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDropToSlot,
+  onDropToProcessingArea,
 }) => {
   // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
   const processingAreaPieces = gameState.config.pieces.filter(piece => piece.currentSlot === null);
@@ -43,6 +60,10 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           onPieceSelect={onPieceSelect}
           onRotatePiece={onRotatePiece}
           onFlipPiece={onFlipPiece}
+          draggedPiece={draggedPiece}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDropToProcessingArea={onDropToProcessingArea}
         />
       </div>
 
@@ -63,6 +84,13 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           onPlacePiece={onPlacePiece}
           onRemovePiece={onRemovePiece}
           onPieceSelect={onPieceSelect}
+          draggedPiece={draggedPiece}
+          dragOverSlot={dragOverSlot}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDropToSlot={onDropToSlot}
         />
       </div>
     </div>

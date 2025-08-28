@@ -9,6 +9,11 @@ interface PuzzlePieceAreaProps {
   onPieceSelect: (pieceId: string | null) => void;
   onRotatePiece?: (pieceId: string) => void;
   onFlipPiece?: (pieceId: string) => void;
+  // 拖拽相关
+  draggedPiece?: string | null;
+  onDragStart?: (pieceId: string) => void;
+  onDragEnd?: () => void;
+  onDropToProcessingArea?: () => void;
 }
 
 export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
@@ -18,6 +23,10 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
   onPieceSelect,
   onRotatePiece,
   onFlipPiece,
+  draggedPiece,
+  onDragStart,
+  onDragEnd,
+  onDropToProcessingArea,
 }) => {
   const handlePieceClick = (pieceId: string) => {
     onPieceSelect(pieceId);
@@ -38,8 +47,40 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
     }
   };
 
+  // 拖拽处理函数
+  const handleDragStart = (e: React.DragEvent, pieceId: string) => {
+    e.dataTransfer.setData('text/plain', pieceId);
+    e.dataTransfer.effectAllowed = 'move';
+    if (onDragStart) {
+      onDragStart(pieceId);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (onDragEnd) {
+      onDragEnd();
+    }
+  };
+
+  // 处理区作为拖放目标（用于接收从槽位拖回来的拼图）
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (onDropToProcessingArea) {
+      onDropToProcessingArea();
+    }
+  };
+
   return (
-    <div className="puzzle-piece-area">
+    <div 
+      className={`puzzle-piece-area ${draggedPiece ? 'can-drop' : ''}`}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {pieces.length === 0 ? (
         <div className="empty-area">
           <p>🎉 所有拼图块都已放置！</p>
@@ -51,10 +92,13 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
               key={piece.id}
               className={`puzzle-piece-item ${
                 selectedPieceId === piece.id ? 'selected' : ''
-              }`}
+              } ${draggedPiece === piece.id ? 'dragging' : ''}`}
+              draggable={true}
               onClick={() => handlePieceClick(piece.id)}
               onDoubleClick={() => handlePieceDoubleClick(piece.id)}
               onContextMenu={(e) => handleContextMenu(e, piece.id)}
+              onDragStart={(e) => handleDragStart(e, piece.id)}
+              onDragEnd={handleDragEnd}
               style={{
                 transform: `rotate(${piece.rotation}deg) ${
                   piece.isFlipped ? 'scaleX(-1)' : ''
@@ -83,6 +127,7 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
       {pieces.length > 0 && (
         <div className="area-tips">
           <p>💡 点击选择拼图块，然后点击答题卡中的目标位置</p>
+          <p>🖱️ 或直接拖拽拼图块到答题卡槽位</p>
           <p>🔄 双击可旋转（预留功能）</p>
           <p>🔁 右键可翻转（预留功能）</p>
         </div>
