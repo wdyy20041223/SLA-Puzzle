@@ -1,10 +1,17 @@
 .puzzle-workspace {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   height: 100%;
   min-height: 600px;
-  padding: 20px;
+  padding: 10px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  width: 100%;
+  box-sizing: border-box;
+
+
+  /* 防止内容溢出 */
+  overflow: hidden;
+
 }
 
 .processing-area,
@@ -16,14 +23,21 @@
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  /* 移除最大宽度限制 */
+  max-width: none;
+  
+  /* 防止内容溢出 */
+  min-height: 0;
 }
 
 .processing-area {
-  max-width: 40%;
+  /* max-width: 35%; */
+  flex: 3.5;
 }
 
 .answer-area {
-  max-width: 60%;
+  /* max-width: 65%; */
+  flex: 6.5;
 }
 
 .area-header {
@@ -33,6 +47,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  flex-shrink: 0; /* 防止头部被压缩 */
+
 }
 
 .area-header h3 {
