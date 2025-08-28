@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { 
   PuzzlePiece, 
   GameState, 
@@ -57,7 +58,6 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
 
   // 将拼图块放置到槽位
   const placePieceToSlot = useCallback((pieceId: string, targetSlot: number) => {
-    if (!gameState) return;
 
     setGameState(prev => {
       if (!prev) return null;
@@ -71,27 +71,37 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
       // 更新答题卡网格
       const newAnswerGrid = [...prev.answerGrid];
       
-      // 如果目标槽位有拼图块，将其移回处理区
-      if (existingPiece) {
-        const updatedExistingPiece = { ...existingPiece, currentSlot: null };
-        const existingPieceIndex = prev.config.pieces.findIndex(p => p.id === existingPiece.id);
-        prev.config.pieces[existingPieceIndex] = updatedExistingPiece;
+      // 如果拼图块之前在其他槽位，清空原槽位
+      if (piece.currentSlot !== null) {
+        newAnswerGrid[piece.currentSlot] = null;
       }
       
-      // 将当前拼图块放入目标槽位
-      newAnswerGrid[targetSlot] = { ...piece, currentSlot: targetSlot };
+      // 更新拼图块列表：处理现有拼图块和新拼图块
+      const updatedPieces = prev.config.pieces.map(p => {
+        if (existingPiece && p.id === existingPiece.id) {
+          // 如果目标槽位有拼图块，将其移回处理区
+          return { ...p, currentSlot: null };
+        } else if (p.id === pieceId) {
+          // 更新当前拼图块的槽位
+          return { ...p, currentSlot: targetSlot };
+        }
+        return p;
+      });
       
-      // 更新拼图块列表
-      const updatedPieces = prev.config.pieces.map(p =>
-        p.id === pieceId ? { ...p, currentSlot: targetSlot } : p
-      );
+      // 将更新后的拼图块放入目标槽位
+      const updatedPiece = updatedPieces.find(p => p.id === pieceId);
+      newAnswerGrid[targetSlot] = updatedPiece || null;
 
+      // 确定操作类型
+      const actionType = existingPiece ? 'replace' : 'place';
+      
       const move: GameMove = {
         id: Date.now().toString(),
         pieceId,
-        action: 'place',
+        action: actionType,
         fromSlot: piece.currentSlot,
         toSlot: targetSlot,
+        replacedPieceId: existingPiece?.id,
         timestamp: new Date(),
       };
 
@@ -114,21 +124,33 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
 
       return newGameState;
     });
-  }, [gameState]);
+  }, []);
 
   // 将拼图块从槽位移回处理区
   const removePieceFromSlot = useCallback((pieceId: string) => {
-    if (!gameState) return;
+    console.log('=== removePieceFromSlot 开始 ===');
+    console.log('要移除的拼图块ID:', pieceId);
 
-    setGameState(prev => {
-      if (!prev) return null;
+    flushSync(() => {
+      setGameState(prev => {
+        if (!prev) return null;
 
       const piece = prev.config.pieces.find(p => p.id === pieceId);
-      if (!piece || piece.currentSlot === null) return prev;
+      console.log('找到的拼图块:', piece);
+      
+      if (!piece || piece.currentSlot === null) {
+        console.log('拼图块不存在或currentSlot为null，返回原状态');
+        return prev;
+      }
+
+      console.log('拼图块当前槽位:', piece.currentSlot);
+      console.log('移除前的answerGrid:', prev.answerGrid.map((p, i) => ({ slot: i, pieceId: p?.id })));
 
       // 更新答题卡网格
       const newAnswerGrid = [...prev.answerGrid];
       newAnswerGrid[piece.currentSlot] = null;
+      
+      console.log('移除后的newAnswerGrid:', newAnswerGrid.map((p, i) => ({ slot: i, pieceId: p?.id })));
       
       // 更新拼图块列表
       const updatedPieces = prev.config.pieces.map(p =>
@@ -144,15 +166,26 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
         timestamp: new Date(),
       };
 
-      return {
+      const newState = {
         ...prev,
         config: { ...prev.config, pieces: updatedPieces },
         moves: prev.moves + 1,
         history: [...prev.history, move],
         answerGrid: newAnswerGrid,
       };
+      
+      console.log('返回的新状态answerGrid:', newState.answerGrid.map((p, i) => ({ slot: i, pieceId: p?.id })));
+      console.log('=== removePieceFromSlot 结束 ===');
+      
+        return newState;
+      });
     });
-  }, [gameState]);
+    
+    // 如果移除的是当前选中的拼图块，取消选择
+    if (selectedPiece === pieceId) {
+      setSelectedPiece(null);
+    }
+  }, []);
 
   // 旋转拼图块
   const rotatePiece = useCallback((pieceId: string, rotation: number) => {
@@ -267,6 +300,39 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
               updatedPieces = updatedPieces.map(p =>
                 p.id === lastMove.pieceId ? { ...p, currentSlot: lastMove.fromSlot } : p
               );
+            }
+          }
+          break;
+        case 'replace':
+          // 撤销替换：将新拼图块移回原位置，恢复被替换的拼图块
+          if (lastMove.toSlot !== null && lastMove.toSlot !== undefined) {
+            // 移除新放置的拼图块
+            newAnswerGrid[lastMove.toSlot] = null;
+            
+            // 如果被替换的拼图块存在，将其恢复到原位置
+            if (lastMove.replacedPieceId) {
+              const replacedPiece = updatedPieces.find(p => p.id === lastMove.replacedPieceId);
+              if (replacedPiece) {
+                newAnswerGrid[lastMove.toSlot] = { ...replacedPiece, currentSlot: lastMove.toSlot };
+                updatedPieces = updatedPieces.map(p =>
+                  p.id === lastMove.replacedPieceId ? { ...p, currentSlot: lastMove.toSlot } : p
+                );
+              }
+            }
+            
+            // 将新拼图块移回原位置
+            updatedPieces = updatedPieces.map(piece =>
+              piece.id === lastMove.pieceId 
+                ? { ...piece, currentSlot: lastMove.fromSlot || null }
+                : piece
+            );
+            
+            // 如果新拼图块原来在其他槽位，恢复那个槽位
+            if (lastMove.fromSlot !== null && lastMove.fromSlot !== undefined) {
+              const originalPiece = updatedPieces.find(p => p.id === lastMove.pieceId);
+              if (originalPiece) {
+                newAnswerGrid[lastMove.fromSlot] = { ...originalPiece, currentSlot: lastMove.fromSlot };
+              }
             }
           }
           break;

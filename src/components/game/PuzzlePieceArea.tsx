@@ -6,7 +6,7 @@ interface PuzzlePieceAreaProps {
   pieces: PuzzlePiece[];
   selectedPieceId: string | null;
   showAnswers: boolean;
-  onPieceSelect: (pieceId: string) => void;
+  onPieceSelect: (pieceId: string | null) => void;
   onRotatePiece?: (pieceId: string) => void;
   onFlipPiece?: (pieceId: string) => void;
 }

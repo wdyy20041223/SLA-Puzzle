@@ -8,7 +8,7 @@ interface PuzzleWorkspaceProps {
   gameState: GameState;
   selectedPiece: string | null;
   showAnswers: boolean;
-  onPieceSelect: (pieceId: string) => void;
+  onPieceSelect: (pieceId: string | null) => void;
   onPlacePiece: (pieceId: string, slotIndex: number) => void;
   onRemovePiece: (pieceId: string) => void;
   onRotatePiece?: (pieceId: string) => void;

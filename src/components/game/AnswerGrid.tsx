@@ -10,7 +10,7 @@ interface AnswerGridProps {
   showAnswers: boolean;
   onPlacePiece: (pieceId: string, slotIndex: number) => void;
   onRemovePiece: (pieceId: string) => void;
-  onPieceSelect: (pieceId: string) => void;
+  onPieceSelect: (pieceId: string | null) => void;
 }
 
 export const AnswerGrid: React.FC<AnswerGridProps> = ({
@@ -62,17 +62,31 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   const handleSlotClick = (slotIndex: number) => {
     const existingPiece = answerGrid[slotIndex];
     
+    console.log('=== 槽位点击调试 ===');
+    console.log('点击槽位:', slotIndex);
+    console.log('槽位现有拼图块:', existingPiece);
+    console.log('当前选中拼图块:', selectedPieceId);
+    console.log('整个answerGrid:', answerGrid.map((p, i) => ({ slot: i, pieceId: p?.id, currentSlot: p?.currentSlot })));
+    
     if (existingPiece) {
-      // 如果槽位有拼图块，选择或移除它
+      // 如果槽位有拼图块
       if (selectedPieceId === existingPiece.id) {
-        // 如果点击的是已选择的拼图块，将其移回处理区
+        // 如果点击的是当前选中的拼图块，取消选择并移除
+        console.log('点击已选中的拼图块，执行移除操作，拼图块ID:', existingPiece.id);
+        onPieceSelect(null); // 取消选择
         onRemovePiece(existingPiece.id);
+      } else if (selectedPieceId && selectedPieceId !== existingPiece.id) {
+        // 如果有其他选中的拼图块，执行替换
+        console.log('执行替换操作，拼图块ID:', selectedPieceId, '到槽位:', slotIndex);
+        onPlacePiece(selectedPieceId, slotIndex);
       } else {
-        // 否则选择这个拼图块
-        onPieceSelect(existingPiece.id);
+        // 没有选中拼图块时，直接移除现有拼图块
+        console.log('执行移除操作，拼图块ID:', existingPiece.id);
+        onRemovePiece(existingPiece.id);
       }
     } else if (selectedPieceId) {
       // 如果槽位为空且有选中的拼图块，放置拼图块
+      console.log('执行放置操作，拼图块ID:', selectedPieceId, '到槽位:', slotIndex);
       onPlacePiece(selectedPieceId, slotIndex);
     }
   };
@@ -80,6 +94,24 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   const getSlotNumber = (index: number): number => {
     return index + 1;
   };
+
+  // 监控answerGrid变化
+  useEffect(() => {
+    console.log('AnswerGrid 组件接收到新的 answerGrid:', answerGrid.map((p, i) => ({ 
+      slot: i, 
+      pieceId: p?.id, 
+      currentSlot: p?.currentSlot 
+    })));
+    console.log('answerGrid 引用:', answerGrid);
+    console.log('answerGrid 长度:', answerGrid.length);
+  }, [answerGrid]);
+
+  // 强制重新渲染的计数器
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    // 每次 answerGrid 变化时强制重新渲染
+    forceUpdate(prev => prev + 1);
+  }, [answerGrid]);
 
   // 计算完成度和正确率
   const completedCount = answerGrid.filter(slot => slot !== null).length;
@@ -122,7 +154,7 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
       >
         {answerGrid.map((piece, index) => (
           <div
-            key={index}
+            key={`slot-${index}-${piece?.id || 'empty'}`}
             className={`grid-slot ${piece ? 'occupied' : 'empty'} ${
               selectedPieceId && !piece ? 'highlight' : ''
             } ${
@@ -138,7 +170,7 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
             <div className="slot-number">{getSlotNumber(index)}</div>
             
             {/* 拼图块 */}
-            {piece && (
+            {piece !== null && piece !== undefined && (
               <div 
                 className="placed-piece"
                 style={{

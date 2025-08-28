@@ -47,9 +47,10 @@ export interface GameState {
 export interface GameMove {
   id: string;
   pieceId: string;
-  action: 'place' | 'remove' | 'rotate' | 'flip';
+  action: 'place' | 'remove' | 'rotate' | 'flip' | 'replace';
   fromSlot?: number | null; // 从哪个槽位移动（null表示从处理区）
   toSlot?: number | null; // 移动到哪个槽位（null表示移回处理区）
+  replacedPieceId?: string; // 被替换的拼图块ID（仅用于replace操作）
   timestamp: Date;
 }
 
