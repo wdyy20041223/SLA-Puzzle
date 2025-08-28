@@ -84,10 +84,11 @@
 
 .selected-asset {
   margin-bottom: 24px;
-  padding: 16px;
+  padding: 20px;
   background: #F8FAFC;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .selected-asset h4 {
@@ -98,13 +99,13 @@
 
 .asset-preview {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: flex-start;
 }
 
 .preview-image {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 8px;
   overflow: hidden;
   background: #E2E8F0;
@@ -112,6 +113,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  flex-shrink: 0;
 }
 
 .selected-asset-image {

@@ -7,6 +7,7 @@ interface AnswerGridProps {
   answerGrid: (PuzzlePiece | null)[];
   originalImage: string;
   selectedPieceId: string | null;
+  showAnswers: boolean;
   onPlacePiece: (pieceId: string, slotIndex: number) => void;
   onRemovePiece: (pieceId: string) => void;
   onPieceSelect: (pieceId: string) => void;
@@ -17,6 +18,7 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   answerGrid,
   originalImage,
   selectedPieceId,
+  showAnswers,
   onPlacePiece,
   onRemovePiece,
   onPieceSelect,
@@ -151,16 +153,20 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
                   className="piece-image"
                   draggable={false}
                 />
-                <div className="piece-info">
-                  {piece.originalIndex + 1}
-                </div>
+                {showAnswers && (
+                  <div className="piece-info">
+                    {piece.originalIndex + 1}
+                  </div>
+                )}
                 
                 {/* 正确性指示器 */}
-                <div className={`correctness-indicator ${
-                  piece.correctSlot === index ? 'correct' : 'incorrect'
-                }`}>
-                  {piece.correctSlot === index ? '✓' : '✗'}
-                </div>
+                {showAnswers && (
+                  <div className={`correctness-indicator ${
+                    piece.correctSlot === index ? 'correct' : 'incorrect'
+                  }`}>
+                    {piece.correctSlot === index ? '✓' : '✗'}
+                  </div>
+                )}
               </div>
             )}
             

@@ -59,6 +59,7 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           answerGrid={gameState.answerGrid}
           originalImage={gameState.config.originalImage}
           selectedPieceId={selectedPiece}
+          showAnswers={showAnswers}
           onPlacePiece={onPlacePiece}
           onRemovePiece={onRemovePiece}
           onPieceSelect={onPieceSelect}
