@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { flushSync } from 'react-dom';
 import { 
   PuzzlePiece, 
   GameState, 
@@ -128,29 +127,18 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
 
   // 将拼图块从槽位移回处理区
   const removePieceFromSlot = useCallback((pieceId: string) => {
-    console.log('=== removePieceFromSlot 开始 ===');
-    console.log('要移除的拼图块ID:', pieceId);
-
-    flushSync(() => {
-      setGameState(prev => {
+    setGameState(prev => {
         if (!prev) return null;
 
       const piece = prev.config.pieces.find(p => p.id === pieceId);
-      console.log('找到的拼图块:', piece);
       
       if (!piece || piece.currentSlot === null) {
-        console.log('拼图块不存在或currentSlot为null，返回原状态');
         return prev;
       }
-
-      console.log('拼图块当前槽位:', piece.currentSlot);
-      console.log('移除前的answerGrid:', prev.answerGrid.map((p, i) => ({ slot: i, pieceId: p?.id })));
 
       // 更新答题卡网格
       const newAnswerGrid = [...prev.answerGrid];
       newAnswerGrid[piece.currentSlot] = null;
-      
-      console.log('移除后的newAnswerGrid:', newAnswerGrid.map((p, i) => ({ slot: i, pieceId: p?.id })));
       
       // 更新拼图块列表
       const updatedPieces = prev.config.pieces.map(p =>
@@ -174,11 +162,7 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
         answerGrid: newAnswerGrid,
       };
       
-      console.log('返回的新状态answerGrid:', newState.answerGrid.map((p, i) => ({ slot: i, pieceId: p?.id })));
-      console.log('=== removePieceFromSlot 结束 ===');
-      
-        return newState;
-      });
+      return newState;
     });
     
     // 如果移除的是当前选中的拼图块，取消选择
