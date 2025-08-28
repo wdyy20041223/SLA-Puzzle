@@ -33,6 +33,9 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     resetGame,
   } = usePuzzleGame({ initialConfig: puzzleConfig });
 
+  // 添加预览状态
+  const [showPreview, setShowPreview] = useState(false);
+
   // 开始游戏
   const startGame = useCallback(() => {
     initializeGame(puzzleConfig);
@@ -115,6 +118,14 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         </div>
         
         <div className="game-controls">
+          {/* 添加预览按钮 */}
+          <Button 
+            onClick={() => setShowPreview(true)} 
+            variant="secondary" 
+            size="small"
+          >
+            原图预览
+          </Button>
           <GameHelpButton />
           <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
             撤销 (Ctrl+Z)
@@ -140,6 +151,27 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             onRotatePiece={rotatePiece}
             onFlipPiece={flipPiece}
           />
+        )}
+
+        {/* 预览模态框 */}
+        {showPreview && (
+          <div className="preview-modal" onClick={() => setShowPreview(false)}>
+            <div className="preview-content" onClick={(e) => e.stopPropagation()}>
+              <div className="preview-body">
+                <h3>原图预览</h3>
+                <img 
+                  src={puzzleConfig.originalImage} 
+                  alt="原图预览" 
+                  className="preview-image"
+                />
+              </div>
+              <div className="preview-footer">
+                <Button onClick={() => setShowPreview(false)} variant="primary" size="medium">
+                  关闭
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* 游戏完成提示 */}

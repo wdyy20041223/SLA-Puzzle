@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PuzzlePiece } from '../../types';
 import './AnswerGrid.css';
 
@@ -21,6 +21,42 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   onRemovePiece,
   onPieceSelect,
 }) => {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(80); // 默认单元格大小
+
+  // 计算合适的单元格大小
+  const calculateCellSize = useCallback(() => {
+    if (!gridRef.current || !containerRef.current) return;
+    
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+    
+    // 获取网格信息区域的高度
+    const gridInfoElement = containerRef.current.querySelector('.grid-info');
+    const gridInfoHeight = gridInfoElement?.clientHeight || 60; // 默认60px
+    
+    // 减去内边距、网格信息和间隙
+    const horizontalPadding = 40; // 20px padding * 2
+    const verticalPadding = 40; // 20px padding * 2
+    
+    const availableWidth = containerWidth - horizontalPadding;
+    const availableHeight = containerHeight - verticalPadding - gridInfoHeight;
+    
+    // 计算水平和垂直方向的最大单元格大小
+    const maxCellWidth = Math.floor(availableWidth / gridSize.cols);
+    const maxCellHeight = Math.floor(availableHeight / gridSize.rows);
+    
+    // 取较小值确保所有单元格都能显示
+    const newSize = Math.min(maxCellWidth, maxCellHeight, 160); // 最大160px
+    
+    // 确保单元格大小合理
+    const finalSize = Math.max(120, newSize); // 最小120px
+    
+    setCellSize(finalSize);
+  }, [gridSize.cols, gridSize.rows]);
+
+  // 处理槽位点击
   const handleSlotClick = (slotIndex: number) => {
     const existingPiece = answerGrid[slotIndex];
     
@@ -43,25 +79,44 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
     return index + 1;
   };
 
+  // 计算完成度和正确率
+  const completedCount = answerGrid.filter(slot => slot !== null).length;
+  const correctCount = answerGrid.filter((piece, index) => 
+    piece && piece.correctSlot === index && piece.rotation === 0 && !piece.isFlipped
+  ).length;
+
+  // 监听窗口大小变化
+  useEffect(() => {
+    calculateCellSize();
+    
+    const handleResize = () => {
+      calculateCellSize();
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [calculateCellSize]);
+
+  // 当网格尺寸变化时重新计算
+  useEffect(() => {
+    calculateCellSize();
+  }, [gridSize, calculateCellSize]);
+
+  // 创建网格样式对象
+  const gridStyle: React.CSSProperties = {
+    gridTemplateColumns: `repeat(${gridSize.cols}, ${cellSize}px)`,
+    gridTemplateRows: `repeat(${gridSize.rows}, ${cellSize}px)`,
+  };
+
   return (
-    <div className="answer-grid-container">
-      {/* 背景参考图 */}
-      <div 
-        className="background-image"
-        style={{
-          backgroundImage: `url(${originalImage})`,
-          gridTemplateColumns: `repeat(${gridSize.cols}, 1fr)`,
-          gridTemplateRows: `repeat(${gridSize.rows}, 1fr)`,
-        }}
-      />
-      
+    <div className="answer-grid-container" ref={containerRef}>
       {/* 网格槽位 */}
       <div 
+        ref={gridRef}
         className="answer-grid"
-        style={{
-          gridTemplateColumns: `repeat(${gridSize.cols}, 1fr)`,
-          gridTemplateRows: `repeat(${gridSize.rows}, 1fr)`,
-        }}
+        style={gridStyle}
       >
         {answerGrid.map((piece, index) => (
           <div
@@ -72,6 +127,10 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
               piece && selectedPieceId === piece.id ? 'selected' : ''
             }`}
             onClick={() => handleSlotClick(index)}
+            style={{
+              width: `${cellSize}px`,
+              height: `${cellSize}px`,
+            }}
           >
             {/* 槽位编号 */}
             <div className="slot-number">{getSlotNumber(index)}</div>
@@ -118,12 +177,10 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
       {/* 网格信息 */}
       <div className="grid-info">
         <div className="completion-status">
-          已完成: {answerGrid.filter(slot => slot !== null).length} / {answerGrid.length}
+          已完成: {completedCount} / {answerGrid.length}
         </div>
         <div className="correctness-status">
-          正确: {answerGrid.filter((piece, index) => 
-            piece && piece.correctSlot === index && piece.rotation === 0 && !piece.isFlipped
-          ).length} / {answerGrid.length}
+          正确: {correctCount} / {answerGrid.length}
         </div>
       </div>
     </div>

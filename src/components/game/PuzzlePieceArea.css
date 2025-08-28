@@ -4,6 +4,8 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  /* 添加以下属性确保高度正确 */
+  min-height: 0;
 }
 
 .empty-area {
@@ -14,6 +16,7 @@
   color: #10b981;
   font-size: 18px;
   font-weight: 600;
+  height: 100%;
 }
 
 .pieces-grid {
@@ -21,6 +24,8 @@
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 16px;
   margin-bottom: 20px;
+  /* 添加以下属性确保网格布局稳定 */
+  grid-auto-rows: minmax(120px, auto);
 }
 
 .puzzle-piece-item {

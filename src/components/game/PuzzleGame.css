@@ -52,7 +52,7 @@
 /* 游戏头部 */
 .game-header {
   background: white;
-  padding: 16px 24px;
+  padding: 10px 24px;
   border-bottom: 1px solid #E5E7EB;
   display: flex;
   justify-content: space-between;
@@ -92,38 +92,6 @@
   display: flex;
   position: relative;
   overflow: hidden;
-  min-height: 0;
-}
-
-.preview-panel {
-  width: 200px;
-  background: white;
-  border-right: 1px solid #E5E7EB;
-  padding: 16px;
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
-  overflow-y: auto;
-}
-
-.preview-panel h4 {
-  margin: 0 0 12px 0;
-  color: #374151;
-  font-size: 16px;
-}
-
-.preview-image {
-  width: 100%;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.board-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow: auto;
   min-height: 0;
 }
 
@@ -183,6 +151,80 @@
   font-size: 14px;
 }
 
+/* 预览模态框样式 */
+.preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.preview-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  animation: scaleIn 0.3s ease;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes scaleIn {
+  from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.preview-body {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+
+.preview-body h3 {
+  margin: 0 0 20px 0;
+  color: #374151;
+  font-size: 24px;
+  text-align: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 50vh;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.preview-footer {
+  padding: 20px;
+  background: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: center;
+}
+
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .game-header {
@@ -194,14 +236,27 @@
     flex-direction: column;
   }
   
-  .preview-panel {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #E5E7EB;
-  }
-  
   .game-controls {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  .preview-content {
+    width: 95%;
+    margin: 10px;
+  }
+  
+  .preview-body {
+    padding: 20px;
+  }
+  
+  .preview-body h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .preview-footer {
+    padding: 15px;
+  }
+
 }
