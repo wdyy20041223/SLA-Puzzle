@@ -18,6 +18,8 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   onGameComplete,
   onBackToMenu,
 }) => {
+  const [showAnswers, setShowAnswers] = useState(false);
+  
   const {
     gameState,
     isGameStarted,
@@ -32,9 +34,6 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     undo,
     resetGame,
   } = usePuzzleGame({ initialConfig: puzzleConfig });
-
-  // 添加预览状态
-  const [showPreview, setShowPreview] = useState(false);
 
   // 开始游戏
   const startGame = useCallback(() => {
@@ -118,15 +117,26 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         </div>
         
         <div className="game-controls">
-          {/* 添加预览按钮 */}
+          <GameHelpButton />
           <Button 
-            onClick={() => setShowPreview(true)} 
+            onClick={() => {
+              // TODO: 实现提示功能
+              alert('提示功能正在开发中，敬请期待！\n\n未来版本将提供：\n• 高亮显示可能的正确位置\n• 自动放置一块拼图\n• 边缘拼图块优先提示');
+            }} 
             variant="secondary" 
             size="small"
+            className="hint-button"
           >
-            原图预览
+            💡 提示
           </Button>
-          <GameHelpButton />
+          <Button 
+            onClick={() => setShowAnswers(!showAnswers)} 
+            variant={showAnswers ? "primary" : "secondary"} 
+            size="small"
+            className="answer-toggle"
+          >
+            {showAnswers ? '隐藏答案' : '显示答案'}
+          </Button>
           <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
             撤销 (Ctrl+Z)
           </Button>
@@ -141,38 +151,29 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
       {/* 游戏主体 */}
       <div className="game-content">
-        {gameState && (
-          <PuzzleWorkspace
-            gameState={gameState}
-            selectedPiece={selectedPiece}
-            onPieceSelect={setSelectedPiece}
-            onPlacePiece={placePieceToSlot}
-            onRemovePiece={removePieceFromSlot}
-            onRotatePiece={rotatePiece}
-            onFlipPiece={flipPiece}
-          />
-        )}
-
-        {/* 预览模态框 */}
-        {showPreview && (
-          <div className="preview-modal" onClick={() => setShowPreview(false)}>
-            <div className="preview-content" onClick={(e) => e.stopPropagation()}>
-              <div className="preview-body">
-                <h3>原图预览</h3>
-                <img 
-                  src={puzzleConfig.originalImage} 
-                  alt="原图预览" 
-                  className="preview-image"
-                />
-              </div>
-              <div className="preview-footer">
-                <Button onClick={() => setShowPreview(false)} variant="primary" size="medium">
-                  关闭
-                </Button>
-              </div>
+        {!gameState ? (
+          <div style={{ padding: '20px', background: 'red', color: 'white' }}>
+            DEBUG: gameState 为空！
+          </div>
+        ) : (
+          <div>
+            <div style={{ padding: '10px', background: 'green', color: 'white' }}>
+              DEBUG: gameState 存在，拼图块数量: {gameState.config.pieces.length}
             </div>
+            <PuzzleWorkspace
+              gameState={gameState}
+              selectedPiece={selectedPiece}
+              showAnswers={showAnswers}
+              onPieceSelect={setSelectedPiece}
+              onPlacePiece={placePieceToSlot}
+              onRemovePiece={removePieceFromSlot}
+              onRotatePiece={rotatePiece}
+              onFlipPiece={flipPiece}
+            />
           </div>
         )}
+
+
 
         {/* 游戏完成提示 */}
         {gameState?.isCompleted && (

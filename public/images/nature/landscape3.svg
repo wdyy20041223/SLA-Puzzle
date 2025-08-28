@@ -1,0 +1,7 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#90EE90"/>
+  <text x="200" y="200" text-anchor="middle" fill="#2F4F4F" font-size="24" font-weight="bold">森林风光</text>
+  <circle cx="100" cy="150" r="30" fill="#228B22"/>
+  <circle cx="300" cy="180" r="25" fill="#32CD32"/>
+  <circle cx="200" cy="120" r="35" fill="#006400"/>
+</svg>

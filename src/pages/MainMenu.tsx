@@ -29,18 +29,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
     setIsGenerating(true);
     try {
-      // 在实际应用中，这里应该使用真实的图片数据
-      const mockImageData = `data:image/svg+xml;base64,${btoa(`
-        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-          <rect width="400" height="300" fill="#${Math.floor(Math.random()*16777215).toString(16)}"/>
-          <text x="200" y="150" text-anchor="middle" fill="white" font-size="24">${selectedAsset.name}</text>
-        </svg>
-      `)}`;
-
+      // 使用真实的图片数据
+      const imageData = selectedAsset.filePath;
+      
       const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
       
       const puzzleConfig = await PuzzleGenerator.generatePuzzle({
-        imageData: mockImageData,
+        imageData: imageData,
         gridSize: difficultyConfig.gridSize,
         pieceShape: pieceShape,
         name: selectedAsset.name,
@@ -49,6 +44,23 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       onStartGame(puzzleConfig);
     } catch (error) {
       console.error('生成拼图失败:', error);
+      // 如果图片加载失败，使用备用的色块
+      const fallbackImageData = `data:image/svg+xml;base64,${btoa(`
+        <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="400" height="400" fill="#${Math.floor(Math.random()*16777215).toString(16)}"/>
+          <text x="200" y="200" text-anchor="middle" fill="white" font-size="24">${selectedAsset.name}</text>
+        </svg>
+      `)}`;
+      
+      const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
+      const puzzleConfig = await PuzzleGenerator.generatePuzzle({
+        imageData: fallbackImageData,
+        gridSize: difficultyConfig.gridSize,
+        pieceShape: pieceShape,
+        name: selectedAsset.name,
+      });
+      
+      onStartGame(puzzleConfig);
     } finally {
       setIsGenerating(false);
     }
@@ -88,7 +100,19 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 <h4>已选择素材</h4>
                 <div className="asset-preview">
                   <div className="preview-image">
-                    <div className="placeholder-preview">
+                    <img 
+                      src={selectedAsset.thumbnail} 
+                      alt={selectedAsset.name}
+                      className="selected-asset-image"
+                      onError={(e) => {
+                        // 如果图片加载失败，显示占位符
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const placeholder = target.nextElementSibling as HTMLElement;
+                        if (placeholder) placeholder.style.display = 'flex';
+                      }}
+                    />
+                    <div className="placeholder-preview" style={{ display: 'none' }}>
                       <span>{selectedAsset.name}</span>
                     </div>
                   </div>

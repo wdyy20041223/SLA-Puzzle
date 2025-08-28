@@ -14,6 +14,9 @@ export class PuzzleGenerator {
     // 确保图片是正方形，统一处理尺寸
     const targetSize = 400; // 统一的目标尺寸
     
+    // 如果imageData是URL路径，则使用该路径作为图片源
+    const imageUrl = imageData;
+    
     // 生成正方形拼图块
     const pieces: PuzzlePiece[] = [];
     const totalPieces = gridSize.rows * gridSize.cols;
@@ -43,7 +46,7 @@ export class PuzzleGenerator {
     return {
       id: `puzzle_${Date.now()}`,
       name,
-      originalImage: imageData,
+      originalImage: imageUrl,
       gridSize,
       pieceShape,
       difficulty,
@@ -79,7 +82,10 @@ export class PuzzleGenerator {
     await new Promise((resolve, reject) => {
       img.onload = resolve;
       img.onerror = reject;
-      img.src = imageData;
+      // 如果是相对路径，确保能正确加载
+      img.src = imageData.startsWith('/') ? imageData : imageData;
+      // 允许跨域加载（如果需要）
+      img.crossOrigin = 'anonymous';
     });
 
     // 计算源图片的实际尺寸和缩放比例

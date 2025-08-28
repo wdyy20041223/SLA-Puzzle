@@ -12,6 +12,7 @@ interface AssetLibraryProps {
 
 // 内置素材数据 - 使用项目中现有的素材
 const builtinAssets: Asset[] = [
+  // 图标类
   {
     id: 'tauri_logo',
     name: 'Tauri Logo',
@@ -41,11 +42,91 @@ const builtinAssets: Asset[] = [
     name: 'React Logo',
     category: '图标',
     tags: ['logo', 'react', '前端框架'],
-    filePath: '/src/assets/react.svg',
-    thumbnail: '/src/assets/react.svg',
+    filePath: '/react.svg',
+    thumbnail: '/react.svg',
     width: 400,
     height: 400,
     fileSize: 5000,
+    createdAt: new Date('2024-01-01'),
+  },
+  
+  // 自然风光类
+  {
+    id: 'landscape1',
+    name: '山景风光',
+    category: '自然风光',
+    tags: ['山景', '自然', '风光', '天空'],
+    filePath: '/images/nature/landscape1.svg',
+    thumbnail: '/images/nature/landscape1.svg',
+    width: 400,
+    height: 400,
+    fileSize: 8000,
+    createdAt: new Date('2024-01-01'),
+  },
+  {
+    id: 'landscape2',
+    name: '日落海景',
+    category: '自然风光',
+    tags: ['日落', '海景', '夕阳', '水面'],
+    filePath: '/images/nature/landscape2.svg',
+    thumbnail: '/images/nature/landscape2.svg',
+    width: 400,
+    height: 400,
+    fileSize: 7500,
+    createdAt: new Date('2024-01-01'),
+  },
+  {
+    id: 'landscape3',
+    name: '森林风光',
+    category: '自然风光',
+    tags: ['森林', '绿色', '树木', '自然'],
+    filePath: '/images/nature/landscape3.svg',
+    thumbnail: '/images/nature/landscape3.svg',
+    width: 400,
+    height: 400,
+    fileSize: 6000,
+    createdAt: new Date('2024-01-01'),
+  },
+  
+  // 动物类
+  {
+    id: 'cat1',
+    name: '可爱小猫',
+    category: '动物',
+    tags: ['猫', '宠物', '可爱', '动物'],
+    filePath: '/images/animals/cat.svg',
+    thumbnail: '/images/animals/cat.svg',
+    width: 400,
+    height: 400,
+    fileSize: 5500,
+    createdAt: new Date('2024-01-01'),
+  },
+  
+  // 建筑类
+  {
+    id: 'castle1',
+    name: '古典建筑',
+    category: '建筑',
+    tags: ['城堡', '建筑', '古典', '历史'],
+    filePath: '/images/buildings/castle.svg',
+    thumbnail: '/images/buildings/castle.svg',
+    width: 400,
+    height: 400,
+    fileSize: 6500,
+    createdAt: new Date('2024-01-01'),
+  },
+  
+  // 动漫类
+  {
+    id: 'anime1',
+    name: '动漫角色',
+    category: '动漫',
+    tags: ['动漫', '角色', '卡通', '二次元'],
+    filePath: '/images/anime/character.svg',
+    thumbnail: '/images/anime/character.svg',
+    width: 400,
+    height: 400,
+    fileSize: 7000,
     createdAt: new Date('2024-01-01'),
   },
 ];
@@ -62,9 +143,11 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
 
   const categories = [
     { id: 'all', name: '全部' },
+    { id: '图标', name: '图标' },
     { id: '自然风光', name: '自然风光' },
     { id: '动物', name: '动物' },
     { id: '建筑', name: '建筑' },
+    { id: '动漫', name: '动漫' },
     { id: '自定义', name: '自定义' },
   ];
 

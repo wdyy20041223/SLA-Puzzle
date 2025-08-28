@@ -1,0 +1,8 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#F0F8FF"/>
+  <text x="200" y="200" text-anchor="middle" fill="#4B0082" font-size="24" font-weight="bold">可爱小猫</text>
+  <circle cx="200" cy="250" r="50" fill="#FFA500"/>
+  <circle cx="180" cy="230" r="8" fill="#000"/>
+  <circle cx="220" cy="230" r="8" fill="#000"/>
+  <path d="M200,240 L200,260 L210,250 Z" fill="#000"/>
+</svg>

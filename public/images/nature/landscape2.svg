@@ -1,0 +1,35 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sunset" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFE66D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF8E53;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="water" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#44A08D;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Sunset Sky -->
+  <rect width="400" height="250" fill="url(#sunset)"/>
+  
+  <!-- Water -->
+  <rect y="250" width="400" height="150" fill="url(#water)"/>
+  
+  <!-- Sun -->
+  <circle cx="200" cy="180" r="40" fill="#FFD700" opacity="0.9"/>
+  
+  <!-- Islands -->
+  <ellipse cx="80" cy="280" rx="50" ry="20" fill="#2D5016"/>
+  <ellipse cx="320" cy="290" rx="40" ry="15" fill="#2D5016"/>
+  
+  <!-- Palm Trees -->
+  <rect x="75" y="260" width="4" height="25" fill="#8B4513"/>
+  <path d="M75,260 Q70,250 65,255 Q70,258 75,260" fill="#228B22"/>
+  <path d="M79,260 Q84,250 89,255 Q84,258 79,260" fill="#228B22"/>
+  
+  <!-- Water Reflections -->
+  <rect x="180" y="300" width="40" height="80" fill="#FFD700" opacity="0.3"/>
+  <ellipse cx="200" cy="350" rx="20" ry="8" fill="#FFD700" opacity="0.2"/>
+</svg>

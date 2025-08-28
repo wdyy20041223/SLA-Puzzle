@@ -1,0 +1,7 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#87CEEB"/>
+  <text x="200" y="200" text-anchor="middle" fill="#2F4F4F" font-size="24" font-weight="bold">古典建筑</text>
+  <rect x="150" y="250" width="100" height="100" fill="#D2691E"/>
+  <polygon points="150,250 200,200 250,250" fill="#8B4513"/>
+  <rect x="180" y="300" width="20" height="30" fill="#654321"/>
+</svg>

@@ -5,6 +5,7 @@ import './PuzzlePieceArea.css';
 interface PuzzlePieceAreaProps {
   pieces: PuzzlePiece[];
   selectedPieceId: string | null;
+  showAnswers: boolean;
   onPieceSelect: (pieceId: string) => void;
   onRotatePiece?: (pieceId: string) => void;
   onFlipPiece?: (pieceId: string) => void;
@@ -13,6 +14,7 @@ interface PuzzlePieceAreaProps {
 export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
   pieces,
   selectedPieceId,
+  showAnswers,
   onPieceSelect,
   onRotatePiece,
   onFlipPiece,
@@ -59,7 +61,9 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
                 }`,
               }}
             >
-              <div className="piece-number">{piece.originalIndex + 1}</div>
+              {showAnswers && (
+                <div className="piece-number">{piece.originalIndex + 1}</div>
+              )}
               <img
                 src={piece.imageData}
                 alt={`拼图块 ${piece.originalIndex + 1}`}

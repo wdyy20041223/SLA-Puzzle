@@ -7,6 +7,7 @@ import './PuzzleWorkspace.css';
 interface PuzzleWorkspaceProps {
   gameState: GameState;
   selectedPiece: string | null;
+  showAnswers: boolean;
   onPieceSelect: (pieceId: string) => void;
   onPlacePiece: (pieceId: string, slotIndex: number) => void;
   onRemovePiece: (pieceId: string) => void;
@@ -17,6 +18,7 @@ interface PuzzleWorkspaceProps {
 export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   gameState,
   selectedPiece,
+  showAnswers,
   onPieceSelect,
   onPlacePiece,
   onRemovePiece,
@@ -37,6 +39,7 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
         <PuzzlePieceArea
           pieces={processingAreaPieces}
           selectedPieceId={selectedPiece}
+          showAnswers={showAnswers}
           onPieceSelect={onPieceSelect}
           onRotatePiece={onRotatePiece}
           onFlipPiece={onFlipPiece}
