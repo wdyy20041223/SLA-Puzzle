@@ -12,7 +12,6 @@ import {
 import { EdgePatternGenerator } from './EdgePatternGenerator';
 import { ClipPathGenerator } from './ClipPathGenerator';
 import { ImageSlicer } from './ImageSlicer';
-import { PositionCalculator } from './PositionCalculator';
 
 /**
  * 异形拼图生成器
@@ -99,37 +98,25 @@ export class IrregularPuzzleGenerator {
         sliceResult.baseSize
       );
       
-      // 计算吸附目标
-      const snapTargets = PositionCalculator.calculateSnapTargets(
-        {
-          id: i.toString(),
-          x: sliceResult.basePositions[i].x,
-          y: sliceResult.basePositions[i].y,
-          rotation: 0,
-          isCorrect: false,
-          imageData: sliceResult.pieces[i],
-          basePosition: sliceResult.basePositions[i],
-          baseSize: sliceResult.baseSize,
-          expandedPosition: sliceResult.expandedPositions[i],
-          expandedSize: sliceResult.expandedSizes[i],
-          edges,
-          clipPath,
-          isDraggable: i !== fixedPieceIndex,
-          snapTargets: [], // 临时为空，下面会计算
-          gridRow: row,
-          gridCol: col
-        },
-        gridLayout
-      );
+      // 先创建基础的snap targets（简化版）
+      const snapTargets = [{
+        position: sliceResult.basePositions[i],
+        tolerance: 20
+      }];
       
       // 创建拼图块
       const piece: IrregularPuzzlePiece = {
         id: i.toString(),
-        x: i === fixedPieceIndex ? fixedPosition.x : this.getRandomStartPosition().x,
-        y: i === fixedPieceIndex ? fixedPosition.y : this.getRandomStartPosition().y,
+        originalIndex: i,
         rotation: 0,
-        isCorrect: i === fixedPieceIndex, // 固定块默认正确
         imageData: sliceResult.pieces[i],
+        width: sliceResult.expandedSizes[i].width,
+        height: sliceResult.expandedSizes[i].height,
+        
+        // 异形拼图特有属性
+        x: i === fixedPieceIndex ? (50 + sliceResult.expandedPositions[i].x) : this.getRandomStartPosition().x,
+        y: i === fixedPieceIndex ? (50 + sliceResult.expandedPositions[i].y) : this.getRandomStartPosition().y,
+        isCorrect: i === fixedPieceIndex, // 固定块默认正确
         
         // 基础信息
         basePosition: sliceResult.basePositions[i],
@@ -159,12 +146,14 @@ export class IrregularPuzzleGenerator {
     const puzzleConfig: IrregularPuzzleConfig = {
       id: Date.now().toString(),
       name,
-      imageData,
+      originalImage: imageData,
       gridSize,
+      pieceShape: 'irregular',
       pieces,
       fixedPiece: fixedPieceIndex,
       gridLayout,
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       difficulty: this.calculateDifficulty(gridSize)
     };
     
@@ -232,17 +221,14 @@ export class IrregularPuzzleGenerator {
     gridSize: GridSize,
     baseSize: Size
   ): Position {
-    // 计算游戏区域中心
-    const gameAreaWidth = 800;
-    const gameAreaHeight = 600;
+    // 固定块在拼接板区域的正确位置
+    // 注意：这个位置是相对于拼接板容器的，不包含50px偏移
+    const row = Math.floor(fixedIndex / gridSize.cols);
+    const col = fixedIndex % gridSize.cols;
     
-    const centerX = gameAreaWidth / 2;
-    const centerY = gameAreaHeight / 2;
-    
-    // 固定块放在游戏区域中心
     return {
-      x: centerX - baseSize.width / 2,
-      y: centerY - baseSize.height / 2
+      x: col * baseSize.width,
+      y: row * baseSize.height
     };
   }
   
@@ -251,14 +237,11 @@ export class IrregularPuzzleGenerator {
    * @returns 随机位置
    */
   private static getRandomStartPosition(): Position {
-    // 在游戏区域右侧生成随机位置
-    const rightAreaX = 850;
-    const rightAreaWidth = 300;
-    const gameAreaHeight = 600;
-    
+    // 在拼接板右下角区域生成随机位置
+    // 这些块将在待拼接列表中显示，这里的坐标不重要
     return {
-      x: rightAreaX + Math.random() * (rightAreaWidth - 100),
-      y: 50 + Math.random() * (gameAreaHeight - 150)
+      x: 400 + Math.random() * 200, // 拼接板右侧区域
+      y: 300 + Math.random() * 200  // 拼接板下方区域
     };
   }
   
