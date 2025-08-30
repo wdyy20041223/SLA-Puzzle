@@ -7,11 +7,13 @@ import { GameConfigPanel } from '../components/MainMenu';
 
 interface MainMenuProps {
   onStartGame: (puzzleConfig: PuzzleConfig) => void;
+  onStartIrregularGame: (imageData?: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
   onOpenEditor: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
   onStartGame,
+  onStartIrregularGame,
   onOpenEditor,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
@@ -31,6 +33,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       // 使用真实的图片数据
       const imageData = selectedAsset.filePath;
       
+      // 如果选择的是异形拼图，使用新的异形拼图系统
+      if (pieceShape === 'irregular') {
+        const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
+        // 将 GridSize 转换为字符串格式
+        const gridSizeStr = `${difficultyConfig.gridSize.rows}x${difficultyConfig.gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
+        onStartIrregularGame(imageData, gridSizeStr);
+        return;
+      }
+      
+      // 传统方形拼图
       const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
       
       const puzzleConfig = await PuzzleGenerator.generatePuzzle({
