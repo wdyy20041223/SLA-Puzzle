@@ -9,7 +9,7 @@ export const SelectedAsset: React.FC<SelectedAssetProps> = ({ asset }) => {
   return (
     <>
       <h4 className="text-base font-medium text-slate-700">已选择素材</h4>
-      <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
+      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
         <div className="flex gap-4">
           <div className="w-24 h-24 rounded-lg overflow-hidden bg-slate-200 flex items-center justify-center flex-shrink-0">
             <img 
