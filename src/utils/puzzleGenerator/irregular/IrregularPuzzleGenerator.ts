@@ -114,8 +114,21 @@ export class IrregularPuzzleGenerator {
         height: sliceResult.expandedSizes[i].height,
         
         // 异形拼图特有属性
-        x: i === fixedPieceIndex ? (50 + sliceResult.expandedPositions[i].x) : this.getRandomStartPosition().x,
-        y: i === fixedPieceIndex ? (50 + sliceResult.expandedPositions[i].y) : this.getRandomStartPosition().y,
+        // 固定块与吸附网格对齐：网格原点有 50px 偏移
+        x: i === fixedPieceIndex 
+          ? this.calculateGridAlignedPositionWithOffset(
+              50 + sliceResult.expandedPositions[i].x,
+              sliceResult.baseSize.width / 5,
+              50
+            ) 
+          : this.getRandomStartPosition().x,
+        y: i === fixedPieceIndex 
+          ? this.calculateGridAlignedPositionWithOffset(
+              50 + sliceResult.expandedPositions[i].y,
+              sliceResult.baseSize.width / 5,
+              50
+            ) 
+          : this.getRandomStartPosition().y,
         isCorrect: i === fixedPieceIndex, // 固定块默认正确
         
         // 基础信息
@@ -243,6 +256,20 @@ export class IrregularPuzzleGenerator {
       x: 400 + Math.random() * 200, // 拼接板右侧区域
       y: 300 + Math.random() * 200  // 拼接板下方区域
     };
+  }
+
+  /**
+   * 计算网格对齐的位置（支持原点偏移）
+   * @param position 原始位置（相对于拼接板容器）
+   * @param gridSize 网格大小
+   * @param offset 原点偏移，例如 50
+   */
+  private static calculateGridAlignedPositionWithOffset(
+    position: number,
+    gridSize: number,
+    offset: number
+  ): number {
+    return Math.round((position - offset) / gridSize) * gridSize + offset;
   }
   
   /**

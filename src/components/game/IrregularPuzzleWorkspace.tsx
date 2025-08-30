@@ -108,6 +108,28 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
 
   // 计算网格参数（提前计算避免在useEffect中使用）
   const gridSize = config.gridLayout.baseSize.width / 5;
+  const gridOffset = 50; // 统一网格原点偏移
+
+  // 调试：记录拖拽时的实时对齐信息
+  const [dragDebug, setDragDebug] = useState<null | {
+    pieceId: string;
+    pieceX: number;
+    pieceY: number;
+    dataX: number;
+    dataY: number;
+    currentX: number;
+    currentY: number;
+    gridSize: number;
+    gridOffset: number;
+    boardLeft: number;
+    boardTop: number;
+    snapNoOffsetX: number;
+    snapNoOffsetY: number;
+    snapOffset50X: number;
+    snapOffset50Y: number;
+    snapBoardOffsetX: number;
+    snapBoardOffsetY: number;
+  }>(null);
 
   // 初始化interactjs拖拽
   useEffect(() => {
@@ -119,12 +141,32 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
       interact('.puzzle-piece').unset();
       
       // 设置拖拽
+      // 计算与页面坐标系对齐的网格原点（board 左上角 + 50 偏移）
+      const boardEl = document.getElementById('puzzle-board') as HTMLElement | null;
+      const boardRect = boardEl ? boardEl.getBoundingClientRect() : ({ left: 0, top: 0 } as any);
+      const cs = boardEl ? window.getComputedStyle(boardEl) : ({} as any);
+      const borderLeft = cs && cs.borderLeftWidth ? parseFloat(cs.borderLeftWidth) : 0;
+      const borderTop = cs && cs.borderTopWidth ? parseFloat(cs.borderTopWidth) : 0;
+      const snapOffsetX = (boardRect.left || 0) + borderLeft + gridOffset;
+      const snapOffsetY = (boardRect.top || 0) + borderTop + gridOffset;
+
+      if (showDebugInfo) {
+        // eslint-disable-next-line no-console
+        console.log('[Irregular][initInteract] snapOffset(page)=', { snapOffsetX: Math.round(snapOffsetX), snapOffsetY: Math.round(snapOffsetY), gridSize, borderLeft, borderTop });
+      }
+
       interact('.puzzle-piece')
         .draggable({
           modifiers: [
             interact.modifiers.snap({
               targets: [
-                interact.snappers.grid({ x: gridSize, y: gridSize })
+                interact.snappers.grid({
+                  x: gridSize,
+                  y: gridSize,
+                  // 注意：interact 的 grid offset 使用的是“页面坐标系”，
+                  // 因此需要加上拼接板相对于页面的偏移
+                  offset: { x: snapOffsetX, y: snapOffsetY }
+                })
               ],
               range: Infinity,
               relativePoints: [{ x: 0, y: 0 }]
@@ -150,12 +192,46 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
           target.setAttribute('data-x', x);
           target.setAttribute('data-y', y);
 
-          // 通知父组件位置变化
+          // 拖拽中不更新 state，只做调试计算，避免 transform/data-x 基准漂移
           const pieceId = target.getAttribute('data-piece-id');
-          if (pieceId && onPieceMove) {
+          if (pieceId) {
             const piece = pieces.find(p => p.id === pieceId);
             if (piece) {
-              onPieceMove(pieceId, piece.x + x, piece.y + y);
+              const actualX = piece.x + x;
+              const actualY = piece.y + y;
+              if (showDebugInfo) {
+                try {
+                  const boardEl = document.getElementById('puzzle-board') as HTMLElement | null;
+                  const boardRect = boardEl ? boardEl.getBoundingClientRect() : { left: 0, top: 0 } as any;
+                  const snapNoOffsetX = Math.round(actualX / gridSize) * gridSize;
+                  const snapNoOffsetY = Math.round(actualY / gridSize) * gridSize;
+                  const snapOffset50X = Math.round((actualX - gridOffset) / gridSize) * gridSize + gridOffset;
+                  const snapOffset50Y = Math.round((actualY - gridOffset) / gridSize) * gridSize + gridOffset;
+                  const localMouseX = event.pageX - (boardRect.left || 0);
+                  const localMouseY = event.pageY - (boardRect.top || 0);
+                  const snapBoardOffsetX = Math.round((localMouseX - gridOffset) / gridSize) * gridSize + gridOffset;
+                  const snapBoardOffsetY = Math.round((localMouseY - gridOffset) / gridSize) * gridSize + gridOffset;
+                  setDragDebug({
+                    pieceId,
+                    pieceX: piece.x,
+                    pieceY: piece.y,
+                    dataX: x,
+                    dataY: y,
+                    currentX: actualX,
+                    currentY: actualY,
+                    gridSize,
+                    gridOffset,
+                    boardLeft: boardRect.left,
+                    boardTop: boardRect.top,
+                    snapNoOffsetX,
+                    snapNoOffsetY,
+                    snapOffset50X,
+                    snapOffset50Y,
+                    snapBoardOffsetX,
+                    snapBoardOffsetY
+                  });
+                } catch {}
+              }
             }
           }
         })
@@ -163,24 +239,30 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
           event.target.style.zIndex = '';
           event.target.style.cursor = 'grab';
           
-          // 检查是否吸附到正确位置
+          // 在 dragend 时一次性提交状态并做吸附判断
           const pieceId = event.target.getAttribute('data-piece-id');
           const piece = pieces.find(p => p.id === pieceId);
-          if (piece && handleSnapToTarget) {
+          if (piece) {
             const finalX = parseFloat(event.target.getAttribute('data-x')) || 0;
             const finalY = parseFloat(event.target.getAttribute('data-y')) || 0;
-            
-            const targetX = 50 + piece.expandedPosition.x;
-            const targetY = 50 + piece.expandedPosition.y;
-            const currentX = piece.x + finalX;
-            const currentY = piece.y + finalY;
-            
-            const deltaX = Math.abs(currentX - targetX);
-            const deltaY = Math.abs(currentY - targetY);
-            const tolerance = gridSize * 2;
-            
-            if (deltaX <= tolerance && deltaY <= tolerance) {
-              handleSnapToTarget(pieceId);
+            const alignedX = Math.round((piece.x + finalX - gridOffset) / gridSize) * gridSize + gridOffset;
+            const alignedY = Math.round((piece.y + finalY - gridOffset) / gridSize) * gridSize + gridOffset;
+
+            // 提交对齐后的状态
+            if (onPieceMove) {
+              onPieceMove(pieceId, alignedX, alignedY);
+            }
+
+            // 检查是否吸附到目标位置
+            if (handleSnapToTarget) {
+              const targetX = Math.round((gridOffset + piece.expandedPosition.x) / gridSize) * gridSize;
+              const targetY = Math.round((gridOffset + piece.expandedPosition.y) / gridSize) * gridSize;
+              const deltaX = Math.abs(alignedX - targetX);
+              const deltaY = Math.abs(alignedY - targetY);
+              const tolerance = gridSize * 1.5;
+              if (deltaX <= tolerance && deltaY <= tolerance) {
+                handleSnapToTarget(pieceId);
+              }
             }
           }
         });
@@ -194,6 +276,19 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
       });
     };
   }, [gridSize, pieces, onPieceMove, handleSnapToTarget]);
+
+  // 监听拼图块位置变化，重置interactjs状态
+  useEffect(() => {
+    pieces.filter(piece => piece.isDraggable && piece.isCorrect).forEach(piece => {
+      const element = document.querySelector(`[data-piece-id="${piece.id}"]`) as HTMLElement;
+      if (element) {
+        // 重置interactjs的transform状态
+        element.style.transform = 'translate(0px, 0px)';
+        element.setAttribute('data-x', '0');
+        element.setAttribute('data-y', '0');
+      }
+    });
+  }, [pieces.map(p => `${p.id}-${p.x}-${p.y}`).join(',')]); // 依赖于每个拼图块的位置
 
   // 处理拼图块选择
   const handlePieceClick = useCallback((pieceId: string) => {
@@ -222,20 +317,35 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
     
-    // 吸附到最近网格
+    // 吸附到最近网格（考虑50px偏移）
     const gridSize = config.gridLayout.baseSize.width / 5;
-    const snapX = Math.round(clickX / gridSize) * gridSize;
-    const snapY = Math.round(clickY / gridSize) * gridSize;
+    const offsetX = 50;
+    const offsetY = 50;
+    const snapX = Math.round((clickX - offsetX) / gridSize) * gridSize + offsetX;
+    const snapY = Math.round((clickY - offsetY) / gridSize) * gridSize + offsetY;
+
+    if (showDebugInfo) {
+      // eslint-disable-next-line no-console
+      console.log('[Irregular][boardClick]', {
+        clickX: Math.round(clickX),
+        clickY: Math.round(clickY),
+        gridSize,
+        offsetX,
+        offsetY,
+        snapX,
+        snapY
+      });
+    }
     
     // 移动拼图块到拼接板
     handlePieceMove(selectedPieceId, snapX, snapY);
     
     // 检查是否需要标记为正确（坐标相对于拼接板容器）
-    const targetX = 50 + selectedPiece.expandedPosition.x;
-    const targetY = 50 + selectedPiece.expandedPosition.y;
+    const targetX = Math.round((50 + selectedPiece.expandedPosition.x) / gridSize) * gridSize;
+    const targetY = Math.round((50 + selectedPiece.expandedPosition.y) / gridSize) * gridSize;
     const deltaX = Math.abs(snapX - targetX);
     const deltaY = Math.abs(snapY - targetY);
-    const tolerance = gridSize * 2;
+    const tolerance = gridSize * 1.5; // 减小容差，因为现在都是网格对齐的
     
     if (deltaX <= tolerance && deltaY <= tolerance) {
       handleSnapToTarget(selectedPieceId);
@@ -390,13 +500,13 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
             zIndex: 1
           }}
         >
-          {/* 细网格线（用于interactjs吸附） - 覆盖整个拼接板 */}
+          {/* 细网格线（从目标区域起始位置开始） */}
           {Array.from({ length: Math.floor((puzzleBoardStyle.flex ? 800 : 700) / gridSize) + 1 }, (_, i) => (
             <line
               key={`grid-v-${i}`}
-              x1={i * gridSize}
+              x1={50 + i * gridSize}
               y1={0}
-              x2={i * gridSize}
+              x2={50 + i * gridSize}
               y2="100%"
               stroke="#e2e8f0"
               strokeWidth={1}
@@ -408,9 +518,9 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
             <line
               key={`grid-h-${i}`}
               x1={0}
-              y1={i * gridSize}
+              y1={50 + i * gridSize}
               x2="100%"
-              y2={i * gridSize}
+              y2={50 + i * gridSize}
               stroke="#e2e8f0"
               strokeWidth={1}
               strokeDasharray="2,2"
@@ -665,6 +775,19 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
           <div>正确: {completionStatus.correctPieces}</div>
           <div>进度: {completionStatus.completionRate}%</div>
           <div>选中: {selectedPieceId || '无'}</div>
+          {dragDebug && (
+            <div style={{ marginTop: '6px', lineHeight: 1.4 }}>
+              <div>—— Drag Debug ——</div>
+              <div>piece: {dragDebug.pieceId}</div>
+              <div>piece(left,top): {Math.round(dragDebug.pieceX)}, {Math.round(dragDebug.pieceY)}</div>
+              <div>data(x,y): {Math.round(dragDebug.dataX)}, {Math.round(dragDebug.dataY)}</div>
+              <div>current(x,y): {Math.round(dragDebug.currentX)}, {Math.round(dragDebug.currentY)}</div>
+              <div>grid(size,offset): {dragDebug.gridSize}, {dragDebug.gridOffset}</div>
+              <div>snap(noOffset): {dragDebug.snapNoOffsetX}, {dragDebug.snapNoOffsetY}</div>
+              <div>snap(offset50): {dragDebug.snapOffset50X}, {dragDebug.snapOffset50Y}</div>
+              <div>snap(mouseLocal): {dragDebug.snapBoardOffsetX}, {dragDebug.snapBoardOffsetY}</div>
+            </div>
+          )}
         </div>
       )}
     </div>
