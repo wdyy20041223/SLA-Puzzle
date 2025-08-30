@@ -1,6 +1,5 @@
 mod models;
 mod commands;
-use models::*;
 use commands::*;
 use std::sync::Mutex;
 
@@ -14,7 +13,7 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .manage(AppState::default())
+        .manage(Mutex::new(AppState::default()))
         .invoke_handler(tauri::generate_handler![
             greet,
             create_puzzle,

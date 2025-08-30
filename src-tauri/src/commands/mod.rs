@@ -1,5 +1,6 @@
 use crate::models::*;
 use tauri::State;
+use std::sync::Mutex;
 
 // 应用状态
 pub struct AppState {
@@ -31,9 +32,9 @@ pub async fn create_puzzle(
             .as_secs()),
         name: params.name,
         original_image: params.image_path,
+        difficulty: calculate_difficulty(&params.grid_size, &params.piece_shape),
         grid_size: params.grid_size,
         piece_shape: params.piece_shape,
-        difficulty: calculate_difficulty(&params.grid_size, &params.piece_shape),
         pieces: Vec::new(), // 实际应用中需要生成拼图块
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
