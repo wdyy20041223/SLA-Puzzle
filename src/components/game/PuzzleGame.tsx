@@ -144,20 +144,27 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             size="small"
             className="answer-toggle"
           >
-            {showAnswers ? '隐藏答案' : '显示答案'}
+            {showAnswers ? '👁️ 隐藏答案' : '👁️‍🗨️ 显示答案'}
           </Button>
           <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
-            撤销 (Ctrl+Z)
+            ↩️ 撤销
+          </Button>
+          <Button 
+            onClick={() => alert('保存功能开发中')} 
+            variant="secondary" 
+            size="small"
+            className="save-button"
+          >
+            💾 保存进度
           </Button>
           <Button onClick={resetGame} variant="secondary" size="small">
-            重置游戏
+            🔄 重置游戏
           </Button>
           <Button onClick={onBackToMenu} variant="danger" size="small">
-            退出游戏
+            🚪 退出游戏
           </Button>
         </div>
       </div>
-
       {/* 游戏主体 */}
       <div className="game-content">
         {gameState && (
@@ -205,7 +212,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
       {/* 操作提示 */}
       <div className="game-tips">
-        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | ESC 取消选择</p>
+        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | ESC 取消选择 | Ctrl+S 保存进度 | H键查看提示 | A键切换答案显示</p>
       </div>
     </div>
   );

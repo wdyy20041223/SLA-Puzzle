@@ -32,21 +32,28 @@ export const GameHelp: React.FC<GameHelpProps> = ({ onClose }) => {
                 <span className="step">1</span>
                 <div>
                   <strong>选择拼图块</strong>
-                  <p>点击左侧处理区的拼图块进行选择</p>
+                  <p>点击或拖拽左侧处理区的拼图块进行选择</p>
                 </div>
               </div>
               <div className="operation-item">
                 <span className="step">2</span>
                 <div>
                   <strong>放置拼图块</strong>
-                  <p>选中拼图块后，点击右侧答题卡的目标槽位</p>
+                  <p>选中拼图块后，点击右侧答题卡的空白槽位，或拖拽到空白位置，这只计1步操作</p>
                 </div>
               </div>
               <div className="operation-item">
                 <span className="step">3</span>
                 <div>
+                  <strong>替换拼图块</strong>
+                  <p>向已放置的拼图块的目标槽位放置新的拼图块，会将旧的拼图块替换出去，这只计1步操作</p>
+                </div>
+              </div>
+              <div className="operation-item">
+                <span className="step">4</span>
+                <div>
                   <strong>移除拼图块</strong>
-                  <p>点击已选中的已放置拼图块，将其移回处理区</p>
+                  <p>点击已选中的已放置拼图块，将其移回处理区，这只计1步操作</p>
                 </div>
               </div>
             </div>
@@ -56,16 +63,25 @@ export const GameHelp: React.FC<GameHelpProps> = ({ onClose }) => {
             <h3>⌨️ 快捷键</h3>
             <div className="shortcut-list">
               <div className="shortcut-item">
-                <kbd>R</kbd> <span>旋转选中拼图块（预留功能）</span>
+                <kbd>R</kbd> <span>旋转当前选中拼图块</span>
               </div>
               <div className="shortcut-item">
-                <kbd>F</kbd> <span>翻转选中拼图块（预留功能）</span>
+                <kbd>F</kbd> <span>翻转当前拼图块</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>H</kbd> <span>显示提示（高亮正确位置）</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>ESC</kbd> <span>取消选中当前拼图</span>
               </div>
               <div className="shortcut-item">
                 <kbd>Ctrl+Z</kbd> <span>撤销上一步操作</span>
               </div>
               <div className="shortcut-item">
-                <kbd>ESC</kbd> <span>取消当前选择</span>
+                <kbd>Ctrl+S</kbd> <span>保存游戏进度</span>
+              </div>
+              <div className="shortcut-item">
+                <kbd>A</kbd> <span>显示答案</span>
               </div>
             </div>
           </section>
@@ -103,7 +119,7 @@ export const GameHelp: React.FC<GameHelpProps> = ({ onClose }) => {
         {onClose && (
           <div className="help-footer">
             <Button onClick={onClose} variant="primary">
-              开始游戏
+              关闭
             </Button>
           </div>
         )}

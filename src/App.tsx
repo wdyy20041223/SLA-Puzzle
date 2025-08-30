@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { PuzzleConfig } from './types';
 import { MainMenu } from './pages/MainMenu';
 import { PuzzleGame } from './components/game/PuzzleGame';
+import { PuzzleEditor } from './components/editor/PuzzleEditor';
 import { Button } from './components/common/Button';
 import './App.css';
 
@@ -57,16 +58,7 @@ function App() {
       
       case 'editor':
         return (
-          <div className="editor-view">
-            <div className="editor-header">
-              <h2>🎨 拼图编辑器</h2>
-              <Button onClick={handleBackToMenu}>返回菜单</Button>
-            </div>
-            <div className="editor-content">
-              <p>拼图编辑器功能正在开发中...</p>
-              <p>敬请期待！</p>
-            </div>
-          </div>
+          <PuzzleEditor onBackToMenu={handleBackToMenu} />
         );
       
       default:
