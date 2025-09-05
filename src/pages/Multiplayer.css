@@ -1,0 +1,625 @@
+/* 联机对战页面样式 */
+.multiplayer-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6b73ff 100%);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.multiplayer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left h1 {
+  margin: 0;
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.multiplayer-tabs {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px;
+}
+
+.tab-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.tab-button.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: 600;
+}
+
+.tab-icon {
+  font-size: 1.1rem;
+}
+
+.tab-label {
+  font-size: 0.875rem;
+}
+
+.multiplayer-content {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  backdrop-filter: blur(10px);
+  color: white;
+}
+
+/* 加入房间样式 */
+.join-room-section {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.join-by-code {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.join-by-code h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.25rem;
+}
+
+.code-input-group {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.code-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.code-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.code-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.code-hint {
+  margin: 0;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.public-rooms h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+}
+
+.rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.room-card,
+.my-room-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.room-card:hover,
+.my-room-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.room-info {
+  flex: 1;
+}
+
+.room-name {
+  margin: 0 0 8px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.room-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.host-name,
+.player-count,
+.room-status,
+.created-time {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.room-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.puzzle-info {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.puzzle-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholder-icon {
+  font-size: 1.5rem;
+  opacity: 0.6;
+}
+
+.puzzle-details {
+  flex: 1;
+}
+
+.puzzle-title {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.puzzle-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.difficulty-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+}
+
+.grid-size {
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.empty-rooms,
+.empty-my-rooms {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-rooms h4,
+.empty-my-rooms h4 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+}
+
+.empty-rooms p,
+.empty-my-rooms p {
+  margin: 0 0 20px 0;
+  opacity: 0.8;
+}
+
+/* 创建房间样式 */
+.create-room-section {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 32px;
+}
+
+.create-form {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.create-form h3 {
+  margin: 0 0 24px 0;
+  font-size: 1.25rem;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+.puzzle-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.puzzle-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.puzzle-option:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.puzzle-option.selected {
+  border-color: #4ade80;
+  background: rgba(74, 222, 128, 0.2);
+}
+
+.option-icon {
+  font-size: 1.2rem;
+}
+
+.option-label {
+  font-weight: 600;
+}
+
+.checkbox-label {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  margin-bottom: 0 !important;
+}
+
+.checkbox-input {
+  width: auto;
+  margin: 0;
+}
+
+.checkbox-text {
+  font-weight: normal;
+}
+
+.room-settings-summary {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.room-settings-summary h4 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.setting-label {
+  opacity: 0.8;
+}
+
+.setting-value {
+  font-weight: 600;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.create-btn {
+  min-width: 200px;
+}
+
+.create-tips {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.create-tips h4 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+}
+
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tip-icon {
+  font-size: 1.1rem;
+  min-width: 20px;
+  margin-top: 2px;
+}
+
+.tip-text {
+  font-size: 0.875rem;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+/* 我的房间样式 */
+.my-rooms-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.my-rooms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.my-rooms-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.rooms-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.my-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.share-code-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.share-code-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-label {
+  font-size: 0.875rem;
+  opacity: 0.8;
+}
+
+.share-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .create-room-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .create-tips {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .multiplayer-page {
+    padding: 16px;
+  }
+  
+  .multiplayer-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .multiplayer-tabs {
+    justify-content: center;
+    overflow-x: auto;
+  }
+  
+  .code-input-group {
+    flex-direction: column;
+  }
+  
+  .room-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .room-meta {
+    justify-content: space-between;
+  }
+  
+  .puzzle-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .puzzle-image {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+  
+  .room-card,
+  .my-room-card {
+    padding: 16px;
+  }
+  
+  .room-meta {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .share-code-section {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+}

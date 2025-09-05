@@ -9,12 +9,18 @@ interface MainMenuProps {
   onStartGame: (puzzleConfig: PuzzleConfig) => void;
   onStartIrregularGame: (imageData?: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
   onOpenEditor: () => void;
+  onOpenAchievements: () => void;
+  onOpenDailyChallenge: () => void;
+  onOpenMultiplayer: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
   onStartGame,
   onStartIrregularGame,
   onOpenEditor,
+  onOpenAchievements,
+  onOpenDailyChallenge,
+  onOpenMultiplayer,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
@@ -102,6 +108,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             onShapeChange={setPieceShape}
             onStartGame={handleStartGame}
             onOpenEditor={onOpenEditor}
+            onOpenAchievements={onOpenAchievements}
+            onOpenDailyChallenge={onOpenDailyChallenge}
+            onOpenMultiplayer={onOpenMultiplayer}
           />
         </div>
       </div>
