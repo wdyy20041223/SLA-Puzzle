@@ -118,19 +118,38 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
       const processGameCompletion = async () => {
         try {
           if (authState.isAuthenticated && authState.user) {
+            // 根据拼图配置计算理想步数
+            const calculatePerfectMoves = (config: PuzzleConfig): number => {
+              const baseSize = config.pieces.length;
+              const difficultyMultiplier = {
+                'easy': 0.8,
+                'medium': 1.0,
+                'hard': 1.3,
+                'expert': 1.6
+              };
+              
+              // 基础公式：拼图块数 * 难度系数 * 1.2
+              return Math.round(baseSize * difficultyMultiplier[config.difficulty] * 1.2);
+            };
+
+            const perfectMoves = calculatePerfectMoves(puzzleConfig);
+            const totalPieces = puzzleConfig.pieces.length;
+
             // 计算游戏完成结果
             const result = calculateGameCompletion(
               puzzleConfig.difficulty,
               timer,
               gameState.moves,
               {
-                gamesCompleted: authState.user.gamesCompleted,
+                gamesCompleted: authState.user.gamesCompleted + 1, // 使用即将更新的值
                 level: authState.user.level,
                 experience: authState.user.experience,
                 bestTimes: authState.user.bestTimes,
+                recentGameResults: (authState.user as any).recentGameResults || [], // 添加最近游戏结果
               },
               authState.user.achievements || [],
-              35 // TODO: 从拼图配置中获取理想步数
+              perfectMoves,
+              totalPieces
             );
 
             setCompletionResult(result);
