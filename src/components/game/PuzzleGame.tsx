@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { usePuzzleGame } from '../../hooks/usePuzzleGame';
-import { PuzzleConfig } from '../../types';
+import { PuzzleConfig, GameCompletionResult } from '../../types';
 import { PuzzleWorkspace } from './PuzzleWorkspace';
+import { GameCompletionModal } from './GameCompletionModal';
 import { Button } from '../common/Button';
 import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
+import { useAuth } from '../../contexts/AuthContext';
+import { calculateGameCompletion } from '../../utils/rewardSystem';
 import './PuzzleGame.css';
 
 interface PuzzleGameProps {
@@ -19,6 +22,12 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   onBackToMenu,
 }) => {
   const [showAnswers, setShowAnswers] = useState(false);
+  const [completionResult, setCompletionResult] = useState<GameCompletionResult | null>(null);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [isProcessingCompletion, setIsProcessingCompletion] = useState(false); // 防重复处理
+  const [hasProcessedCompletion, setHasProcessedCompletion] = useState(false); // 标记是否已处理
+  
+  const { authState, handleGameCompletion } = useAuth();
   
   const {
     gameState,
@@ -47,14 +56,78 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   // 开始游戏
   const startGame = useCallback(() => {
     initializeGame(puzzleConfig);
+    setHasProcessedCompletion(false); // 重置完成处理标记
+    setShowCompletionModal(false);
+    setCompletionResult(null);
   }, [initializeGame, puzzleConfig]);
+
+  // 处理再玩一次
+  const handlePlayAgain = useCallback(() => {
+    setShowCompletionModal(false);
+    setCompletionResult(null);
+    setHasProcessedCompletion(false); // 重置完成处理标记
+    resetGame();
+  }, [resetGame]);
+
+  // 处理返回菜单
+  const handleBackToMenu = useCallback(() => {
+    setShowCompletionModal(false);
+    setCompletionResult(null);
+    setHasProcessedCompletion(false); // 重置完成处理标记
+    if (onBackToMenu) {
+      onBackToMenu();
+    }
+  }, [onBackToMenu]);
 
   // 处理拼图完成
   React.useEffect(() => {
-    if (gameState?.isCompleted && onGameComplete) {
-      onGameComplete(timer, gameState.moves);
+    // 只有当游戏完成且尚未处理过时才执行
+    if (gameState?.isCompleted && !hasProcessedCompletion && !isProcessingCompletion) {
+      setIsProcessingCompletion(true);
+      setHasProcessedCompletion(true);
+
+      const processGameCompletion = async () => {
+        try {
+          if (authState.isAuthenticated && authState.user) {
+            // 计算游戏完成结果
+            const result = calculateGameCompletion(
+              puzzleConfig.difficulty,
+              timer,
+              gameState.moves,
+              {
+                gamesCompleted: authState.user.gamesCompleted,
+                level: authState.user.level,
+                experience: authState.user.experience,
+                bestTimes: authState.user.bestTimes,
+              },
+              authState.user.achievements || [],
+              35 // TODO: 从拼图配置中获取理想步数
+            );
+
+            setCompletionResult(result);
+            setShowCompletionModal(true);
+
+            // 更新用户数据
+            await handleGameCompletion(result);
+
+            // 调用原始的完成回调
+            if (onGameComplete) {
+              onGameComplete(timer, gameState.moves);
+            }
+          } else if (onGameComplete) {
+            // 未登录用户仍然调用原始完成回调
+            onGameComplete(timer, gameState.moves);
+          }
+        } catch (error) {
+          console.error('处理游戏完成失败:', error);
+        } finally {
+          setIsProcessingCompletion(false);
+        }
+      };
+
+      processGameCompletion();
     }
-  }, [gameState?.isCompleted, timer, gameState?.moves, onGameComplete]);
+  }, [gameState?.isCompleted, hasProcessedCompletion, isProcessingCompletion]); // 移除了频繁变化的依赖项
 
   // 处理键盘快捷键
   React.useEffect(() => {
@@ -188,20 +261,28 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           />
         )}
 
+        {/* 新的游戏完成弹窗 */}
+        {completionResult && (
+          <GameCompletionModal
+            result={completionResult}
+            isVisible={showCompletionModal}
+            onPlayAgain={handlePlayAgain}
+            onBackToMenu={handleBackToMenu}
+          />
+        )}
 
-
-        {/* 游戏完成提示 */}
-        {gameState?.isCompleted && (
+        {/* 简单完成提示（未登录用户或奖励弹窗未显示时） */}
+        {gameState?.isCompleted && !showCompletionModal && (
           <div className="completion-modal">
             <div className="modal-content">
               <h3>🎉 恭喜完成！</h3>
               <p>完成时间: {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}</p>
               <p>总步数: {gameState.moves}</p>
               <div className="modal-actions">
-                <Button onClick={resetGame} variant="primary">
+                <Button onClick={handlePlayAgain} variant="primary">
                   再玩一次
                 </Button>
-                <Button onClick={onBackToMenu} variant="secondary">
+                <Button onClick={handleBackToMenu} variant="secondary">
                   返回菜单
                 </Button>
               </div>

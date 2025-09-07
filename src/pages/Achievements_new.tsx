@@ -29,15 +29,7 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
   const user = authState.user;
 
   // 使用新的成就数据系统
-  const achievements: Achievement[] = createAchievements({
-    gamesCompleted: user?.gamesCompleted || 0,
-    achievements: user?.achievements || [],
-    level: user?.level || 1,
-    experience: user?.experience || 0,
-    coins: user?.coins || 0,
-    totalScore: user?.totalScore || 0,
-    bestTimes: user?.bestTimes || {}
-  });
+  const achievements: Achievement[] = createAchievements(authState.user);
 
   const categories = [
     { id: 'all', label: '全部', icon: '🏆' },

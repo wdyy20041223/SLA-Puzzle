@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Asset } from '../../types';
 import { AssetCard } from '../common/AssetCard';
 import { Button } from '../common/Button';
+import { useAuth } from '../../contexts/AuthContext';
 import './AssetLibrary.css';
 
 interface AssetLibraryProps {
@@ -131,11 +132,52 @@ const builtinAssets: Asset[] = [
   },
 ];
 
+// 商店拼图素材映射 - 将商店中的拼图素材ID映射为Asset对象
+const shopPuzzleAssets: Record<string, Asset> = {
+  'puzzle_image_1': {
+    id: 'puzzle_image_1',
+    name: '森林花园',
+    category: '自定义',
+    tags: ['拼图', '素材', '商店', '森林', '花园', '自然', '绿色'],
+    filePath: '/images/test1.svg',
+    thumbnail: '/images/test1.svg',
+    width: 400,
+    height: 400,
+    fileSize: 8000,
+    createdAt: new Date('2024-01-01'),
+  },
+  'puzzle_image_2': {
+    id: 'puzzle_image_2',
+    name: '黄昏日落',
+    category: '自定义',
+    tags: ['拼图', '素材', '商店', '日落', '黄昏', '太阳', '橙色'],
+    filePath: '/images/test2.svg',
+    thumbnail: '/images/test2.svg',
+    width: 400,
+    height: 400,
+    fileSize: 9000,
+    createdAt: new Date('2024-01-01'),
+  },
+  'puzzle_image_3': {
+    id: 'puzzle_image_3',
+    name: '玫瑰花园',
+    category: '自定义',
+    tags: ['拼图', '素材', '商店', '玫瑰', '花园', '红色', '浪漫'],
+    filePath: '/images/test3.svg',
+    thumbnail: '/images/test3.svg',
+    width: 400,
+    height: 400,
+    fileSize: 10000,
+    createdAt: new Date('2024-01-01'),
+  },
+};
+
 export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   onAssetSelect,
   onAssetUpload,
   showUpload = true,
 }) => {
+  const { authState } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [customAssets, setCustomAssets] = useState<Asset[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -151,7 +193,13 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     { id: '自定义', name: '自定义' },
   ];
 
-  const allAssets = [...builtinAssets, ...customAssets];
+  // 获取用户购买的拼图素材
+  const userOwnedItems = authState.user?.ownedItems || [];
+  const ownedPuzzleAssets = userOwnedItems
+    .filter(itemId => shopPuzzleAssets[itemId])
+    .map(itemId => shopPuzzleAssets[itemId]);
+
+  const allAssets = [...builtinAssets, ...customAssets, ...ownedPuzzleAssets];
 
   const filteredAssets = allAssets.filter(asset => {
     const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;

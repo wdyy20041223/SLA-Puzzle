@@ -37,7 +37,7 @@ interface ChallengeHistory {
 }
 
 export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) => {
-  const [activeTab, setActiveTab] = useState<'today' | 'history' | 'rewards'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
 
   // 模拟今日挑战数据
   const todayChallenge: Challenge = {
@@ -338,94 +338,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     </div>
   );
 
-  const renderRewardsTab = () => (
-    <div className="rewards-summary">
-      <div className="rewards-header">
-        <h3>🏆 奖励总览</h3>
-        <div className="total-rewards">
-          <div className="reward-stat">
-            <span className="reward-icon">💰</span>
-            <span className="reward-amount">2,340</span>
-            <span className="reward-label">总金币</span>
-          </div>
-          <div className="reward-stat">
-            <span className="reward-icon">⭐</span>
-            <span className="reward-amount">165</span>
-            <span className="reward-label">总经验</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="rewards-categories">
-        <div className="reward-category">
-          <h4>🎨 解锁内容</h4>
-          <div className="unlocked-items">
-            <div className="unlocked-item">
-              <span className="item-icon">🖼️</span>
-              <span className="item-name">樱花头像框</span>
-              <span className="item-date">1月19日</span>
-            </div>
-            <div className="unlocked-item">
-              <span className="item-icon">✨</span>
-              <span className="item-name">星空特效</span>
-              <span className="item-date">1月18日</span>
-            </div>
-            <div className="unlocked-item">
-              <span className="item-icon">👑</span>
-              <span className="item-name">完美主义者</span>
-              <span className="item-date">1月17日</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="reward-category">
-          <h4>🎯 成就进度</h4>
-          <div className="achievement-progress">
-            <div className="progress-item">
-              <span className="progress-label">连续挑战</span>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '70%' }} />
-              </div>
-              <span className="progress-text">7/10天</span>
-            </div>
-            <div className="progress-item">
-              <span className="progress-label">完美挑战</span>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '40%' }} />
-              </div>
-              <span className="progress-text">2/5次</span>
-            </div>
-            <div className="progress-item">
-              <span className="progress-label">速度挑战</span>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '60%' }} />
-              </div>
-              <span className="progress-text">3/5次</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="next-rewards">
-        <h4>🎁 即将获得</h4>
-        <div className="upcoming-rewards">
-          <div className="upcoming-item">
-            <span className="upcoming-icon">🏆</span>
-            <span className="upcoming-name">挑战大师</span>
-            <span className="upcoming-requirement">完成30个每日挑战</span>
-            <span className="upcoming-progress">23/30</span>
-          </div>
-          <div className="upcoming-item">
-            <span className="upcoming-icon">💎</span>
-            <span className="upcoming-name">钻石边框</span>
-            <span className="upcoming-requirement">连续15天挑战</span>
-            <span className="upcoming-progress">7/15</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="daily-challenge-page">
       <div className="challenge-header-main">
@@ -451,20 +363,12 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
             <span className="tab-icon">📚</span>
             <span className="tab-label">历史记录</span>
           </button>
-          <button
-            className={`tab-button ${activeTab === 'rewards' ? 'active' : ''}`}
-            onClick={() => setActiveTab('rewards')}
-          >
-            <span className="tab-icon">🏆</span>
-            <span className="tab-label">奖励总览</span>
-          </button>
         </div>
       </div>
 
       <div className="challenge-content">
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'history' && renderHistoryTab()}
-        {activeTab === 'rewards' && renderRewardsTab()}
       </div>
     </div>
   );

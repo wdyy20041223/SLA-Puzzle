@@ -116,11 +116,44 @@ export interface User {
   id: string;
   username: string;
   avatar?: string;
+  avatarFrame?: string; // 头像框
   createdAt: Date;
   lastLoginAt: Date;
   level: number;
+  experience: number; // 当前经验值
+  coins: number; // 金币数量
   totalScore: number;
   gamesCompleted: number;
+  achievements?: string[]; // 已解锁的成就ID列表
+  bestTimes?: Record<string, number>; // 各难度最佳时间记录
+  ownedItems?: string[]; // 拥有的商店物品ID列表
+}
+
+// 奖励类型
+export interface GameReward {
+  coins: number;
+  experience: number;
+  achievements?: Achievement[];
+}
+
+// 成就类型
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: 'progress' | 'performance' | 'special' | 'milestone';
+  unlocked: boolean;
+  unlockedAt?: Date;
+}
+
+// 游戏完成结果
+export interface GameCompletionResult {
+  completionTime: number;
+  moves: number;
+  difficulty: DifficultyLevel;
+  isNewRecord: boolean;
+  rewards: GameReward;
 }
 
 export interface AuthState {

@@ -1,0 +1,54 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <radialGradient id="orangeGrad" cx="50%" cy="40%" r="80%">
+      <stop offset="0%" style="stop-color:#FCD34D;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F59E0B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </radialGradient>
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF3C7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="400" height="400" fill="url(#orangeGrad)"/>
+  
+  <!-- 太阳光芒 -->
+  <g transform="translate(200,200)">
+    <line x1="0" y1="-120" x2="0" y2="-140" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="85" y1="-85" x2="99" y2="-99" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="120" y1="0" x2="140" y2="0" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="85" y1="85" x2="99" y2="99" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="0" y1="120" x2="0" y2="140" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="-85" y1="85" x2="-99" y2="99" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="-120" y1="0" x2="-140" y2="0" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+    <line x1="-85" y1="-85" x2="-99" y2="-99" stroke="#FEF3C7" stroke-width="4" opacity="0.8"/>
+  </g>
+  
+  <!-- 装饰性山脉 -->
+  <polygon points="0,350 80,280 160,320 240,260 320,300 400,280 400,400 0,400" fill="#EA580C" opacity="0.6"/>
+  <polygon points="0,320 60,250 140,290 220,230 300,270 400,250 400,400 0,400" fill="#DC2626" opacity="0.4"/>
+  
+  <!-- 云朵 -->
+  <ellipse cx="100" cy="80" rx="30" ry="20" fill="#FEF3C7" opacity="0.7"/>
+  <ellipse cx="120" cy="70" rx="25" ry="18" fill="#FEF3C7" opacity="0.7"/>
+  <ellipse cx="320" cy="90" rx="35" ry="22" fill="#FEF3C7" opacity="0.6"/>
+  <ellipse cx="340" cy="80" rx="28" ry="16" fill="#FEF3C7" opacity="0.6"/>
+  
+  <!-- 装饰性星星 -->
+  <polygon points="70,150 75,160 85,160 77,168 80,178 70,172 60,178 63,168 55,160 65,160" fill="#FEF3C7" opacity="0.8"/>
+  <polygon points="330,140 335,150 345,150 337,158 340,168 330,162 320,168 323,158 315,150 325,150" fill="#FEF3C7" opacity="0.7"/>
+  
+  <!-- 中心太阳 -->
+  <circle cx="200" cy="120" r="40" fill="url(#sunGrad)" opacity="0.9"/>
+  <circle cx="200" cy="120" r="25" fill="#FEF3C7" opacity="0.8"/>
+  
+  <!-- 装饰框 -->
+  <rect x="120" y="280" width="160" height="60" rx="8" fill="none" stroke="#FEF3C7" stroke-width="3" opacity="0.9"/>
+  
+  <!-- 文字 -->
+  <text x="200" y="300" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">黄昏日落</text>
+  <text x="200" y="320" font-family="Arial, sans-serif" font-size="14" fill="#FEF3C7" text-anchor="middle" dominant-baseline="middle">Sunset Glory</text>
+</svg>

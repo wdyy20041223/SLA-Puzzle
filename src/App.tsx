@@ -7,12 +7,13 @@ import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
 import { DailyChallenge } from './pages/DailyChallenge';
 import { Multiplayer } from './pages/Multiplayer';
+import { Shop } from './pages/Shop';
 import { Button } from './components/common/Button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/auth/Auth';
 import './App.css';
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer';
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop';
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
@@ -73,6 +74,10 @@ const AppContent: React.FC = () => {
     setCurrentView('multiplayer');
   };
 
+  const handleOpenShop = () => {
+    setCurrentView('shop');
+  };
+
   const handleGameComplete = (completionTime: number, moves: number) => {
     console.log(`游戏完成！用时: ${completionTime}秒, 步数: ${moves}`);
     // 这里可以添加完成后的处理逻辑，比如保存到排行榜
@@ -89,6 +94,7 @@ const AppContent: React.FC = () => {
             onOpenAchievements={handleOpenAchievements}
             onOpenDailyChallenge={handleOpenDailyChallenge}
             onOpenMultiplayer={handleOpenMultiplayer}
+            onOpenShop={handleOpenShop}
           />
         );
       
@@ -134,6 +140,11 @@ const AppContent: React.FC = () => {
       case 'multiplayer':
         return (
           <Multiplayer onBackToMenu={handleBackToMenu} />
+        );
+      
+      case 'shop':
+        return (
+          <Shop onBackToMenu={handleBackToMenu} />
         );
       
       default:
