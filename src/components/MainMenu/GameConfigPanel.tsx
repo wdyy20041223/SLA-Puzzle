@@ -15,6 +15,7 @@ interface GameConfigPanelProps {
   onDifficultyChange: (difficulty: DifficultyLevel) => void;
   onShapeChange: (shape: PieceShape) => void;
   onStartGame: () => void;
+  onLoadGame?: () => void;
   onOpenEditor: () => void;
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
@@ -29,6 +30,7 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
   onDifficultyChange,
   onShapeChange,
   onStartGame,
+  onLoadGame,
   onOpenEditor,
   onOpenAchievements,
   onOpenDailyChallenge,
@@ -68,6 +70,7 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
         {/* 操作按钮区域 - 固定在底部 */}
         <GameActionButtons
           onStartGame={onStartGame}
+          onLoadGame={onLoadGame}
           onOpenEditor={onOpenEditor}
           onOpenAchievements={onOpenAchievements}
           onOpenDailyChallenge={onOpenDailyChallenge}

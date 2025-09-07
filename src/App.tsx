@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { PuzzleConfig } from './types';
 import { MainMenu } from './pages/MainMenu';
 import { PuzzleGame } from './components/game/PuzzleGame';
+import { LoadedPuzzleGame } from './components/game/LoadedPuzzleGame';
 import { PuzzleEditor } from './components/editor/PuzzleEditor';
 import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
@@ -20,6 +21,7 @@ const AppContent: React.FC = () => {
   const { authState } = useAuth();
   const [currentView, setCurrentView] = useState<AppView>('menu');
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleConfig | null>(null);
+  const [loadGameSaveId, setLoadGameSaveId] = useState<string | null>(null);
   const [irregularGameParams, setIrregularGameParams] = useState<{
     imageData?: string;
     gridSize?: '3x3' | '4x4' | '5x5' | '6x6';
@@ -48,6 +50,11 @@ const AppContent: React.FC = () => {
     setCurrentView('game');
   };
 
+  const handleLoadGame = (saveId: string) => {
+    setLoadGameSaveId(saveId);
+    setCurrentView('game');
+  };
+
   const handleStartIrregularGame = (imageData?: string, gridSize: '3x3' | '4x4' | '5x5' | '6x6' = '3x3') => {
     setIrregularGameParams({ imageData, gridSize });
     setCurrentView('irregular-game');
@@ -56,6 +63,7 @@ const AppContent: React.FC = () => {
   const handleBackToMenu = () => {
     setCurrentView('menu');
     setCurrentPuzzle(null);
+    setLoadGameSaveId(null);
     setIrregularGameParams({});
   };
 
@@ -94,6 +102,7 @@ const AppContent: React.FC = () => {
         return (
           <MainMenu
             onStartGame={handleStartGame}
+            onLoadGame={handleLoadGame}
             onStartIrregularGame={handleStartIrregularGame}
             onOpenEditor={handleOpenEditor}
             onOpenAchievements={handleOpenAchievements}
@@ -105,19 +114,33 @@ const AppContent: React.FC = () => {
         );
       
       case 'game':
-        return currentPuzzle ? (
-          <PuzzleGame
-            puzzleConfig={currentPuzzle}
-            onGameComplete={handleGameComplete}
-            onBackToMenu={handleBackToMenu}
-          />
-        ) : (
-          <div className="error-view">
-            <h2>错误</h2>
-            <p>拼图配置加载失败</p>
-            <Button onClick={handleBackToMenu}>返回菜单</Button>
-          </div>
-        );
+        if (loadGameSaveId) {
+          // 加载保存的游戏
+          return (
+            <LoadedPuzzleGame
+              saveId={loadGameSaveId}
+              onGameComplete={handleGameComplete}
+              onBackToMenu={handleBackToMenu}
+            />
+          );
+        } else if (currentPuzzle) {
+          // 开始新游戏
+          return (
+            <PuzzleGame
+              puzzleConfig={currentPuzzle}
+              onGameComplete={handleGameComplete}
+              onBackToMenu={handleBackToMenu}
+            />
+          );
+        } else {
+          return (
+            <div className="error-view">
+              <h2>错误</h2>
+              <p>拼图配置加载失败</p>
+              <Button onClick={handleBackToMenu}>返回菜单</Button>
+            </div>
+          );
+        }
       
       case 'editor':
         return (

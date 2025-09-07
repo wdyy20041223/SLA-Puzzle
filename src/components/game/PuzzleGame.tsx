@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { usePuzzleGame } from '../../hooks/usePuzzleGame';
-import { PuzzleConfig, GameCompletionResult } from '../../types';
+import { PuzzleConfig, GameCompletionResult, GameState } from '../../types';
 import { PuzzleWorkspace } from './PuzzleWorkspace';
 import { GameCompletionModal } from './GameCompletionModal';
+import { SaveLoadModal } from './SaveLoadModal';
 import { Button } from '../common/Button';
 import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
@@ -12,12 +13,14 @@ import './PuzzleGame.css';
 
 interface PuzzleGameProps {
   puzzleConfig: PuzzleConfig;
+  preloadedGameState?: GameState;
   onGameComplete?: (completionTime: number, moves: number) => void;
   onBackToMenu?: () => void;
 }
 
 export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   puzzleConfig,
+  preloadedGameState,
   onGameComplete,
   onBackToMenu,
 }) => {
@@ -26,6 +29,10 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isProcessingCompletion, setIsProcessingCompletion] = useState(false); // 防重复处理
   const [hasProcessedCompletion, setHasProcessedCompletion] = useState(false); // 标记是否已处理
+  
+  // 保存/加载相关状态
+  const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
+  const [saveLoadMode, setSaveLoadMode] = useState<'save' | 'load'>('save');
   
   const { authState, handleGameCompletion } = useAuth();
   
@@ -51,7 +58,17 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     handleDragLeave,
     handleDropToSlot,
     handleDropToProcessingArea,
-  } = usePuzzleGame({ initialConfig: puzzleConfig });
+    // 保存/加载相关
+    saveGame,
+    loadGame,
+    getSavedGames,
+    deleteSavedGame,
+    canSaveGame,
+    getGameProgress,
+  } = usePuzzleGame({ 
+    userId: authState.user?.id,
+    preloadedGameState
+  });
 
   // 开始游戏
   const startGame = useCallback(() => {
@@ -78,6 +95,18 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
       onBackToMenu();
     }
   }, [onBackToMenu]);
+
+  // 处理保存游戏
+  const handleSaveGame = useCallback(() => {
+    setSaveLoadMode('save');
+    setShowSaveLoadModal(true);
+  }, []);
+
+
+  // 关闭保存/加载模态框
+  const handleCloseSaveLoadModal = useCallback(() => {
+    setShowSaveLoadModal(false);
+  }, []);
 
   // 处理拼图完成
   React.useEffect(() => {
@@ -171,15 +200,41 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             undo();
           }
           break;
+        case 's':
+        case 'S':
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            if (canSaveGame()) {
+              handleSaveGame();
+            }
+          }
+          break;
+        case 'a':
+        case 'A':
+          if (!e.ctrlKey && !e.metaKey) {
+            setShowAnswers(!showAnswers);
+          }
+          break;
+        case 'h':
+        case 'H':
+          if (!e.ctrlKey && !e.metaKey) {
+            // TODO: 实现帮助功能
+            alert('帮助功能正在开发中！');
+          }
+          break;
         case 'Escape':
-          setSelectedPiece(null);
+          if (showSaveLoadModal) {
+            setShowSaveLoadModal(false);
+          } else {
+            setSelectedPiece(null);
+          }
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [selectedPiece, rotatePiece, flipPiece, undo, setSelectedPiece]);
+  }, [selectedPiece, rotatePiece, flipPiece, undo, setSelectedPiece, canSaveGame, handleSaveGame, showAnswers, setShowAnswers, showSaveLoadModal]);
 
   if (!isGameStarted) {
     return (
@@ -242,10 +297,11 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             ↩️ 撤销
           </Button>
           <Button 
-            onClick={() => alert('保存功能开发中')} 
+            onClick={handleSaveGame} 
             variant="secondary" 
             size="small"
             className="save-button"
+            disabled={!canSaveGame()}
           >
             💾 保存进度
           </Button>
@@ -308,11 +364,28 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             </div>
           </div>
         )}
+
+        {/* 保存/加载模态框 */}
+        <SaveLoadModal
+          isVisible={showSaveLoadModal}
+          onClose={handleCloseSaveLoadModal}
+          mode={saveLoadMode}
+          savedGames={getSavedGames()}
+          currentGameProgress={getGameProgress()}
+          gameConfig={{
+            name: puzzleConfig.name,
+            difficulty: puzzleConfig.difficulty
+          }}
+          userName={authState.user?.username}
+          onSaveGame={saveGame}
+          onLoadGame={loadGame}
+          onDeleteSave={deleteSavedGame}
+        />
       </div>
 
       {/* 操作提示 */}
       <div className="game-tips">
-        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | ESC 取消选择 | Ctrl+S 保存进度 | H键查看提示 | A键切换答案显示</p>
+        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | Ctrl+S 保存进度 | A键切换答案显示 | H键查看提示 | ESC 取消选择</p>
       </div>
     </div>
   );

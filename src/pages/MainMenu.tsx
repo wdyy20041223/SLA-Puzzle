@@ -5,11 +5,15 @@ import { PuzzleGenerator } from '../utils/puzzleGenerator';
 import { GameConfigPanel } from '../components/MainMenu';
 import { UserProfile } from '../components/auth/UserProfile';
 import { DataSync } from '../components/sync/DataSync';
+import { SaveLoadModal } from '../components/game/SaveLoadModal';
+import { PuzzleSaveService } from '../services/puzzleSaveService';
+import { useAuth } from '../contexts/AuthContext';
 import './MainMenu.css';
 
 
 interface MainMenuProps {
   onStartGame: (puzzleConfig: PuzzleConfig) => void;
+  onLoadGame?: (saveId: string) => void;
   onStartIrregularGame: (imageData?: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
   onOpenEditor: () => void;
   onOpenAchievements: () => void;
@@ -21,6 +25,7 @@ interface MainMenuProps {
 
 export const MainMenu: React.FC<MainMenuProps> = ({
   onStartGame,
+  onLoadGame,
   onStartIrregularGame,
   onOpenEditor,
   onOpenAchievements,
@@ -34,9 +39,38 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const [pieceShape, setPieceShape] = useState<PieceShape>('square');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
+  const [showLoadModal, setShowLoadModal] = useState(false);
+
+  const { authState } = useAuth();
 
   const handleAssetSelect = (asset: Asset) => {
     setSelectedAsset(asset);
+  };
+
+  const handleOpenLoadModal = () => {
+    setShowLoadModal(true);
+  };
+
+  const handleCloseLoadModal = () => {
+    setShowLoadModal(false);
+  };
+
+  const handleLoadGame = (saveId: string) => {
+    if (onLoadGame) {
+      onLoadGame(saveId);
+      setShowLoadModal(false);
+      return { success: true };
+    }
+    
+    return { success: false, error: '无法加载游戏' };
+  };
+
+  const handleDeleteSave = (saveId: string) => {
+    return PuzzleSaveService.deleteSavedGame(saveId);
+  };
+
+  const getSavedGames = () => {
+    return PuzzleSaveService.getSavedGames(authState.user?.id);
   };
 
   const handleStartGame = async () => {
@@ -142,6 +176,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               onDifficultyChange={setDifficulty}
               onShapeChange={setPieceShape}
               onStartGame={handleStartGame}
+              onLoadGame={handleOpenLoadModal}
               onOpenEditor={onOpenEditor}
               onOpenAchievements={onOpenAchievements}
               onOpenDailyChallenge={onOpenDailyChallenge}
@@ -150,6 +185,20 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 加载游戏模态框 */}
+      <SaveLoadModal
+        isVisible={showLoadModal}
+        onClose={handleCloseLoadModal}
+        mode="load"
+        savedGames={getSavedGames()}
+        currentGameProgress={0}
+        gameConfig={undefined}
+        userName={authState.user?.username}
+        onSaveGame={() => ({ success: false, error: '主菜单不支持保存' })}
+        onLoadGame={handleLoadGame}
+        onDeleteSave={handleDeleteSave}
+      />
     </div>
   );
 };
