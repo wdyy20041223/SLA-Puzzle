@@ -452,7 +452,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
   }, [draggedPiece, gameState, removePieceFromSlot]);
 
   // 保存游戏进度
-  const saveGame = useCallback((description?: string, overwriteId?: string) => {
+  const saveGame = useCallback((description?: string) => {
     if (!gameState) {
       return { success: false, error: '没有正在进行的游戏' };
     }
@@ -461,7 +461,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
       return { success: false, error: '已完成的游戏无法保存' };
     }
 
-    return PuzzleSaveService.saveGame(gameState, description, userId, overwriteId);
+    return PuzzleSaveService.saveGame(gameState, description, userId);
   }, [gameState, userId]);
 
   // 加载游戏进度

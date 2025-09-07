@@ -9,9 +9,7 @@ interface SaveLoadModalProps {
   mode: 'save' | 'load';
   savedGames: SavedPuzzleGame[];
   currentGameProgress?: number;
-  gameConfig?: { name: string; difficulty: string }; // 游戏配置信息
-  userName?: string; // 用户昵称
-  onSaveGame: (description?: string, overwriteId?: string) => { success: boolean; error?: string };
+  onSaveGame: (description?: string) => { success: boolean; error?: string };
   onLoadGame: (saveId: string) => { success: boolean; error?: string };
   onDeleteSave: (saveId: string) => { success: boolean; error?: string };
 }
@@ -22,41 +20,26 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
   mode,
   savedGames,
   currentGameProgress = 0,
-  gameConfig,
-  userName,
   onSaveGame,
   onLoadGame,
   onDeleteSave,
 }) => {
   const [saveDescription, setSaveDescription] = useState('');
   const [selectedSaveId, setSelectedSaveId] = useState<string | null>(null);
-  const [overwriteId, setOverwriteId] = useState<string | null>(null); // 要覆盖的存档ID
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  // 生成默认保存描述
-  const generateDefaultDescription = () => {
-    const parts = [];
-    if (gameConfig?.name) parts.push(gameConfig.name);
-    if (gameConfig?.difficulty) parts.push(gameConfig.difficulty);
-    if (userName) parts.push(`@${userName}`);
-    return parts.length > 0 ? parts.join(' - ') : '';
-  };
-
   // 重置状态
   useEffect(() => {
     if (isVisible) {
-      // 如果是保存模式，自动填入默认描述
-      const defaultDesc = mode === 'save' ? generateDefaultDescription() : '';
-      setSaveDescription(defaultDesc);
+      setSaveDescription('');
       setSelectedSaveId(null);
-      setOverwriteId(null);
       setMessage(null);
       setShowDeleteConfirm(null);
       setIsProcessing(false);
     }
-  }, [isVisible, mode, gameConfig, userName]);
+  }, [isVisible, mode]);
 
   // 关闭模态框
   const handleClose = () => {
@@ -73,14 +56,10 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
     setMessage(null);
 
     try {
-      const result = onSaveGame(
-        saveDescription.trim() || undefined, 
-        overwriteId || undefined
-      );
+      const result = onSaveGame(saveDescription.trim() || undefined);
       
       if (result.success) {
-        const actionText = overwriteId ? '游戏覆盖保存成功！' : '游戏保存成功！';
-        setMessage({ type: 'success', text: actionText });
+        setMessage({ type: 'success', text: '游戏保存成功！' });
         setTimeout(() => {
           handleClose();
         }, 1500);
@@ -216,82 +195,13 @@ export const SaveLoadModal: React.FC<SaveLoadModalProps> = ({
                 </div>
               </div>
 
-              {/* 已有存档列表 - 支持覆盖 */}
-              {savedGames.length > 0 && (
-                <div className="existing-saves-section">
-                  <h3>已有存档 (点击选择覆盖)</h3>
-                  <div className="existing-saves-list">
-                    {savedGames.map((savedGame) => {
-                      const isSelected = overwriteId === savedGame.id;
-                      const progress = calculateSaveProgress(savedGame);
-                      
-                      return (
-                        <div 
-                          key={savedGame.id}
-                          className={`existing-save-item ${isSelected ? 'selected' : ''}`}
-                          onClick={() => {
-                            if (overwriteId === savedGame.id) {
-                              setOverwriteId(null); // 取消选择
-                            } else {
-                              setOverwriteId(savedGame.id); // 选择覆盖
-                            }
-                          }}
-                        >
-                          <div className="existing-save-info">
-                            <div className="existing-save-header">
-                              <h4>{savedGame.gameState.config.name}</h4>
-                              <span className="existing-save-date">
-                                {formatDate(savedGame.savedAt)}
-                              </span>
-                            </div>
-                            
-                            <div className="existing-save-details">
-                              <div className="existing-save-progress">
-                                <span>进度: {progress}%</span>
-                                <span>步数: {savedGame.gameState.moves}</span>
-                                <span>难度: {savedGame.gameState.config.difficulty}</span>
-                              </div>
-                              
-                              {savedGame.description && (
-                                <div className="existing-save-description">
-                                  {savedGame.description}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="existing-save-progress-bar">
-                              <div 
-                                className="existing-save-progress-fill"
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                          </div>
-
-                          {isSelected && (
-                            <div className="overwrite-indicator">
-                              <span>🔄 将被覆盖</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="overwrite-hint">
-                    💡 选择已有存档可覆盖保存，不选择则创建新存档
-                  </div>
-                </div>
-              )}
-
               <div className="action-buttons">
                 <Button 
                   onClick={handleSave}
                   variant="primary"
                   disabled={isProcessing}
                 >
-                  {isProcessing 
-                    ? (overwriteId ? '覆盖中...' : '保存中...') 
-                    : (overwriteId ? '🔄 覆盖存档' : '💾 保存游戏')
-                  }
+                  {isProcessing ? '保存中...' : '保存游戏'}
                 </Button>
                 <Button 
                   onClick={handleClose}
