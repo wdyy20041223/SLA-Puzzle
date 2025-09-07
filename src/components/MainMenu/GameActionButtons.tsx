@@ -3,6 +3,7 @@ import { Button } from '../common/Button';
 
 interface GameActionButtonsProps {
   onStartGame: () => void;
+  onLoadGame?: () => void;
   onOpenEditor: () => void;
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
@@ -13,6 +14,7 @@ interface GameActionButtonsProps {
 
 export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
   onStartGame,
+  onLoadGame,
   onOpenEditor,
   onOpenAchievements,
   onOpenDailyChallenge,
@@ -31,6 +33,17 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
       >
         {isGenerating ? '生成中...' : '🎮 开始游戏'}
       </Button>
+      
+      {onLoadGame && (
+        <Button
+          onClick={onLoadGame}
+          variant="success"
+          size="large"
+          className="w-full py-4 text-base font-semibold"
+        >
+          📂 加载游戏
+        </Button>
+      )}
       
       <div className="grid grid-cols-2 gap-2">
         <Button
