@@ -8,17 +8,38 @@ import { Achievements } from './pages/Achievements';
 import { DailyChallenge } from './pages/DailyChallenge';
 import { Multiplayer } from './pages/Multiplayer';
 import { Button } from './components/common/Button';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Auth } from './components/auth/Auth';
 import './App.css';
 
 type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer';
 
-function App() {
+const AppContent: React.FC = () => {
+  const { authState } = useAuth();
   const [currentView, setCurrentView] = useState<AppView>('menu');
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleConfig | null>(null);
   const [irregularGameParams, setIrregularGameParams] = useState<{
     imageData?: string;
     gridSize?: '3x3' | '4x4' | '5x5' | '6x6';
   }>({});
+
+  // 如果正在加载认证状态，显示加载画面
+  if (authState.isLoading) {
+    return (
+      <div className="app loading-screen">
+        <div className="loading-content">
+          <div className="app-logo">🧩</div>
+          <div className="loading-spinner"></div>
+          <p>加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果未认证，显示登录页面
+  if (!authState.isAuthenticated) {
+    return <Auth />;
+  }
 
   const handleStartGame = (puzzleConfig: PuzzleConfig) => {
     setCurrentPuzzle(puzzleConfig);
@@ -129,6 +150,14 @@ function App() {
     <div className="app">
       {renderCurrentView()}
     </div>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

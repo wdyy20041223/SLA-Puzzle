@@ -110,3 +110,33 @@ export interface SaveGameParams {
 export interface LoadGameParams {
   gameId: string;
 }
+
+// 用户相关类型
+export interface User {
+  id: string;
+  username: string;
+  avatar?: string;
+  createdAt: Date;
+  lastLoginAt: Date;
+  level: number;
+  totalScore: number;
+  gamesCompleted: number;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  username: string;
+  password: string;
+  confirmPassword: string;
+}

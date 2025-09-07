@@ -3,6 +3,9 @@ import { Asset, PuzzleConfig, DifficultyLevel, PieceShape } from '../types';
 import { AssetLibrary } from '../components/game/AssetLibrary';
 import { PuzzleGenerator } from '../utils/puzzleGenerator';
 import { GameConfigPanel } from '../components/MainMenu';
+import { UserProfile } from '../components/auth/UserProfile';
+import { DataSync } from '../components/sync/DataSync';
+import './MainMenu.css';
 
 
 interface MainMenuProps {
@@ -26,6 +29,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
   const [pieceShape, setPieceShape] = useState<PieceShape>('square');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showSyncPanel, setShowSyncPanel] = useState(false);
 
   const handleAssetSelect = (asset: Asset) => {
     setSelectedAsset(asset);
@@ -86,32 +90,60 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800 flex justify-center items-start pt-[25px] px-5 pb-5">
-      {/* 主要内容区域 - 作为一个整体 */}
-      <div className="flex flex-col lg:flex-row gap-5 w-full max-w-7xl">
-        {/* 素材选择区域 */}
-        <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg flex flex-col h-[800px]">
-          <AssetLibrary
-            onAssetSelect={handleAssetSelect}
-            showUpload={true}
-          />
+    <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col">
+      {/* 顶部导航栏 */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-md px-5 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🧩</span>
+          <h1 className="text-xl font-bold text-white">拼图游戏</h1>
         </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowSyncPanel(!showSyncPanel)}
+            className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
+          >
+            🌐 数据同步
+          </button>
+          <UserProfile />
+        </div>
+      </div>
+      
+      {/* 数据同步面板 */}
+      {showSyncPanel && (
+        <div className="bg-white border-b shadow-sm">
+          <div className="max-w-7xl mx-auto px-5">
+            <DataSync />
+          </div>
+        </div>
+      )}
+      
+      {/* 主要内容区域 */}
+      <div className="flex justify-center items-start pt-[25px] px-5 pb-5 flex-1">
+        <div className="flex flex-col lg:flex-row gap-5 w-full max-w-7xl">
+          {/* 素材选择区域 */}
+          <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg flex flex-col h-[800px]">
+            <AssetLibrary
+              onAssetSelect={handleAssetSelect}
+              showUpload={true}
+            />
+          </div>
 
-        {/* 游戏配置区域 */}
-        <div className="h-[800px]">
-          <GameConfigPanel
-            selectedAsset={selectedAsset}
-            difficulty={difficulty}
-            pieceShape={pieceShape}
-            isGenerating={isGenerating}
-            onDifficultyChange={setDifficulty}
-            onShapeChange={setPieceShape}
-            onStartGame={handleStartGame}
-            onOpenEditor={onOpenEditor}
-            onOpenAchievements={onOpenAchievements}
-            onOpenDailyChallenge={onOpenDailyChallenge}
-            onOpenMultiplayer={onOpenMultiplayer}
-          />
+          {/* 游戏配置区域 */}
+          <div className="h-[800px]">
+            <GameConfigPanel
+              selectedAsset={selectedAsset}
+              difficulty={difficulty}
+              pieceShape={pieceShape}
+              isGenerating={isGenerating}
+              onDifficultyChange={setDifficulty}
+              onShapeChange={setPieceShape}
+              onStartGame={handleStartGame}
+              onOpenEditor={onOpenEditor}
+              onOpenAchievements={onOpenAchievements}
+              onOpenDailyChallenge={onOpenDailyChallenge}
+              onOpenMultiplayer={onOpenMultiplayer}
+            />
+          </div>
         </div>
       </div>
     </div>
