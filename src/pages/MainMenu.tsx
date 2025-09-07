@@ -22,6 +22,7 @@ interface MainMenuProps {
   onOpenShop: () => void;
   onOpenProfile: () => void;
   onOpenLeaderboard: () => void;
+  onOpenSettings: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
@@ -35,6 +36,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenShop,
   onOpenProfile,
   onOpenLeaderboard,
+  onOpenSettings,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
@@ -184,6 +186,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               onOpenDailyChallenge={onOpenDailyChallenge}
               onOpenMultiplayer={onOpenMultiplayer}
               onOpenLeaderboard={onOpenLeaderboard}
+              onOpenSettings={onOpenSettings}
             />
           </div>
         </div>

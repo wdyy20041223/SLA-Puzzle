@@ -21,6 +21,7 @@ interface GameConfigPanelProps {
   onOpenDailyChallenge: () => void;
   onOpenMultiplayer: () => void;
   onOpenLeaderboard: () => void;
+  onOpenSettings: () => void;
 }
 
 export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
@@ -37,6 +38,7 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
   onOpenDailyChallenge,
   onOpenMultiplayer,
   onOpenLeaderboard,
+  onOpenSettings,
 }) => {
   const canStartGame = selectedAsset !== null && !isGenerating;
 
@@ -78,6 +80,7 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
           onOpenDailyChallenge={onOpenDailyChallenge}
           onOpenMultiplayer={onOpenMultiplayer}
           onOpenLeaderboard={onOpenLeaderboard}
+          onOpenSettings={onOpenSettings}
           canStartGame={canStartGame}
           isGenerating={isGenerating}
         />

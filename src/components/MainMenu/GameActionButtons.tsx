@@ -9,6 +9,7 @@ interface GameActionButtonsProps {
   onOpenDailyChallenge: () => void;
   onOpenMultiplayer: () => void;
   onOpenLeaderboard: () => void;
+  onOpenSettings: () => void;
   canStartGame: boolean;
   isGenerating: boolean;
 }
@@ -21,6 +22,7 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
   onOpenDailyChallenge,
   onOpenMultiplayer,
   onOpenLeaderboard,
+  onOpenSettings,
   canStartGame,
   isGenerating,
 }) => {
@@ -91,6 +93,15 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
           className="w-full py-3 text-sm font-medium"
         >
           ⚔️ 联机
+        </Button>
+        
+        <Button
+          onClick={onOpenSettings}
+          variant="secondary"
+          size="medium"
+          className="w-full py-3 text-sm font-medium"
+        >
+          ⚙️ 设置
         </Button>
       </div>
     </div>

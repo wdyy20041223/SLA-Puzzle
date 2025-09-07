@@ -16,7 +16,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/auth/Auth';
 import './App.css';
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard';
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
@@ -96,6 +96,10 @@ const AppContent: React.FC = () => {
     setCurrentView('leaderboard');
   };
 
+  const handleOpenSettings = () => {
+    setCurrentView('settings');
+  };
+
   const handleGameComplete = (completionTime: number, moves: number) => {
     console.log(`游戏完成！用时: ${completionTime}秒, 步数: ${moves}`);
     // 这里可以添加完成后的处理逻辑，比如保存到排行榜
@@ -116,6 +120,7 @@ const AppContent: React.FC = () => {
             onOpenShop={handleOpenShop}
             onOpenProfile={handleOpenProfile}
             onOpenLeaderboard={handleOpenLeaderboard}
+            onOpenSettings={handleOpenSettings}
           />
         );
       
@@ -190,6 +195,22 @@ const AppContent: React.FC = () => {
       case 'leaderboard':
         return (
           <Leaderboard onBackToMenu={handleBackToMenu} />
+        );
+      
+      case 'settings':
+        return (
+          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+              <div className="text-center">
+                <div className="text-6xl mb-4">⚙️</div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">设置</h2>
+                <p className="text-gray-600 mb-6">设置功能正在开发中，敬请期待！</p>
+                <Button onClick={handleBackToMenu} variant="primary" size="large" className="w-full">
+                  返回主菜单
+                </Button>
+              </div>
+            </div>
+          </div>
         );
       
       default:
