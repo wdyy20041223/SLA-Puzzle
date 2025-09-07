@@ -108,6 +108,57 @@
   font-size: 0.9rem;
 }
 
+.user-info .value.coins {
+  color: #f39c12;
+  font-weight: 600;
+}
+
+.user-info .value.experience {
+  color: #9b59b6;
+  font-weight: 600;
+}
+
+.user-info .value.level {
+  color: #3498db;
+  font-weight: 600;
+}
+
+.level-progress {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.progress-bar {
+  height: 6px;
+  background: #e1e5e9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.user-info-divider {
+  height: 1px;
+  background: #e1e5e9;
+  margin: 0.75rem 0;
+}
+
 .dropdown-divider {
   height: 1px;
   background: #e1e5e9;
@@ -157,5 +208,124 @@
   
   .user-dropdown {
     right: -10px;
+  }
+}
+
+/* 重置按钮样式 */
+.reset-button {
+  color: #ff6b6b;
+}
+
+.reset-button:hover {
+  background: #ffe1e1;
+}
+
+/* 重置确认对话框样式 */
+.reset-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.reset-confirm-dialog {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease;
+}
+
+.reset-confirm-dialog h3 {
+  margin: 0 0 1rem 0;
+  color: #ff6b6b;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.reset-confirm-dialog p {
+  margin: 0 0 1rem 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+.reset-confirm-dialog ul {
+  margin: 0 0 1rem 0;
+  padding-left: 1.5rem;
+  color: #666;
+}
+
+.reset-confirm-dialog li {
+  margin-bottom: 0.5rem;
+}
+
+.reset-confirm-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.reset-cancel-btn,
+.reset-confirm-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reset-cancel-btn {
+  background: #f8f9fa;
+  color: #666;
+}
+
+.reset-cancel-btn:hover:not(:disabled) {
+  background: #e9ecef;
+}
+
+.reset-confirm-btn {
+  background: #ff6b6b;
+  color: white;
+}
+
+.reset-confirm-btn:hover:not(:disabled) {
+  background: #ff5252;
+}
+
+.reset-cancel-btn:disabled,
+.reset-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

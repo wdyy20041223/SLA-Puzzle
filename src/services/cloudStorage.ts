@@ -97,8 +97,8 @@ class CloudStorageService {
     globalUsers.forEach(globalUser => {
       const existingIndex = mergedUsers.findIndex(u => u.username === globalUser.username);
       if (existingIndex === -1) {
-        // 新用户，直接添加
-        mergedUsers.push(globalUser);
+        // 新用户，直接添加（确保有新字段）
+        mergedUsers.push(this.migrateUserData(globalUser));
       } else {
         // 已存在用户，比较时间戳，保留最新的
         const existing = mergedUsers[existingIndex];
@@ -106,15 +106,33 @@ class CloudStorageService {
         const localTime = new Date(existing.lastLoginAt || existing.createdAt).getTime();
         
         if (globalTime > localTime) {
-          mergedUsers[existingIndex] = globalUser;
+          mergedUsers[existingIndex] = this.migrateUserData(globalUser);
+        } else {
+          mergedUsers[existingIndex] = this.migrateUserData(existing);
         }
       }
     });
+
+    // 确保所有本地用户也被迁移
+    for (let i = 0; i < mergedUsers.length; i++) {
+      mergedUsers[i] = this.migrateUserData(mergedUsers[i]);
+    }
 
     // 保存合并后的数据
     this.saveLocalUsers(mergedUsers);
     
     return mergedUsers;
+  }
+
+  // 迁移用户数据，添加新字段
+  private migrateUserData(user: any): any {
+    return {
+      ...user,
+      experience: user.experience ?? 0,
+      coins: user.coins ?? 100, // 如果没有金币字段，给默认值100
+      achievements: user.achievements ?? [], // 如果没有成就字段，给空数组
+      bestTimes: user.bestTimes ?? {}, // 如果没有最佳时间字段，给空对象
+    };
   }
 
   // 获取所有用户数据
