@@ -52,6 +52,14 @@ const ACHIEVEMENTS: Record<string, Omit<Achievement, 'unlocked' | 'unlockedAt'>>
     icon: '⚡',
     category: 'performance'
   },
+
+  speed_runner: {
+    id: 'speed_runner',
+    name: '速度跑者',
+    description: '在2分钟内完成任意难度拼图',
+    icon: '🏃',
+    category: 'performance'
+  },
   perfectionist: {
     id: 'perfectionist',
     name: '完美主义者',
@@ -62,8 +70,17 @@ const ACHIEVEMENTS: Record<string, Omit<Achievement, 'unlocked' | 'unlockedAt'>>
   efficient_solver: {
     id: 'efficient_solver',
     name: '高效解谜者',
-    description: '用少于标准步数50%完成拼图',
+    description: '连续三次使用步数不超过总拼图数的1.5倍',
     icon: '🧠',
+    category: 'performance'
+  },
+
+  // 新增超级效率者成就
+  super_efficient: {
+    id: 'super_efficient',
+    name: '超级效率者',
+    description: '用少于标准步数30%完成拼图',
+    icon: '🚀',
     category: 'performance'
   },
 
@@ -74,6 +91,30 @@ const ACHIEVEMENTS: Record<string, Omit<Achievement, 'unlocked' | 'unlockedAt'>>
     description: '在凌晨2-6点完成拼图',
     icon: '🦉',
     category: 'special'
+  },
+
+  early_bird: {
+    id: 'early_bird',
+    name: '早起鸟',
+    description: '在早晨6-9点完成拼图',
+    icon: '🐦',
+    category: 'special'
+  },
+
+  weekend_warrior: {
+    id: 'weekend_warrior',
+    name: '周末战士',
+    description: '在周末完成拼图',
+    icon: '⚔️',
+    category: 'special'
+  },
+
+  expert_speedster: {
+    id: 'expert_speedster',
+    name: '专家速度王',
+    description: '在10分钟内完成专家难度拼图',
+    icon: '🏎️',
+    category: 'performance'
   },
   consecutive_days: {
     id: 'consecutive_days',
@@ -159,19 +200,35 @@ export function checkAchievements(
     gamesCompleted: number;
     level: number;
     lastPlayDate?: Date;
+    recentGameResults?: Array<{
+      moves: number;
+      totalPieces: number;
+      timestamp: Date;
+    }>;
   },
   gameResult: {
     difficulty: DifficultyLevel;
     completionTime: number;
     moves: number;
     perfectMoves?: number;
+    totalPieces?: number;
   },
   unlockedAchievements: string[] = []
 ): Achievement[] {
   const newAchievements: Achievement[] = [];
   const now = new Date();
 
-  // 检查进度成就
+  // 调试输出
+  console.log('🔍 成就检查开始:', {
+    userStats,
+    gameResult,
+    currentTime: now.toLocaleString(),
+    hour: now.getHours(),
+    day: now.getDay(),
+    unlockedAchievements
+  });
+
+  // 检查进度成就（可以与其他成就同时触发）
   if (userStats.gamesCompleted === 1 && !unlockedAchievements.includes('first_game')) {
     newAchievements.push({
       ...ACHIEVEMENTS.first_game,
@@ -204,7 +261,7 @@ export function checkAchievements(
     });
   }
 
-  // 检查表现成就
+  // 检查表现成就（可以叠加）
   if (gameResult.difficulty === 'medium' && 
       gameResult.completionTime <= 180 && 
       !unlockedAchievements.includes('speed_demon')) {
@@ -215,27 +272,70 @@ export function checkAchievements(
     });
   }
 
-  if (gameResult.perfectMoves && 
-      gameResult.moves === gameResult.perfectMoves && 
-      !unlockedAchievements.includes('perfectionist')) {
+  // 新增：快速完成任意难度（更容易触发的速度成就）
+  if (gameResult.completionTime <= 120 && 
+      !unlockedAchievements.includes('speed_runner')) {
     newAchievements.push({
-      ...ACHIEVEMENTS.perfectionist,
+      ...ACHIEVEMENTS.speed_runner,
       unlocked: true,
       unlockedAt: now
     });
   }
 
-  if (gameResult.perfectMoves && 
-      gameResult.moves <= gameResult.perfectMoves * 0.5 && 
-      !unlockedAchievements.includes('efficient_solver')) {
-    newAchievements.push({
-      ...ACHIEVEMENTS.efficient_solver,
-      unlocked: true,
-      unlockedAt: now
-    });
+  // 检查步数相关成就（允许同时获得多个）
+  if (gameResult.perfectMoves) {
+    // 完美主义者：用最少步数完成
+    if (gameResult.moves === gameResult.perfectMoves && 
+        !unlockedAchievements.includes('perfectionist')) {
+      newAchievements.push({
+        ...ACHIEVEMENTS.perfectionist,
+        unlocked: true,
+        unlockedAt: now
+      });
+    }
+
+    // 高效解密者：连续三次使用步数不超过总拼图数的1.5倍
+    if (gameResult.totalPieces && !unlockedAchievements.includes('efficient_solver')) {
+      // 获取最近的游戏结果（包括当前这局）
+      const recentGames = userStats.recentGameResults || [];
+      const currentGame = {
+        moves: gameResult.moves,
+        totalPieces: gameResult.totalPieces,
+        timestamp: new Date()
+      };
+      
+      // 将当前游戏结果加入历史记录
+      const allGames = [...recentGames, currentGame];
+      
+      // 检查最近的三局游戏是否都符合条件
+      if (allGames.length >= 3) {
+        const lastThreeGames = allGames.slice(-3);
+        const allMeetCriteria = lastThreeGames.every(game => 
+          game.moves <= game.totalPieces * 1.5
+        );
+        
+        if (allMeetCriteria) {
+          newAchievements.push({
+            ...ACHIEVEMENTS.efficient_solver,
+            unlocked: true,
+            unlockedAt: now
+          });
+        }
+      }
+    }
+
+    // 新增：超级效率者成就（用不超过标准步数25%完成）
+    if (gameResult.moves <= gameResult.perfectMoves * 0.3 && 
+        !unlockedAchievements.includes('super_efficient')) {
+      newAchievements.push({
+        ...ACHIEVEMENTS.super_efficient,
+        unlocked: true,
+        unlockedAt: now
+      });
+    }
   }
 
-  // 检查特殊成就
+  // 检查特殊时间和难度组合成就
   const hour = now.getHours();
   if (hour >= 2 && hour <= 6 && !unlockedAchievements.includes('night_owl')) {
     newAchievements.push({
@@ -244,6 +344,42 @@ export function checkAchievements(
       unlockedAt: now
     });
   }
+
+  // 早起鸟成就（6-9点完成游戏）
+  if (hour >= 6 && hour <= 9 && !unlockedAchievements.includes('early_bird')) {
+    newAchievements.push({
+      ...ACHIEVEMENTS.early_bird,
+      unlocked: true,
+      unlockedAt: now
+    });
+  }
+
+  // 新增：周末战士（周末完成游戏）
+  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+  if (isWeekend && !unlockedAchievements.includes('weekend_warrior')) {
+    newAchievements.push({
+      ...ACHIEVEMENTS.weekend_warrior,
+      unlocked: true,
+      unlockedAt: now
+    });
+  }
+
+  // 新增：专家难度+速度双重成就
+  if (gameResult.difficulty === 'expert' && 
+      gameResult.completionTime <= 600 && 
+      !unlockedAchievements.includes('expert_speedster')) {
+    newAchievements.push({
+      ...ACHIEVEMENTS.expert_speedster,
+      unlocked: true,
+      unlockedAt: now
+    });
+  }
+
+  // 调试输出最终结果
+  console.log('🎉 成就检查完成:', {
+    totalAchievements: newAchievements.length,
+    achievements: newAchievements.map(a => ({ id: a.id, name: a.name }))
+  });
 
   return newAchievements;
 }
@@ -256,6 +392,7 @@ export function checkAchievements(
  * @param userStats 用户统计
  * @param unlockedAchievements 已解锁成就
  * @param perfectMoves 理想步数
+ * @param totalPieces 总拼图块数
  * @returns 完整的游戏结果
  */
 export function calculateGameCompletion(
@@ -267,9 +404,15 @@ export function calculateGameCompletion(
     level: number;
     experience: number;
     bestTimes?: Record<string, number>;
+    recentGameResults?: Array<{
+      moves: number;
+      totalPieces: number;
+      timestamp: Date;
+    }>;
   },
   unlockedAchievements: string[] = [],
-  perfectMoves?: number
+  perfectMoves?: number,
+  totalPieces?: number
 ): GameCompletionResult {
   // 计算基础奖励
   const baseRewards = calculateGameRewards(difficulty, completionTime, moves, perfectMoves);
@@ -277,7 +420,7 @@ export function calculateGameCompletion(
   // 检查新解锁的成就
   const newAchievements = checkAchievements(
     userStats,
-    { difficulty, completionTime, moves, perfectMoves },
+    { difficulty, completionTime, moves, perfectMoves, totalPieces },
     unlockedAchievements
   );
 
@@ -328,6 +471,7 @@ export function calculateGameCompletion(
     moves,
     difficulty,
     isNewRecord,
+    totalPieces,
     rewards: finalRewards
   };
 }
