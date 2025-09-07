@@ -15,6 +15,11 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<string | null>(null);
+
+  // 处理拼图块选择
+  const handlePieceSelect = useCallback((pieceId: string | null) => {
+    setSelectedPiece(pieceId);
+  }, []);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<number | null>(null);
   
@@ -421,6 +426,7 @@ export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
     isGameStarted,
     selectedPiece,
     setSelectedPiece,
+    handlePieceSelect,
     timer,
     initializeGame,
     placePieceToSlot,
