@@ -72,10 +72,13 @@ export interface Asset {
 export interface LeaderboardEntry {
   id: string;
   puzzleId: string;
+  puzzleName: string; // 拼图名称，便于显示
   playerName: string;
   completionTime: number; // 秒
   moves: number;
   difficulty: DifficultyLevel;
+  pieceShape: PieceShape; // 拼图形状
+  gridSize: string; // 网格大小，如"3x3"
   completedAt: Date;
 }
 

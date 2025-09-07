@@ -4,11 +4,13 @@ import { PuzzleConfig, GameCompletionResult, GameState } from '../../types';
 import { PuzzleWorkspace } from './PuzzleWorkspace';
 import { GameCompletionModal } from './GameCompletionModal';
 import { SaveLoadModal } from './SaveLoadModal';
+import { LeaderboardModal } from '../leaderboard/LeaderboardModal';
 import { Button } from '../common/Button';
 import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
 import { useAuth } from '../../contexts/AuthContext';
 import { calculateGameCompletion } from '../../utils/rewardSystem';
+import { LeaderboardService } from '../../services/leaderboardService';
 import './PuzzleGame.css';
 
 interface PuzzleGameProps {
@@ -33,6 +35,9 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   // 保存/加载相关状态
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<'save' | 'load'>('save');
+  
+  // 排行榜相关状态
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   
   const { authState, handleGameCompletion } = useAuth();
   
@@ -108,6 +113,16 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     setShowSaveLoadModal(false);
   }, []);
 
+  // 处理查看排行榜
+  const handleShowLeaderboard = useCallback(() => {
+    setShowLeaderboard(true);
+  }, []);
+
+  // 关闭排行榜模态框
+  const handleCloseLeaderboard = useCallback(() => {
+    setShowLeaderboard(false);
+  }, []);
+
   // 处理拼图完成
   React.useEffect(() => {
     // 只有当游戏完成且尚未处理过时才执行
@@ -157,6 +172,24 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
             // 更新用户数据
             await handleGameCompletion(result);
+
+            // 记录到排行榜（仅限方形拼图）
+            if (authState.user && puzzleConfig.pieceShape === 'square') {
+              try {
+                LeaderboardService.addEntry({
+                  puzzleId: puzzleConfig.id,
+                  puzzleName: puzzleConfig.name,
+                  playerName: authState.user.username,
+                  completionTime: timer,
+                  moves: gameState.moves,
+                  difficulty: puzzleConfig.difficulty,
+                  pieceShape: puzzleConfig.pieceShape,
+                  gridSize: `${puzzleConfig.gridSize.rows}x${puzzleConfig.gridSize.cols}`
+                });
+              } catch (error) {
+                console.error('保存排行榜记录失败:', error);
+              }
+            }
 
             // 调用原始的完成回调
             if (onGameComplete) {
@@ -305,6 +338,16 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           >
             💾 保存进度
           </Button>
+          {puzzleConfig.pieceShape === 'square' && (
+            <Button 
+              onClick={handleShowLeaderboard} 
+              variant="secondary" 
+              size="small"
+              className="leaderboard-button"
+            >
+              🏆 排行榜
+            </Button>
+          )}
           <Button onClick={resetGame} variant="secondary" size="small">
             🔄 重置游戏
           </Button>
@@ -376,6 +419,18 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           onLoadGame={loadGame}
           onDeleteSave={deleteSavedGame}
         />
+
+        {/* 排行榜模态框 */}
+        {puzzleConfig.pieceShape === 'square' && (
+          <LeaderboardModal
+            isVisible={showLeaderboard}
+            onClose={handleCloseLeaderboard}
+            puzzleId={puzzleConfig.id}
+            puzzleName={puzzleConfig.name}
+            difficulty={puzzleConfig.difficulty}
+            pieceShape={puzzleConfig.pieceShape}
+          />
+        )}
       </div>
 
       {/* 操作提示 */}
