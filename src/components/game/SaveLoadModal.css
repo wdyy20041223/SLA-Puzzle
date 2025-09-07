@@ -1,0 +1,580 @@
+/* 保存/加载模态框样式 */
+.save-load-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.save-load-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  font-size: 1.2rem;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.close-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.modal-content {
+  padding: 24px;
+  max-height: calc(80vh - 80px);
+  overflow-y: auto;
+}
+
+/* 保存部分样式 */
+.save-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.current-game-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.current-game-info h3 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 1.1rem;
+}
+
+.progress-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-weight: 600;
+  color: #059669;
+  min-width: 50px;
+  text-align: right;
+}
+
+.save-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.save-input-section label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.save-input-section input {
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.save-input-section input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.save-input-section input:disabled {
+  background: #f9fafb;
+  cursor: not-allowed;
+}
+
+.char-count {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: right;
+}
+
+/* 加载部分样式 */
+.load-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.no-saves {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+.no-saves-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.no-saves p {
+  margin: 8px 0;
+}
+
+.no-saves-hint {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.saves-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.save-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.save-item:hover {
+  border-color: #c7d2fe;
+  background: #f8fafc;
+}
+
+.save-item.selected {
+  border-color: #667eea;
+  background: #f0f4ff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.save-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.save-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.save-header h4 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-date {
+  font-size: 0.8rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.save-details {
+  margin-bottom: 8px;
+}
+
+.save-progress {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+.save-description {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.save-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  transition: width 0.3s ease;
+}
+
+.save-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.delete-button {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  color: #dc2626;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #fecaca;
+  border-color: #fca5a5;
+}
+
+.delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* 操作按钮样式 */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.action-buttons .button {
+  flex: 1;
+}
+
+/* 消息样式 */
+.message {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  margin-top: 16px;
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message.success {
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.message.error {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+}
+
+/* 删除确认弹窗 */
+.delete-confirm-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.delete-confirm-modal {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  animation: modalSlideIn 0.2s ease-out;
+}
+
+.delete-confirm-modal h3 {
+  margin: 0 0 12px 0;
+  color: #dc2626;
+  font-size: 1.2rem;
+}
+
+.delete-confirm-modal p {
+  margin: 0 0 20px 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.delete-confirm-actions .button {
+  flex: 1;
+}
+
+/* 已有存档列表样式 */
+.existing-saves-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.existing-saves-section h3 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 1.1rem;
+}
+
+.existing-saves-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+
+.existing-save-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  position: relative;
+}
+
+.existing-save-item:hover {
+  border-color: #c7d2fe;
+  background: #f8fafc;
+}
+
+.existing-save-item.selected {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.existing-save-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.existing-save-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.existing-save-header h4 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.existing-save-date {
+  font-size: 0.75rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.existing-save-details {
+  margin-bottom: 6px;
+}
+
+.existing-save-progress {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin-bottom: 3px;
+}
+
+.existing-save-description {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.existing-save-progress-bar {
+  width: 100%;
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.existing-save-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  transition: width 0.3s ease;
+}
+
+.overwrite-indicator {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.overwrite-hint {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  padding: 8px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .save-load-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+  
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .modal-header {
+    padding: 16px;
+  }
+  
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .save-progress {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .delete-confirm-actions {
+    flex-direction: column;
+  }
+}
