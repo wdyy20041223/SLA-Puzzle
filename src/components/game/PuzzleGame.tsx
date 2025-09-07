@@ -353,11 +353,6 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           mode={saveLoadMode}
           savedGames={getSavedGames()}
           currentGameProgress={getGameProgress()}
-          gameConfig={{
-            name: puzzleConfig.name,
-            difficulty: puzzleConfig.difficulty
-          }}
-          userName={authState.user?.username}
           onSaveGame={saveGame}
           onLoadGame={loadGame}
           onDeleteSave={deleteSavedGame}

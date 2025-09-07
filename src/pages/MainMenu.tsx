@@ -193,8 +193,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         mode="load"
         savedGames={getSavedGames()}
         currentGameProgress={0}
-        gameConfig={undefined}
-        userName={authState.user?.username}
         onSaveGame={() => ({ success: false, error: '主菜单不支持保存' })}
         onLoadGame={handleLoadGame}
         onDeleteSave={handleDeleteSave}

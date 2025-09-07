@@ -39,8 +39,7 @@ export class PuzzleSaveService {
   public static saveGame(
     gameState: GameState, 
     description?: string, 
-    userId?: string,
-    overwriteId?: string
+    userId?: string
   ): { success: boolean; savedGame?: SavedPuzzleGame; error?: string } {
     try {
       // 验证游戏状态
@@ -53,65 +52,40 @@ export class PuzzleSaveService {
         return { success: false, error: '已完成的游戏无法保存' };
       }
 
+      // 创建保存的游戏对象
+      const savedGame: SavedPuzzleGame = {
+        id: this.generateSaveId(),
+        gameState: this.deepCloneGameState(gameState),
+        savedAt: new Date(),
+        description: description || this.generateAutoDescription(gameState),
+        userId: userId,
+      };
+
       // 获取现有的保存游戏
       const allSavedGames = this.getSavedGames();
       
-      let savedGame: SavedPuzzleGame;
-      
-      if (overwriteId) {
-        // 覆盖模式：找到要覆盖的存档
-        const overwriteIndex = allSavedGames.findIndex(game => game.id === overwriteId);
-        
-        if (overwriteIndex === -1) {
-          return { success: false, error: '要覆盖的存档不存在' };
-        }
-        
-        // 保持原有的ID和创建时间，更新其他信息
-        const originalGame = allSavedGames[overwriteIndex];
-        savedGame = {
-          id: originalGame.id, // 保持原有ID
-          gameState: this.deepCloneGameState(gameState),
-          savedAt: new Date(), // 更新保存时间
-          description: description || this.generateAutoDescription(gameState),
-          userId: userId,
-        };
-        
-        // 替换现有存档
-        allSavedGames[overwriteIndex] = savedGame;
-        
-      } else {
-        // 新建模式：创建新的保存游戏对象
-        savedGame = {
-          id: this.generateSaveId(),
-          gameState: this.deepCloneGameState(gameState),
-          savedAt: new Date(),
-          description: description || this.generateAutoDescription(gameState),
-          userId: userId,
-        };
-
-        // 如果有用户ID，检查该用户的保存游戏数量
-        let userSavedGames = allSavedGames;
-        if (userId) {
-          userSavedGames = allSavedGames.filter(game => game.userId === userId);
-        }
-
-        // 如果超过最大数量，删除最旧的保存
-        if (userSavedGames.length >= MAX_SAVED_GAMES) {
-          const sortedGames = userSavedGames.sort((a, b) => 
-            new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime()
-          );
-          
-          // 从所有保存游戏中移除最旧的
-          const oldestGame = sortedGames[0];
-          const indexToRemove = allSavedGames.findIndex(game => game.id === oldestGame.id);
-          if (indexToRemove !== -1) {
-            allSavedGames.splice(indexToRemove, 1);
-          }
-        }
-
-        // 添加新保存的游戏
-        allSavedGames.push(savedGame);
+      // 如果有用户ID，检查该用户的保存游戏数量
+      let userSavedGames = allSavedGames;
+      if (userId) {
+        userSavedGames = allSavedGames.filter(game => game.userId === userId);
       }
+
+      // 如果超过最大数量，删除最旧的保存
+      if (userSavedGames.length >= MAX_SAVED_GAMES) {
+        const sortedGames = userSavedGames.sort((a, b) => 
+          new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime()
+        );
+        
+        // 从所有保存游戏中移除最旧的
+        const oldestGame = sortedGames[0];
+        const indexToRemove = allSavedGames.findIndex(game => game.id === oldestGame.id);
+        if (indexToRemove !== -1) {
+          allSavedGames.splice(indexToRemove, 1);
+        }
+      }
+
+      // 添加新保存的游戏
+      allSavedGames.push(savedGame);
 
       // 保存到本地存储
       localStorage.setItem(SAVED_GAMES_KEY, JSON.stringify(allSavedGames));
