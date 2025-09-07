@@ -4,6 +4,11 @@ import { getLevelProgress } from '../../utils/experienceSystem';
 import { AvatarSelector } from './AvatarSelector';
 import './UserProfile.css';
 
+interface UserProfileProps {
+  onOpenShop?: () => void;
+  onOpenProfile?: () => void;
+}
+
 // 头像映射
 const avatarMap: Record<string, string> = {
   'default_user': '👤',
@@ -16,13 +21,27 @@ const avatarMap: Record<string, string> = {
   'avatar_crown': '👑',
 };
 
-export const UserProfile: React.FC = () => {
+export const UserProfile: React.FC<UserProfileProps> = ({ onOpenShop, onOpenProfile }) => {
   const { authState, logout, resetUserProgress } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
+  // 如果正在加载，显示加载状态
+  if (authState.isLoading) {
+    return (
+      <div className="user-profile">
+        <div className="user-profile-header">
+          <div className="user-avatar">
+            <span>⏳</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果未认证，不显示
   if (!authState.isAuthenticated || !authState.user) {
     return null;
   }
@@ -61,6 +80,20 @@ export const UserProfile: React.FC = () => {
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowAvatarSelector(true);
+    setShowDropdown(false);
+  };
+
+  const handleShopClick = () => {
+    if (onOpenShop) {
+      onOpenShop();
+    }
+    setShowDropdown(false);
+  };
+
+  const handleProfileClick = () => {
+    if (onOpenProfile) {
+      onOpenProfile();
+    }
     setShowDropdown(false);
   };
 
@@ -110,15 +143,15 @@ export const UserProfile: React.FC = () => {
           <div className="user-info">
             <div className="user-info-item">
               <span className="label">💰 金币:</span>
-              <span className="value coins">{user.coins.toLocaleString()}</span>
+              <span className="value coins">{(user.coins || 0).toLocaleString()}</span>
             </div>
             <div className="user-info-item">
               <span className="label">⭐ 经验:</span>
-              <span className="value experience">{user.experience}</span>
+              <span className="value experience">{user.experience || 0}</span>
             </div>
             <div className="user-info-item">
               <span className="label">🏆 等级:</span>
-              <span className="value level">{user.level}</span>
+              <span className="value level">{user.level || 1}</span>
             </div>
             <div className="level-progress">
               <div className="progress-info">
@@ -134,10 +167,22 @@ export const UserProfile: React.FC = () => {
             <div className="user-info-divider"></div>
             <div className="user-info-item">
               <span className="label">完成游戏:</span>
-              <span className="value">{user.gamesCompleted}</span>
+              <span className="value">{user.gamesCompleted || 0}</span>
             </div>
           </div>
           <div className="dropdown-divider"></div>
+          {onOpenProfile && (
+            <button className="dropdown-item profile-button" onClick={handleProfileClick}>
+              <span>👤</span>
+              个人资料
+            </button>
+          )}
+          {onOpenShop && (
+            <button className="dropdown-item shop-button" onClick={handleShopClick}>
+              <span>🛒</span>
+              进入商店
+            </button>
+          )}
           <button 
             className="dropdown-item reset-button" 
             onClick={() => setShowResetConfirm(true)}

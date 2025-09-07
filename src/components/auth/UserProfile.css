@@ -249,6 +249,24 @@
   }
 }
 
+/* 个人资料按钮样式 */
+.profile-button {
+  color: #3498db;
+}
+
+.profile-button:hover {
+  background: #e3f2fd;
+}
+
+/* 商店按钮样式 */
+.shop-button {
+  color: #f39c12;
+}
+
+.shop-button:hover {
+  background: #fff3e0;
+}
+
 /* 重置按钮样式 */
 .reset-button {
   color: #ff6b6b;

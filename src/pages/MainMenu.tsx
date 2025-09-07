@@ -16,6 +16,7 @@ interface MainMenuProps {
   onOpenDailyChallenge: () => void;
   onOpenMultiplayer: () => void;
   onOpenShop: () => void;
+  onOpenProfile: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
@@ -26,6 +27,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenDailyChallenge,
   onOpenMultiplayer,
   onOpenShop,
+  onOpenProfile,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
@@ -106,7 +108,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           >
             🌐 数据同步
           </button>
-          <UserProfile />
+          <UserProfile onOpenShop={onOpenShop} onOpenProfile={onOpenProfile} />
         </div>
       </div>
       
@@ -121,27 +123,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       
       {/* 主要内容区域 */}
       <div className="flex justify-center items-start pt-[25px] px-5 pb-5 flex-1">
-        <div className="flex flex-col lg:flex-row gap-5 w-full max-w-7xl">
+        <div className="flex flex-col lg:flex-row gap-5 w-full max-w-6xl">
           {/* 素材选择区域 */}
           <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg flex flex-col h-[800px]">
             <AssetLibrary
               onAssetSelect={handleAssetSelect}
               showUpload={true}
             />
-          </div>
-
-          {/* 商店按钮 */}
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={onOpenShop}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-4 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-3 min-w-[140px]"
-            >
-              <span className="text-2xl">🛒</span>
-              <div className="text-left">
-                <div className="font-bold text-lg">进入商店</div>
-                <div className="text-sm opacity-90">头像·素材</div>
-              </div>
-            </button>
           </div>
 
           {/* 游戏配置区域 */}
