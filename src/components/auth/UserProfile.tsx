@@ -1,12 +1,26 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getLevelProgress } from '../../utils/experienceSystem';
+import { AvatarSelector } from './AvatarSelector';
 import './UserProfile.css';
+
+// 头像映射
+const avatarMap: Record<string, string> = {
+  'default_user': '👤',
+  'default_smile': '😊',
+  'default_star': '⭐',
+  'default_heart': '❤️',
+  'avatar_cat': '🐱',
+  'avatar_robot': '🤖',
+  'avatar_unicorn': '🦄',
+  'avatar_crown': '👑',
+};
 
 export const UserProfile: React.FC = () => {
   const { authState, logout, resetUserProgress } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
 
   if (!authState.isAuthenticated || !authState.user) {
@@ -44,22 +58,52 @@ export const UserProfile: React.FC = () => {
     setShowResetConfirm(false);
   };
 
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowAvatarSelector(true);
+    setShowDropdown(false);
+  };
+
+  const renderAvatar = () => {
+    // 如果有设置头像ID，从映射中获取对应的emoji
+    if (user.avatar && user.avatar !== 'default_user' && avatarMap[user.avatar]) {
+      return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
+    }
+    // 如果是直接的emoji字符串（兼容旧数据）
+    if (user.avatar && user.avatar.length <= 2) {
+      return <span className="avatar-emoji">{user.avatar}</span>;
+    }
+    // 如果是图片URL
+    if (user.avatar && user.avatar.startsWith('http')) {
+      return <img src={user.avatar} alt={user.username} />;
+    }
+    // 默认显示用户名首字母
+    return <span>{user.username.charAt(0).toUpperCase()}</span>;
+  };
+
   return (
     <div className="user-profile">
-      <button
-        className="user-profile-button"
-        onClick={() => setShowDropdown(!showDropdown)}
-      >
-        <div className="user-avatar">
-          {user.avatar ? (
-            <img src={user.avatar} alt={user.username} />
-          ) : (
-            <span>{user.username.charAt(0).toUpperCase()}</span>
+      <div className="user-profile-header">
+        <div 
+          className={`user-avatar ${user.avatarFrame ? 'with-frame' : ''}`}
+          onClick={handleAvatarClick}
+          title="点击更改头像"
+        >
+          {renderAvatar()}
+          {user.avatarFrame && user.avatarFrame !== 'frame_none' && (
+            <div className="avatar-frame-indicator">
+              {user.avatarFrame === 'decoration_frame' ? '🖼️' : '✨'}
+            </div>
           )}
         </div>
-        <span className="user-name">{user.username}</span>
-        <span className="dropdown-arrow">▼</span>
-      </button>
+        <button
+          className="user-profile-button"
+          onClick={() => setShowDropdown(!showDropdown)}
+        >
+          <span className="user-name">{user.username}</span>
+          <span className="dropdown-arrow">▼</span>
+        </button>
+      </div>
 
       {showDropdown && (
         <div className="user-dropdown">
@@ -152,6 +196,11 @@ export const UserProfile: React.FC = () => {
           onClick={() => setShowDropdown(false)}
         ></div>
       )}
+
+      <AvatarSelector
+        isOpen={showAvatarSelector}
+        onClose={() => setShowAvatarSelector(false)}
+      />
     </div>
   );
 };

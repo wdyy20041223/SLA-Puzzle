@@ -116,6 +116,7 @@ export interface User {
   id: string;
   username: string;
   avatar?: string;
+  avatarFrame?: string; // 头像框
   createdAt: Date;
   lastLoginAt: Date;
   level: number;
@@ -125,6 +126,7 @@ export interface User {
   gamesCompleted: number;
   achievements?: string[]; // 已解锁的成就ID列表
   bestTimes?: Record<string, number>; // 各难度最佳时间记录
+  ownedItems?: string[]; // 拥有的商店物品ID列表
 }
 
 // 奖励类型

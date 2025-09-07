@@ -1,0 +1,41 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <radialGradient id="greenGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#34D399;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </radialGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6EE7B7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="400" height="400" fill="url(#greenGrad)"/>
+  
+  <!-- 装饰性叶子 -->
+  <ellipse cx="80" cy="80" rx="25" ry="40" fill="url(#leafGrad)" transform="rotate(45 80 80)" opacity="0.8"/>
+  <ellipse cx="320" cy="100" rx="20" ry="35" fill="url(#leafGrad)" transform="rotate(-30 320 100)" opacity="0.7"/>
+  <ellipse cx="350" cy="300" rx="30" ry="45" fill="url(#leafGrad)" transform="rotate(60 350 300)" opacity="0.6"/>
+  <ellipse cx="60" cy="320" rx="22" ry="38" fill="url(#leafGrad)" transform="rotate(-45 60 320)" opacity="0.8"/>
+  
+  <!-- 装饰性圆形 -->
+  <circle cx="150" cy="120" r="15" fill="#F0FDF4" opacity="0.6"/>
+  <circle cx="280" cy="180" r="12" fill="#F0FDF4" opacity="0.5"/>
+  <circle cx="120" cy="280" r="18" fill="#F0FDF4" opacity="0.4"/>
+  <circle cx="300" cy="320" r="10" fill="#F0FDF4" opacity="0.7"/>
+  
+  <!-- 几何装饰 -->
+  <polygon points="200,50 220,90 180,90" fill="#ECFDF5" opacity="0.8"/>
+  <polygon points="370,200 390,240 350,240" fill="#ECFDF5" opacity="0.6"/>
+  <polygon points="50,200 70,240 30,240" fill="#ECFDF5" opacity="0.7"/>
+  
+  <!-- 中心装饰框 -->
+  <rect x="120" y="160" width="160" height="80" rx="10" fill="none" stroke="#F0FDF4" stroke-width="3" opacity="0.8"/>
+  
+  <!-- 文字 -->
+  <text x="200" y="190" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">森林花园</text>
+  <text x="200" y="215" font-family="Arial, sans-serif" font-size="14" fill="#F0FDF4" text-anchor="middle" dominant-baseline="middle">Nature Garden</text>
+</svg>

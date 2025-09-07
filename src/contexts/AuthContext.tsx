@@ -10,6 +10,7 @@ interface AuthContextType {
   logout: () => void;
   clearError: () => void;
   updateUserRewards: (coins: number, experience: number) => Promise<boolean>;
+  updateUserProfile: (updates: Partial<User>) => Promise<boolean>;
   handleGameCompletion: (result: GameCompletionResult) => Promise<boolean>;
   resetUserProgress: () => Promise<boolean>;
 }
@@ -173,11 +174,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         lastLoginAt: new Date(),
         level: 1,
         experience: 0,
-        coins: 100, // 初始金币
+        coins: 500, // 初始金币，给多一点用于测试购买
         totalScore: 0,
         gamesCompleted: 0,
         achievements: [], // 初始成就列表
         bestTimes: {}, // 初始最佳时间记录
+        ownedItems: ['avatar_cat', 'decoration_frame'], // 初始拥有一些物品用于测试
       };
 
       users.push(newUser);
@@ -276,6 +278,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return true;
     } catch (error) {
       console.error('更新用户奖励失败:', error);
+      return false;
+    }
+  };
+
+  const updateUserProfile = async (updates: Partial<User>): Promise<boolean> => {
+    if (!authState.isAuthenticated || !authState.user) {
+      return false;
+    }
+
+    try {
+      const currentUser = authState.user;
+      
+      // 获取用户列表
+      const usersResponse = await cloudStorage.getUsers();
+      if (!usersResponse.success) {
+        return false;
+      }
+      const users = usersResponse.data || [];
+      
+      // 更新用户信息
+      const updatedUser = {
+        ...currentUser,
+        ...updates,
+      };
+
+      // 更新用户列表
+      const updatedUsers = users.map((u: any) => 
+        u.id === currentUser.id ? { ...u, ...updatedUser } : u
+      );
+
+      // 保存到云端
+      const saveResponse = await cloudStorage.saveUsers(updatedUsers);
+      if (!saveResponse.success) {
+        return false;
+      }
+
+      // 更新本地状态
+      localStorage.setItem('puzzle_current_user', JSON.stringify(updatedUser));
+      setAuthState(prev => ({
+        ...prev,
+        user: updatedUser,
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('更新用户资料失败:', error);
       return false;
     }
   };
@@ -423,6 +471,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     clearError,
     updateUserRewards,
+    updateUserProfile,
     handleGameCompletion,
     resetUserProgress,
   };

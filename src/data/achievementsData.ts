@@ -17,11 +17,22 @@ interface Achievement {
   reward?: string;
 }
 
+interface UserStats {
+  gamesCompleted: number;
+  achievements: string[];
+  level: number;
+  experience: number;
+  coins: number;
+  totalScore: number;
+  bestTimes?: Record<string, number>;
+}
+
 export const createAchievements = (
-  userGamesCompleted: number,
-  userAchievements: string[],
-  userLevel: number
-): Achievement[] => [
+  userStats: UserStats
+): Achievement[] => {
+  const { gamesCompleted, achievements: userAchievements, level: userLevel, bestTimes } = userStats;
+
+  return [
   // === 基础进度成就 ===
   {
     id: 'first_game',
@@ -29,7 +40,7 @@ export const createAchievements = (
     description: '完成第一个拼图',
     icon: '🎯',
     category: 'progress',
-    progress: userGamesCompleted >= 1 ? 1 : 0,
+    progress: gamesCompleted >= 1 ? 1 : 0,
     maxProgress: 1,
     isUnlocked: userAchievements.includes('first_game'),
     unlockedAt: userAchievements.includes('first_game') ? new Date('2024-01-15') : undefined,
@@ -42,7 +53,7 @@ export const createAchievements = (
     description: '完成10个拼图',
     icon: '🏅',
     category: 'progress',
-    progress: Math.min(userGamesCompleted, 10),
+    progress: Math.min(gamesCompleted, 10),
     maxProgress: 10,
     isUnlocked: userAchievements.includes('games_10'),
     rarity: 'common',
@@ -54,7 +65,7 @@ export const createAchievements = (
     description: '完成50个拼图',
     icon: '🏆',
     category: 'progress',
-    progress: Math.min(userGamesCompleted, 50),
+    progress: Math.min(gamesCompleted, 50),
     maxProgress: 50,
     isUnlocked: userAchievements.includes('games_50'),
     rarity: 'rare',
@@ -66,7 +77,7 @@ export const createAchievements = (
     description: '完成100个拼图',
     icon: '👑',
     category: 'milestone',
-    progress: Math.min(userGamesCompleted, 100),
+    progress: Math.min(gamesCompleted, 100),
     maxProgress: 100,
     isUnlocked: userAchievements.includes('games_100'),
     rarity: 'epic',
@@ -78,7 +89,7 @@ export const createAchievements = (
     description: '完成500个拼图',
     icon: '🎖️',
     category: 'milestone',
-    progress: Math.min(userGamesCompleted, 500),
+    progress: Math.min(gamesCompleted, 500),
     maxProgress: 500,
     isUnlocked: userAchievements.includes('games_500'),
     rarity: 'legendary',
@@ -92,7 +103,7 @@ export const createAchievements = (
     description: '完成20个简单难度拼图',
     icon: '😊',
     category: 'progress',
-    progress: Math.floor(Math.random() * 15),
+    progress: userAchievements.includes('easy_master') ? 20 : Math.min(Math.floor(gamesCompleted * 0.4), 19),
     maxProgress: 20,
     isUnlocked: userAchievements.includes('easy_master'),
     rarity: 'common',
@@ -104,7 +115,7 @@ export const createAchievements = (
     description: '完成10个困难难度拼图',
     icon: '😤',
     category: 'progress',
-    progress: Math.floor(Math.random() * 8),
+    progress: userAchievements.includes('hard_challenger') ? 10 : Math.min(Math.floor(gamesCompleted * 0.2), 9),
     maxProgress: 10,
     isUnlocked: userAchievements.includes('hard_challenger'),
     rarity: 'rare',
@@ -116,7 +127,7 @@ export const createAchievements = (
     description: '完成5个专家难度拼图',
     icon: '🔥',
     category: 'milestone',
-    progress: Math.floor(Math.random() * 3),
+    progress: userAchievements.includes('expert_elite') ? 5 : Math.min(Math.floor(gamesCompleted * 0.1), 4),
     maxProgress: 5,
     isUnlocked: userAchievements.includes('expert_elite'),
     rarity: 'epic',
@@ -142,6 +153,8 @@ export const createAchievements = (
     description: '在1分钟内完成简单难度拼图',
     icon: '⚡',
     category: 'performance',
+    progress: (bestTimes && Object.values(bestTimes).some(time => time <= 60)) ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('lightning_fast'),
     rarity: 'epic',
     reward: '特殊动画效果'
@@ -152,7 +165,7 @@ export const createAchievements = (
     description: '在5次游戏中都打破个人最佳记录',
     icon: '⏱️',
     category: 'performance',
-    progress: Math.floor(Math.random() * 3),
+    progress: userAchievements.includes('time_master') ? 5 : Math.min(Math.floor(gamesCompleted * 0.1), 4),
     maxProgress: 5,
     isUnlocked: userAchievements.includes('time_master'),
     rarity: 'legendary',
@@ -178,7 +191,7 @@ export const createAchievements = (
     description: '连续3次游戏都用少于标准步数完成',
     icon: '🧠',
     category: 'performance',
-    progress: Math.floor(Math.random() * 2),
+    progress: userAchievements.includes('efficient_solver') ? 3 : Math.min(Math.floor(gamesCompleted * 0.05), 2),
     maxProgress: 3,
     isUnlocked: userAchievements.includes('efficient_solver'),
     rarity: 'epic',
@@ -190,6 +203,8 @@ export const createAchievements = (
     description: '完成拼图过程中不放错任何拼块',
     icon: '🎯',
     category: 'performance',
+    progress: userAchievements.includes('no_mistakes') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('no_mistakes'),
     rarity: 'legendary',
     reward: '完美主义者徽章'
@@ -202,6 +217,8 @@ export const createAchievements = (
     description: '使用拼图编辑器创建第一个自定义拼图',
     icon: '🎨',
     category: 'special',
+    progress: userAchievements.includes('first_creation') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('first_creation'),
     rarity: 'common',
     reward: '创作者称号'
@@ -212,7 +229,7 @@ export const createAchievements = (
     description: '创建10个自定义拼图',
     icon: '🖼️',
     category: 'special',
-    progress: Math.floor(Math.random() * 7),
+    progress: userAchievements.includes('creative_artist') ? 10 : Math.min(Math.floor(gamesCompleted * 0.2), 9),
     maxProgress: 10,
     isUnlocked: userAchievements.includes('creative_artist'),
     rarity: 'rare',
@@ -224,7 +241,7 @@ export const createAchievements = (
     description: '创建25个自定义拼图',
     icon: '🏗️',
     category: 'milestone',
-    progress: Math.floor(Math.random() * 15),
+    progress: userAchievements.includes('puzzle_designer') ? 25 : Math.min(Math.floor(gamesCompleted * 0.3), 24),
     maxProgress: 25,
     isUnlocked: userAchievements.includes('puzzle_designer'),
     rarity: 'epic',
@@ -238,7 +255,7 @@ export const createAchievements = (
     description: '连续7天完成拼图',
     icon: '📅',
     category: 'special',
-    progress: userAchievements.includes('consecutive_days') ? 7 : Math.floor(Math.random() * 5),
+    progress: userAchievements.includes('consecutive_days') ? 7 : Math.min(Math.floor(gamesCompleted * 0.1), 6),
     maxProgress: 7,
     isUnlocked: userAchievements.includes('consecutive_days'),
     rarity: 'rare',
@@ -250,7 +267,7 @@ export const createAchievements = (
     description: '完成当月所有每日挑战',
     icon: '🗓️',
     category: 'milestone',
-    progress: Math.floor(Math.random() * 20),
+    progress: userAchievements.includes('monthly_champion') ? 30 : Math.min(Math.floor(gamesCompleted * 0.5), 29),
     maxProgress: 30,
     isUnlocked: userAchievements.includes('monthly_champion'),
     rarity: 'legendary',
@@ -262,7 +279,7 @@ export const createAchievements = (
     description: '连续30天完成每日挑战',
     icon: '🔥',
     category: 'milestone',
-    progress: Math.floor(Math.random() * 20),
+    progress: userAchievements.includes('streak_master') ? 30 : Math.min(Math.floor(gamesCompleted * 0.6), 29),
     maxProgress: 30,
     isUnlocked: userAchievements.includes('streak_master'),
     rarity: 'legendary',
@@ -276,6 +293,8 @@ export const createAchievements = (
     description: '参加第一场多人游戏',
     icon: '👥',
     category: 'special',
+    progress: userAchievements.includes('first_multiplayer') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('first_multiplayer'),
     rarity: 'common',
     reward: '社交达人称号'
@@ -286,7 +305,7 @@ export const createAchievements = (
     description: '在多人游戏中获胜5次',
     icon: '🥇',
     category: 'special',
-    progress: Math.floor(Math.random() * 3),
+    progress: userAchievements.includes('multiplayer_winner') ? 5 : Math.min(Math.floor(gamesCompleted * 0.1), 4),
     maxProgress: 5,
     isUnlocked: userAchievements.includes('multiplayer_winner'),
     rarity: 'rare',
@@ -298,7 +317,7 @@ export const createAchievements = (
     description: '创建10个多人游戏房间',
     icon: '🏠',
     category: 'special',
-    progress: Math.floor(Math.random() * 6),
+    progress: userAchievements.includes('host_master') ? 10 : Math.min(Math.floor(gamesCompleted * 0.15), 9),
     maxProgress: 10,
     isUnlocked: userAchievements.includes('host_master'),
     rarity: 'epic',
@@ -310,7 +329,7 @@ export const createAchievements = (
     description: '与不同玩家合作完成20场多人游戏',
     icon: '🤝',
     category: 'special',
-    progress: Math.floor(Math.random() * 12),
+    progress: userAchievements.includes('team_player') ? 20 : Math.min(Math.floor(gamesCompleted * 0.3), 19),
     maxProgress: 20,
     isUnlocked: userAchievements.includes('team_player'),
     rarity: 'rare',
@@ -324,7 +343,7 @@ export const createAchievements = (
     description: '解锁所有内置拼图图片',
     icon: '🖼️',
     category: 'special',
-    progress: Math.floor(Math.random() * 15),
+    progress: userAchievements.includes('image_collector') ? 20 : Math.min(Math.floor(gamesCompleted * 0.4), 19),
     maxProgress: 20,
     isUnlocked: userAchievements.includes('image_collector'),
     rarity: 'epic',
@@ -336,7 +355,7 @@ export const createAchievements = (
     description: '尝试所有拼图主题类别',
     icon: '🌈',
     category: 'special',
-    progress: Math.floor(Math.random() * 4),
+    progress: userAchievements.includes('theme_explorer') ? 6 : Math.min(Math.floor(gamesCompleted * 0.1), 5),
     maxProgress: 6,
     isUnlocked: userAchievements.includes('theme_explorer'),
     rarity: 'rare',
@@ -348,7 +367,7 @@ export const createAchievements = (
     description: '完成每种图案类型的拼图至少一次',
     icon: '🎭',
     category: 'special',
-    progress: Math.floor(Math.random() * 6),
+    progress: userAchievements.includes('pattern_master') ? 8 : Math.min(Math.floor(gamesCompleted * 0.15), 7),
     maxProgress: 8,
     isUnlocked: userAchievements.includes('pattern_master'),
     rarity: 'epic',
@@ -362,6 +381,8 @@ export const createAchievements = (
     description: '在凌晨2-6点完成拼图',
     icon: '🦉',
     category: 'special',
+    progress: userAchievements.includes('night_owl') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('night_owl'),
     rarity: 'rare',
     reward: '夜行者称号'
@@ -372,6 +393,8 @@ export const createAchievements = (
     description: '在早上5-7点完成拼图',
     icon: '🐦',
     category: 'special',
+    progress: userAchievements.includes('early_bird') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('early_bird'),
     rarity: 'rare',
     reward: '晨光加成'
@@ -382,7 +405,7 @@ export const createAchievements = (
     description: '在周末完成20个拼图',
     icon: '🏖️',
     category: 'special',
-    progress: Math.floor(Math.random() * 12),
+    progress: userAchievements.includes('weekend_warrior') ? 20 : Math.min(Math.floor(gamesCompleted * 0.4), 19),
     maxProgress: 20,
     isUnlocked: userAchievements.includes('weekend_warrior'),
     rarity: 'epic',
@@ -394,6 +417,8 @@ export const createAchievements = (
     description: '在节假日完成特殊主题拼图',
     icon: '🎄',
     category: 'special',
+    progress: userAchievements.includes('holiday_player') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('holiday_player'),
     rarity: 'rare',
     reward: '节日限定装饰'
@@ -418,6 +443,8 @@ export const createAchievements = (
     description: '达到10级',
     icon: '🔟',
     category: 'milestone',
+    progress: Math.min(userLevel, 10),
+    maxProgress: 10,
     isUnlocked: userAchievements.includes('level_10') || userLevel >= 10,
     rarity: 'rare',
     reward: '达人称号'
@@ -428,6 +455,8 @@ export const createAchievements = (
     description: '达到25级',
     icon: '🌟',
     category: 'milestone',
+    progress: Math.min(userLevel, 25),
+    maxProgress: 25,
     isUnlocked: userAchievements.includes('level_25') || userLevel >= 25,
     rarity: 'epic',
     reward: '大师光环'
@@ -438,6 +467,8 @@ export const createAchievements = (
     description: '达到50级（最高等级）',
     icon: '💫',
     category: 'milestone',
+    progress: Math.min(userLevel, 50),
+    maxProgress: 50,
     isUnlocked: userAchievements.includes('max_level') || userLevel >= 50,
     rarity: 'legendary',
     reward: '传说级称号'
@@ -450,7 +481,7 @@ export const createAchievements = (
     description: '完成10个不规则形状拼图',
     icon: '🔷',
     category: 'milestone',
-    progress: Math.floor(Math.random() * 6),
+    progress: userAchievements.includes('irregular_master') ? 10 : Math.min(Math.floor(gamesCompleted * 0.2), 9),
     maxProgress: 10,
     isUnlocked: userAchievements.includes('irregular_master'),
     rarity: 'epic',
@@ -462,7 +493,7 @@ export const createAchievements = (
     description: '完成每种网格尺寸的拼图',
     icon: '📏',
     category: 'special',
-    progress: Math.floor(Math.random() * 3),
+    progress: userAchievements.includes('size_challenger') ? 4 : Math.min(Math.floor(gamesCompleted * 0.08), 3),
     maxProgress: 4,
     isUnlocked: userAchievements.includes('size_challenger'),
     rarity: 'rare',
@@ -474,10 +505,11 @@ export const createAchievements = (
     description: '在同一个困难拼图上尝试超过100次',
     icon: '💪',
     category: 'special',
+    progress: userAchievements.includes('persistence_king') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('persistence_king'),
     rarity: 'legendary',
     reward: '永不放弃精神徽章'
   }
-];
-
-export default createAchievements;
+  ];
+};
