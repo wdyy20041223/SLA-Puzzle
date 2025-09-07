@@ -163,15 +163,32 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  transform: scale(1);
 }
 
 .achievement-card.unlocked {
   border-color: var(--rarity-color);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px var(--rarity-color, rgba(255, 255, 255, 0.3));
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.02);
+}
+
+.achievement-card.unlocked:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 30px var(--rarity-color, rgba(255, 255, 255, 0.4));
 }
 
 .achievement-card.locked {
+  opacity: 0.4;
+  filter: grayscale(0.8) brightness(0.6);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.achievement-card.locked:hover {
   opacity: 0.6;
+  filter: grayscale(0.6) brightness(0.8);
+  transform: scale(1.01);
 }
 
 .achievement-card::before {
@@ -207,6 +224,28 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.achievement-card.unlocked .achievement-icon {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.achievement-card.locked .achievement-icon {
+  background: rgba(255, 255, 255, 0.05);
+  filter: grayscale(1) brightness(0.5);
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), 0 0 5px var(--rarity-color, rgba(255, 255, 255, 0.3));
+  }
+  to {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 15px var(--rarity-color, rgba(255, 255, 255, 0.5));
+  }
 }
 
 .rarity-badge {
@@ -217,22 +256,62 @@
   color: white;
   background: var(--rarity-color);
   opacity: 0.9;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.achievement-card.unlocked .rarity-badge {
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-card.locked .rarity-badge {
+  opacity: 0.4;
+  filter: grayscale(0.8);
 }
 
 .achievement-content {
   color: white;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked .achievement-content {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.achievement-card.locked .achievement-content {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .achievement-title {
   margin: 0 0 8px 0;
   font-size: 1.25rem;
   font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked .achievement-title {
+  color: white;
+}
+
+.achievement-card.locked .achievement-title {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .achievement-description {
   margin: 0 0 16px 0;
   opacity: 0.8;
   line-height: 1.5;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked .achievement-description {
+  opacity: 0.9;
+}
+
+.achievement-card.locked .achievement-description {
+  opacity: 0.5;
 }
 
 .achievement-progress {
@@ -246,6 +325,11 @@
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-card.locked .progress-bar {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .progress-bar .progress-fill {
@@ -253,11 +337,21 @@
   background: linear-gradient(90deg, #4ade80, #22c55e);
   border-radius: 4px;
   transition: width 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-card.locked .progress-bar .progress-fill {
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.5), rgba(34, 197, 94, 0.5));
 }
 
 .achievement-progress .progress-text {
   font-size: 0.875rem;
   opacity: 0.8;
+  font-weight: 500;
+}
+
+.achievement-card.locked .achievement-progress .progress-text {
+  opacity: 0.5;
 }
 
 .achievement-reward {
@@ -268,16 +362,39 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.achievement-card.unlocked .achievement-reward {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.achievement-card.locked .achievement-reward {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .reward-label {
   font-size: 0.875rem;
   opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.locked .reward-label {
+  opacity: 0.4;
 }
 
 .reward-text {
   font-size: 0.875rem;
   font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.achievement-card.locked .reward-text {
+  opacity: 0.5;
 }
 
 .unlocked-info {
@@ -299,11 +416,26 @@
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .status-badge.unlocked {
-  background: #10b981;
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
 }
 
 .empty-state {

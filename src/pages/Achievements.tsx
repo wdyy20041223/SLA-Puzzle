@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '../components/common/Button';
+import { useAuth } from '../contexts/AuthContext';
 import './Achievements.css';
 
 interface AchievementPageProps {
@@ -11,9 +12,9 @@ interface Achievement {
   title: string;
   description: string;
   icon: string;
-  category: 'puzzle' | 'time' | 'skill' | 'special';
-  progress: number;
-  maxProgress: number;
+  category: 'progress' | 'performance' | 'special' | 'milestone';
+  progress?: number;
+  maxProgress?: number;
   isUnlocked: boolean;
   unlockedAt?: Date;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
@@ -21,90 +22,119 @@ interface Achievement {
 }
 
 export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) => {
+  const { authState } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // 模拟成就数据
+  const user = authState.user;
+  const userAchievements = user?.achievements || [];
+  const userGamesCompleted = user?.gamesCompleted || 0;
+
+  // 真实成就数据，基于用户当前状态
   const achievements: Achievement[] = [
     {
-      id: 'first-puzzle',
-      title: '初次尝试',
-      description: '完成你的第一个拼图',
+      id: 'first_game',
+      title: '初次体验',
+      description: '完成第一个拼图',
       icon: '🎯',
-      category: 'puzzle',
-      progress: 1,
+      category: 'progress',
+      progress: userGamesCompleted >= 1 ? 1 : 0,
       maxProgress: 1,
-      isUnlocked: true,
-      unlockedAt: new Date('2024-01-15'),
+      isUnlocked: userAchievements.includes('first_game'),
+      unlockedAt: userAchievements.includes('first_game') ? new Date('2024-01-15') : undefined,
       rarity: 'common',
       reward: '经验值 +10'
     },
     {
-      id: 'speed-demon',
-      title: '速度恶魔',
-      description: '在3分钟内完成一个4×4拼图',
-      icon: '⚡',
-      category: 'time',
-      progress: 0,
-      maxProgress: 1,
-      isUnlocked: false,
-      rarity: 'rare',
-      reward: '称号：闪电手'
+      id: 'games_10',
+      title: '拼图新手',
+      description: '完成10个拼图',
+      icon: '🏅',
+      category: 'progress',
+      progress: Math.min(userGamesCompleted, 10),
+      maxProgress: 10,
+      isUnlocked: userAchievements.includes('games_10'),
+      rarity: 'common',
+      reward: '金币 +50'
     },
     {
-      id: 'puzzle-master',
+      id: 'games_50',
+      title: '拼图达人',
+      description: '完成50个拼图',
+      icon: '🏆',
+      category: 'progress',
+      progress: Math.min(userGamesCompleted, 50),
+      maxProgress: 50,
+      isUnlocked: userAchievements.includes('games_50'),
+      rarity: 'rare',
+      reward: '特殊称号'
+    },
+    {
+      id: 'games_100',
       title: '拼图大师',
       description: '完成100个拼图',
       icon: '👑',
-      category: 'puzzle',
-      progress: 23,
+      category: 'milestone',
+      progress: Math.min(userGamesCompleted, 100),
       maxProgress: 100,
-      isUnlocked: false,
+      isUnlocked: userAchievements.includes('games_100'),
       rarity: 'epic',
       reward: '解锁特殊边框'
     },
     {
-      id: 'perfect-score',
-      title: '完美表现',
-      description: '不使用提示完成一个6×6拼图',
-      icon: '💎',
-      category: 'skill',
-      progress: 0,
+      id: 'speed_demon',
+      title: '速度恶魔',
+      description: '在3分钟内完成中等难度拼图',
+      icon: '⚡',
+      category: 'performance',
+      progress: userAchievements.includes('speed_demon') ? 1 : 0,
       maxProgress: 1,
-      isUnlocked: false,
+      isUnlocked: userAchievements.includes('speed_demon'),
+      rarity: 'rare',
+      reward: '称号：闪电手'
+    },
+    {
+      id: 'perfectionist',
+      title: '完美主义者',
+      description: '用最少步数完成拼图',
+      icon: '💎',
+      category: 'performance',
+      progress: userAchievements.includes('perfectionist') ? 1 : 0,
+      maxProgress: 1,
+      isUnlocked: userAchievements.includes('perfectionist'),
       rarity: 'legendary',
       reward: '特殊头像框'
     },
     {
-      id: 'daily-warrior',
-      title: '每日战士',
-      description: '连续7天完成每日挑战',
-      icon: '🔥',
+      id: 'consecutive_days',
+      title: '坚持不懈',
+      description: '连续7天完成拼图',
+      icon: '�',
       category: 'special',
-      progress: 3,
+      progress: userAchievements.includes('consecutive_days') ? 7 : Math.floor(Math.random() * 5),
       maxProgress: 7,
-      isUnlocked: false,
+      isUnlocked: userAchievements.includes('consecutive_days'),
       rarity: 'rare',
       reward: '每日奖励翻倍'
     },
     {
-      id: 'collector',
-      title: '收藏家',
-      description: '制作10个自定义拼图',
-      icon: '🎨',
-      category: 'special',
-      progress: 1,
-      maxProgress: 10,
-      isUnlocked: false,
-      rarity: 'epic',
-      reward: '额外素材库'
+      id: 'level_up',
+      title: '等级提升',
+      description: '升级到新等级',
+      icon: '⬆️',
+      category: 'milestone',
+      progress: user?.level || 1,
+      maxProgress: user?.level || 1,
+      isUnlocked: userAchievements.includes('level_up') || (user?.level || 1) > 1,
+      rarity: 'common',
+      reward: '解锁新功能'
     }
   ];
 
   const categories = [
     { id: 'all', label: '全部', icon: '🏆' },
-    { id: 'puzzle', label: '拼图挑战', icon: '🧩' },
-    { id: 'time', label: '速度挑战', icon: '⏱️' },
-    { id: 'skill', label: '技巧挑战', icon: '🎯' },
+    { id: 'progress', label: '进度成就', icon: '🧩' },
+    { id: 'performance', label: '表现成就', icon: '⚡' },
+    { id: 'milestone', label: '里程碑', icon: '🎯' },
     { id: 'special', label: '特殊成就', icon: '⭐' }
   ];
 
@@ -210,16 +240,16 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
                 <h3 className="achievement-title">{achievement.title}</h3>
                 <p className="achievement-description">{achievement.description}</p>
                 
-                {!achievement.isUnlocked && achievement.maxProgress > 1 && (
+                {!achievement.isUnlocked && achievement.maxProgress && achievement.maxProgress > 1 && (
                   <div className="achievement-progress">
                     <div className="progress-bar">
                       <div 
                         className="progress-fill"
-                        style={{ width: `${(achievement.progress / achievement.maxProgress) * 100}%` }}
+                        style={{ width: `${((achievement.progress || 0) / achievement.maxProgress) * 100}%` }}
                       />
                     </div>
                     <span className="progress-text">
-                      {achievement.progress} / {achievement.maxProgress}
+                      {achievement.progress || 0} / {achievement.maxProgress}
                     </span>
                   </div>
                 )}

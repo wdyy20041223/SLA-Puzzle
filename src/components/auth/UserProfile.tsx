@@ -89,10 +89,6 @@ export const UserProfile: React.FC = () => {
             </div>
             <div className="user-info-divider"></div>
             <div className="user-info-item">
-              <span className="label">总分:</span>
-              <span className="value">{user.totalScore}</span>
-            </div>
-            <div className="user-info-item">
               <span className="label">完成游戏:</span>
               <span className="value">{user.gamesCompleted}</span>
             </div>
