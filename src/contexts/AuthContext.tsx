@@ -196,7 +196,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         gamesCompleted: 0,
         achievements: [], // 初始成就列表
         bestTimes: {}, // 初始最佳时间记录
-  ownedItems: [], // 新用户默认不拥有任何商店物品
+        ownedItems: [], // 新用户默认不拥有任何商店物品
+        recentGameResults: [], // 初始化最近游戏结果
+        difficultyStats: {
+          easyCompleted: 0,
+          mediumCompleted: 0,
+          hardCompleted: 0,
+          expertCompleted: 0,
+        }
       };
 
       users.push(newUser);
@@ -413,6 +420,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         recentGameResults.splice(0, recentGameResults.length - 10);
       }
 
+      // 更新难度统计
+      const difficultyStats = {
+        easyCompleted: (currentUser as any).difficultyStats?.easyCompleted || 0,
+        mediumCompleted: (currentUser as any).difficultyStats?.mediumCompleted || 0,
+        hardCompleted: (currentUser as any).difficultyStats?.hardCompleted || 0,
+        expertCompleted: (currentUser as any).difficultyStats?.expertCompleted || 0,
+      };
+
+      console.log('🎯 游戏完成前的难度统计:', difficultyStats);
+
+      // 根据当前完成的难度增加对应统计
+      switch (result.difficulty) {
+        case 'easy':
+          difficultyStats.easyCompleted += 1;
+          break;
+        case 'medium':
+          difficultyStats.mediumCompleted += 1;
+          break;
+        case 'hard':
+          difficultyStats.hardCompleted += 1;
+          break;
+        case 'expert':
+          difficultyStats.expertCompleted += 1;
+          break;
+      }
+
+      console.log('🎯 游戏完成后的难度统计:', difficultyStats, '当前难度:', result.difficulty);
+
+      // 检查难度相关成就
+      const difficultyAchievements = [];
+      if (difficultyStats.easyCompleted >= 20 && !achievements.includes('easy_master')) {
+        achievements.push('easy_master');
+        difficultyAchievements.push('easy_master');
+        console.log('🏆 解锁简单模式专家成就!');
+      }
+      if (difficultyStats.hardCompleted >= 10 && !achievements.includes('hard_challenger')) {
+        achievements.push('hard_challenger');
+        difficultyAchievements.push('hard_challenger');
+        console.log('🏆 解锁困难挑战者成就!');
+      }
+      if (difficultyStats.expertCompleted >= 5 && !achievements.includes('expert_elite')) {
+        achievements.push('expert_elite');
+        difficultyAchievements.push('expert_elite');
+        console.log('🏆 解锁专家精英成就!');
+      }
+
       // 更新用户数据
       const updatedUser = {
         ...currentUser,
@@ -423,6 +476,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         achievements,
         bestTimes,
         recentGameResults,
+        difficultyStats,
         lastLoginAt: new Date(),
       };
 
@@ -538,6 +592,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         achievements: [], // 清空成就
         bestTimes: {}, // 清空最佳时间记录
         totalTimePlayed: 0,
+        recentGameResults: [], // 清空最近游戏结果（重要：重置高效解密者的连续记录）
+        difficultyStats: { // 清空难度统计（重要：重置难度相关成就进度）
+          easyCompleted: 0,
+          mediumCompleted: 0,
+          hardCompleted: 0,
+          expertCompleted: 0,
+        },
         lastLoginAt: new Date(),
       };
 

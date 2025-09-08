@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getLevelProgress } from '../utils/experienceSystem';
 import { AvatarSelector } from '../components/auth/AvatarSelector';
 import { Button } from '../components/common/Button';
+import { createAchievements } from '../data/achievementsData';
 import './Profile.css';
 
 interface ProfilePageProps {
@@ -182,12 +183,31 @@ export const Profile: React.FC<ProfilePageProps> = ({ onBackToMenu }) => {
           <h3>🏆 我的成就</h3>
           <div className="achievements-grid">
             {user.achievements && user.achievements.length > 0 ? (
-              user.achievements.map((achievement, index) => (
-                <div key={index} className="achievement-item">
-                  <span className="achievement-icon">🏆</span>
-                  <span className="achievement-name">{achievement}</span>
-                </div>
-              ))
+              user.achievements.map((achievementId, index) => {
+                const allAchievements = createAchievements({
+                  gamesCompleted: user.gamesCompleted || 0,
+                  achievements: user.achievements || [],
+                  level: user.level || 1,
+                  experience: user.experience || 0,
+                  coins: user.coins || 0,
+                  totalScore: user.totalScore || 0,
+                  bestTimes: user.bestTimes,
+                  recentGameResults: (user as any).recentGameResults || [],
+                  difficultyStats: (user as any).difficultyStats || {
+                    easyCompleted: 0,
+                    mediumCompleted: 0,
+                    hardCompleted: 0,
+                    expertCompleted: 0,
+                  }
+                });
+                const found = allAchievements.find((a: any) => a.id === achievementId);
+                return (
+                  <div key={index} className="achievement-item">
+                    <span className="achievement-icon">{found ? found.icon : '🏆'}</span>
+                    <span className="achievement-name">{found ? found.title : achievementId}</span>
+                  </div>
+                );
+              })
             ) : (
               <div className="no-achievements">
                 <span className="empty-icon">🎯</span>

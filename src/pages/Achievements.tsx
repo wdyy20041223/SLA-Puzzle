@@ -36,7 +36,14 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
     experience: user?.experience || 0,
     coins: user?.coins || 0,
     totalScore: user?.totalScore || 0,
-    bestTimes: user?.bestTimes || {}
+    bestTimes: user?.bestTimes || {},
+    recentGameResults: (user as any)?.recentGameResults || [],
+    difficultyStats: (user as any)?.difficultyStats || {
+      easyCompleted: 0,
+      mediumCompleted: 0,
+      hardCompleted: 0,
+      expertCompleted: 0,
+    }
   });
 
   const categories = [
@@ -133,56 +140,34 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
               className={`achievement-card ${achievement.isUnlocked ? 'unlocked' : 'locked'}`}
             >
               <div className="achievement-header">
-                <div className="achievement-icon">
-                  {achievement.isUnlocked ? achievement.icon : '🔒'}
-                </div>
-                <div 
-                  className="rarity-badge"
-                  style={{ backgroundColor: getRarityColor(achievement.rarity) }}
-                >
-                  {achievement.rarity}
-                </div>
+                {/* 这里可以放图标和稀有度等 */}
               </div>
-              
               <div className="achievement-content">
                 <h3 className={`achievement-title ${achievement.isUnlocked ? 'unlocked-text' : 'locked-text'}`}>
                   {achievement.title}
                 </h3>
-                <p className={`achievement-description ${achievement.isUnlocked ? 'unlocked-text' : 'locked-text'}`}>
-                  {achievement.description}
-                </p>
-                
-                {achievement.maxProgress && achievement.maxProgress > 1 && (
-                  <div className="achievement-progress">
+                <p className="achievement-description">{achievement.description}</p>
+                {typeof achievement.progress === 'number' && typeof achievement.maxProgress === 'number' && achievement.maxProgress > 1 && (
+                  <div className="achievement-progress-bar">
                     <div className="progress-info">
-                      <span className="progress-label">
-                        {achievement.isUnlocked ? '已完成' : '进度'}
-                      </span>
-                      <span className="progress-numbers">
-                        {achievement.progress || 0} / {achievement.maxProgress}
-                      </span>
+                      <span className="progress-text">进度：</span>
+                      <span className="progress-numbers">{achievement.progress} / {achievement.maxProgress}</span>
+                      <span className="progress-percentage">{Math.floor((achievement.progress / achievement.maxProgress) * 100)}%</span>
                     </div>
                     <div className="progress-bar">
-                      <div 
+                      <div
                         className="progress-fill"
-                        style={{ 
-                          width: `${Math.min(((achievement.progress || 0) / achievement.maxProgress) * 100, 100)}%` 
-                        }}
-                      />
-                    </div>
-                    <div className="progress-percentage">
-                      {Math.round(((achievement.progress || 0) / achievement.maxProgress) * 100)}%
+                        style={{ width: `${Math.min(100, (achievement.progress / achievement.maxProgress) * 100)}%` }}
+                      ></div>
                     </div>
                   </div>
                 )}
-                
                 {achievement.reward && (
                   <div className="achievement-reward">
                     <span className="reward-label">奖励：</span>
                     <span className="reward-text">{achievement.reward}</span>
                   </div>
                 )}
-                
                 {achievement.isUnlocked && achievement.unlockedAt && (
                   <div className="unlock-date">
                     解锁于 {formatDate(achievement.unlockedAt)}
