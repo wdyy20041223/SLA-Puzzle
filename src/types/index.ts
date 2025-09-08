@@ -72,13 +72,10 @@ export interface Asset {
 export interface LeaderboardEntry {
   id: string;
   puzzleId: string;
-  puzzleName: string; // 拼图名称，便于显示
   playerName: string;
   completionTime: number; // 秒
   moves: number;
   difficulty: DifficultyLevel;
-  pieceShape: PieceShape; // 拼图形状
-  gridSize: string; // 网格大小，如"3x3"
   completedAt: Date;
 }
 
@@ -130,11 +127,6 @@ export interface User {
   achievements?: string[]; // 已解锁的成就ID列表
   bestTimes?: Record<string, number>; // 各难度最佳时间记录
   ownedItems?: string[]; // 拥有的商店物品ID列表
-  recentGameResults?: Array<{
-    moves: number;
-    totalPieces: number;
-    timestamp: Date;
-  }>; // 最近游戏结果，用于连续成就追踪
 }
 
 // 奖励类型
@@ -161,7 +153,6 @@ export interface GameCompletionResult {
   moves: number;
   difficulty: DifficultyLevel;
   isNewRecord: boolean;
-  totalPieces?: number; // 总拼图块数，用于成就计算
   rewards: GameReward;
 }
 

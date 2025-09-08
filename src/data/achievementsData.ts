@@ -25,32 +25,6 @@ interface UserStats {
   coins: number;
   totalScore: number;
   bestTimes?: Record<string, number>;
-  recentGameResults?: Array<{
-    moves: number;
-    totalPieces: number;
-    timestamp: Date;
-  }>;
-}
-
-// 计算高效解谜者成就进度
-function calculateEfficientSolverProgress(userStats: UserStats): number {
-  const { recentGameResults } = userStats;
-  if (!recentGameResults || recentGameResults.length === 0) {
-    return 0;
-  }
-
-  // 检查最近的游戏是否连续符合条件
-  let consecutiveCount = 0;
-  for (let i = recentGameResults.length - 1; i >= 0 && consecutiveCount < 3; i--) {
-    const game = recentGameResults[i];
-    if (game.moves <= game.totalPieces * 1.5) {
-      consecutiveCount++;
-    } else {
-      break; // 如果有一局不符合条件，连续计数中断
-    }
-  }
-
-  return Math.min(consecutiveCount, 3);
 }
 
 export const createAchievements = (
@@ -214,10 +188,10 @@ export const createAchievements = (
   {
     id: 'efficient_solver',
     title: '高效解谜者',
-    description: '连续三次使用步数不超过总拼图数的1.5倍',
+    description: '连续3次游戏都用少于标准步数完成',
     icon: '🧠',
     category: 'performance',
-    progress: userAchievements.includes('efficient_solver') ? 3 : calculateEfficientSolverProgress(userStats),
+    progress: userAchievements.includes('efficient_solver') ? 3 : Math.min(Math.floor(gamesCompleted * 0.05), 2),
     maxProgress: 3,
     isUnlocked: userAchievements.includes('efficient_solver'),
     rarity: 'epic',
@@ -428,11 +402,11 @@ export const createAchievements = (
   {
     id: 'weekend_warrior',
     title: '周末战士',
-    description: '在周末完成拼图',
+    description: '在周末完成20个拼图',
     icon: '🏖️',
     category: 'special',
-    progress: userAchievements.includes('weekend_warrior') ? 1 : 0,
-    maxProgress: 1,
+    progress: userAchievements.includes('weekend_warrior') ? 20 : Math.min(Math.floor(gamesCompleted * 0.4), 19),
+    maxProgress: 20,
     isUnlocked: userAchievements.includes('weekend_warrior'),
     rarity: 'epic',
     reward: '休闲大师称号'

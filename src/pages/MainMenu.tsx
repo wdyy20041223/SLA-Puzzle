@@ -5,76 +5,36 @@ import { PuzzleGenerator } from '../utils/puzzleGenerator';
 import { GameConfigPanel } from '../components/MainMenu';
 import { UserProfile } from '../components/auth/UserProfile';
 import { DataSync } from '../components/sync/DataSync';
-import { SaveLoadModal } from '../components/game/SaveLoadModal';
-import { PuzzleSaveService } from '../services/puzzleSaveService';
-import { useAuth } from '../contexts/AuthContext';
 import './MainMenu.css';
 
 
 interface MainMenuProps {
   onStartGame: (puzzleConfig: PuzzleConfig) => void;
-  onLoadGame?: (saveId: string) => void;
   onStartIrregularGame: (imageData?: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
   onOpenEditor: () => void;
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
   onOpenMultiplayer: () => void;
   onOpenShop: () => void;
-  onOpenProfile: () => void;
-  onOpenLeaderboard: () => void;
-  onOpenSettings: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
   onStartGame,
-  onLoadGame,
   onStartIrregularGame,
   onOpenEditor,
   onOpenAchievements,
   onOpenDailyChallenge,
   onOpenMultiplayer,
   onOpenShop,
-  onOpenProfile,
-  onOpenLeaderboard,
-  onOpenSettings,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
   const [pieceShape, setPieceShape] = useState<PieceShape>('square');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
-  const [showLoadModal, setShowLoadModal] = useState(false);
-
-  const { authState } = useAuth();
 
   const handleAssetSelect = (asset: Asset) => {
     setSelectedAsset(asset);
-  };
-
-  const handleOpenLoadModal = () => {
-    setShowLoadModal(true);
-  };
-
-  const handleCloseLoadModal = () => {
-    setShowLoadModal(false);
-  };
-
-  const handleLoadGame = (saveId: string) => {
-    if (onLoadGame) {
-      onLoadGame(saveId);
-      setShowLoadModal(false);
-      return { success: true };
-    }
-    
-    return { success: false, error: '无法加载游戏' };
-  };
-
-  const handleDeleteSave = (saveId: string) => {
-    return PuzzleSaveService.deleteSavedGame(saveId);
-  };
-
-  const getSavedGames = () => {
-    return PuzzleSaveService.getSavedGames(authState.user?.id);
   };
 
   const handleStartGame = async () => {
@@ -146,7 +106,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           >
             🌐 数据同步
           </button>
-          <UserProfile onOpenShop={onOpenShop} onOpenProfile={onOpenProfile} />
+          <UserProfile />
         </div>
       </div>
       
@@ -161,13 +121,27 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       
       {/* 主要内容区域 */}
       <div className="flex justify-center items-start pt-[25px] px-5 pb-5 flex-1">
-        <div className="flex flex-col lg:flex-row gap-5 w-full max-w-6xl">
+        <div className="flex flex-col lg:flex-row gap-5 w-full max-w-7xl">
           {/* 素材选择区域 */}
           <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg flex flex-col h-[800px]">
             <AssetLibrary
               onAssetSelect={handleAssetSelect}
               showUpload={true}
             />
+          </div>
+
+          {/* 商店按钮 */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={onOpenShop}
+              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-4 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-3 min-w-[140px]"
+            >
+              <span className="text-2xl">🛒</span>
+              <div className="text-left">
+                <div className="font-bold text-lg">进入商店</div>
+                <div className="text-sm opacity-90">头像·素材</div>
+              </div>
+            </button>
           </div>
 
           {/* 游戏配置区域 */}
@@ -180,29 +154,14 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               onDifficultyChange={setDifficulty}
               onShapeChange={setPieceShape}
               onStartGame={handleStartGame}
-              onLoadGame={handleOpenLoadModal}
               onOpenEditor={onOpenEditor}
               onOpenAchievements={onOpenAchievements}
               onOpenDailyChallenge={onOpenDailyChallenge}
               onOpenMultiplayer={onOpenMultiplayer}
-              onOpenLeaderboard={onOpenLeaderboard}
-              onOpenSettings={onOpenSettings}
             />
           </div>
         </div>
       </div>
-
-      {/* 加载游戏模态框 */}
-      <SaveLoadModal
-        isVisible={showLoadModal}
-        onClose={handleCloseLoadModal}
-        mode="load"
-        savedGames={getSavedGames()}
-        currentGameProgress={0}
-        onSaveGame={() => ({ success: false, error: '主菜单不支持保存' })}
-        onLoadGame={handleLoadGame}
-        onDeleteSave={handleDeleteSave}
-      />
     </div>
   );
 };

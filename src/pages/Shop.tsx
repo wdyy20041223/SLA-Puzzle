@@ -215,7 +215,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
         <div className="user-coins">
           <div className="coins-display">
             <span className="coins-icon">💰</span>
-            <span className="coins-amount">{(userCoins || 0).toLocaleString()}</span>
+            <span className="coins-amount">{userCoins.toLocaleString()}</span>
             <span className="coins-label">金币</span>
           </div>
         </div>
@@ -284,7 +284,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
                 <div className="item-footer">
                   <div className="price-section">
                     <span className="price-icon">💰</span>
-                    <span className="price-amount">{(item.price || 0).toLocaleString()}</span>
+                    <span className="price-amount">{item.price.toLocaleString()}</span>
                   </div>
                   
                   <button

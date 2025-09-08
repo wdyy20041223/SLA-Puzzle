@@ -3,63 +3,24 @@ import {
   PuzzlePiece, 
   GameState, 
   GameMove, 
-  PuzzleConfig 
+  PuzzleConfig, 
+  PieceShape 
 } from '../types';
-import { PuzzleSaveService } from '../services/puzzleSaveService';
 
 interface UsePuzzleGameProps {
-  userId?: string; // 用户ID，用于支持多用户保存
-  preloadedGameState?: GameState; // 预加载的游戏状态
+  initialConfig?: PuzzleConfig;
 }
 
-export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps = {}) {
+export function usePuzzleGame({ initialConfig }: UsePuzzleGameProps = {}) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [isGameStarted, setIsGameStarted] = useState(false);
   const [selectedPiece, setSelectedPiece] = useState<string | null>(null);
-
-  // 处理拼图块选择
-  const handlePieceSelect = useCallback((pieceId: string | null) => {
-    setSelectedPiece(pieceId);
-  }, []);
   const [timer, setTimer] = useState(0);
   const timerRef = useRef<number | null>(null);
   
   // 拖拽状态
   const [draggedPiece, setDraggedPiece] = useState<string | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
-
-  // 如果有预加载的游戏状态，初始化游戏
-  useEffect(() => {
-    if (preloadedGameState) {
-      setGameState(preloadedGameState);
-      setIsGameStarted(true);
-      setSelectedPiece(null);
-      
-      // 恢复计时器
-      const elapsedSeconds = preloadedGameState.elapsedTime || 0;
-      setTimer(elapsedSeconds);
-      
-      // 如果游戏没有完成，启动计时器
-      if (!preloadedGameState.isCompleted) {
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-        }
-        timerRef.current = setInterval(() => {
-          setTimer(prev => {
-            const newTime = prev + 1;
-            // 同时更新游戏状态中的elapsedTime
-            setGameState(prevState => {
-              if (prevState && !prevState.isCompleted) {
-                return { ...prevState, elapsedTime: newTime };
-              }
-              return prevState;
-            });
-            return newTime;
-          });
-        }, 1000);
-      }
-    }
-  }, [preloadedGameState]);
 
   // 初始化游戏
   const initializeGame = useCallback((config: PuzzleConfig) => {
@@ -93,17 +54,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
       clearInterval(timerRef.current);
     }
     timerRef.current = setInterval(() => {
-      setTimer(prev => {
-        const newTime = prev + 1;
-        // 同时更新游戏状态中的elapsedTime
-        setGameState(prevState => {
-          if (prevState && !prevState.isCompleted) {
-            return { ...prevState, elapsedTime: newTime };
-          }
-          return prevState;
-        });
-        return newTime;
-      });
+      setTimer(prev => prev + 1);
     }, 1000);
   }, []);
 
@@ -456,81 +407,6 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
     setDragOverSlot(null);
   }, [draggedPiece, gameState, removePieceFromSlot]);
 
-  // 保存游戏进度
-  const saveGame = useCallback((description?: string) => {
-    if (!gameState) {
-      return { success: false, error: '没有正在进行的游戏' };
-    }
-
-    if (gameState.isCompleted) {
-      return { success: false, error: '已完成的游戏无法保存' };
-    }
-
-    return PuzzleSaveService.saveGame(gameState, description, userId);
-  }, [gameState, userId]);
-
-  // 加载游戏进度
-  const loadGame = useCallback((saveId: string) => {
-    const result = PuzzleSaveService.loadGame(saveId);
-    
-    if (result.success && result.gameState) {
-      setGameState(result.gameState);
-      setIsGameStarted(true);
-      setSelectedPiece(null);
-      
-      // 恢复计时器
-      const elapsedSeconds = result.gameState.elapsedTime || 0;
-      setTimer(elapsedSeconds);
-      
-      // 如果游戏没有完成，启动计时器
-      if (!result.gameState.isCompleted) {
-        if (timerRef.current) {
-          clearInterval(timerRef.current);
-        }
-        timerRef.current = setInterval(() => {
-          setTimer(prev => {
-            const newTime = prev + 1;
-            // 同时更新游戏状态中的elapsedTime
-            setGameState(prevState => {
-              if (prevState && !prevState.isCompleted) {
-                return { ...prevState, elapsedTime: newTime };
-              }
-              return prevState;
-            });
-            return newTime;
-          });
-        }, 1000);
-      }
-    }
-    
-    return result;
-  }, []);
-
-  // 获取保存的游戏列表
-  const getSavedGames = useCallback(() => {
-    return PuzzleSaveService.getSavedGames(userId);
-  }, [userId]);
-
-  // 删除保存的游戏
-  const deleteSavedGame = useCallback((saveId: string) => {
-    return PuzzleSaveService.deleteSavedGame(saveId);
-  }, []);
-
-  // 检查是否可以保存游戏
-  const canSaveGame = useCallback(() => {
-    return gameState && !gameState.isCompleted && isGameStarted;
-  }, [gameState, isGameStarted]);
-
-  // 获取当前游戏进度百分比
-  const getGameProgress = useCallback(() => {
-    if (!gameState || !gameState.answerGrid) return 0;
-    
-    const totalSlots = gameState.answerGrid.length;
-    const filledSlots = gameState.answerGrid.filter(slot => slot !== null).length;
-    
-    return totalSlots > 0 ? (filledSlots / totalSlots) * 100 : 0;
-  }, [gameState]);
-
   // 清理计时器
   useEffect(() => {
     return () => {
@@ -545,7 +421,6 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
     isGameStarted,
     selectedPiece,
     setSelectedPiece,
-    handlePieceSelect,
     timer,
     initializeGame,
     placePieceToSlot,
@@ -564,12 +439,5 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
     handleDragLeave,
     handleDropToSlot,
     handleDropToProcessingArea,
-    // 保存/加载相关
-    saveGame,
-    loadGame,
-    getSavedGames,
-    deleteSavedGame,
-    canSaveGame,
-    getGameProgress,
   };
 }

@@ -367,19 +367,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         });
       }
 
-      // 更新最近游戏结果（用于连续成就追踪）
-      const recentGameResults = [...((currentUser as any).recentGameResults || [])];
-      recentGameResults.push({
-        moves: result.moves,
-        totalPieces: result.totalPieces || 0, // 使用结果中的totalPieces
-        timestamp: new Date()
-      });
-
-      // 只保留最近10次游戏结果
-      if (recentGameResults.length > 10) {
-        recentGameResults.splice(0, recentGameResults.length - 10);
-      }
-
       // 更新用户数据
       const updatedUser = {
         ...currentUser,
@@ -389,7 +376,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         gamesCompleted: newGamesCompleted,
         achievements,
         bestTimes,
-        recentGameResults,
         lastLoginAt: new Date(),
       };
 
