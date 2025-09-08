@@ -30,7 +30,7 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
 
   const user = authState.user;
 
-  // 从后端获取成就数据
+  // 从后端获取成就数据，整合组员的优化逻辑
   React.useEffect(() => {
     const fetchAchievements = async () => {
       try {
@@ -58,7 +58,7 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
           setAchievements(formattedAchievements);
         } else {
           console.error('获取成就数据失败:', response.error);
-          // 如果后端失败，回退到本地数据
+          // 如果后端失败，回退到本地数据，使用组员优化的成就数据系统
           const { createAchievements } = await import('../data/achievementsData');
           const localAchievements = createAchievements({
             gamesCompleted: user?.gamesCompleted || 0,
@@ -67,13 +67,20 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
             experience: user?.experience || 0,
             coins: user?.coins || 0,
             totalScore: user?.totalScore || 0,
-            bestTimes: user?.bestTimes || {}
+            bestTimes: user?.bestTimes || {},
+            recentGameResults: (user as any)?.recentGameResults || [],
+            difficultyStats: (user as any)?.difficultyStats || {
+              easyCompleted: 0,
+              mediumCompleted: 0,
+              hardCompleted: 0,
+              expertCompleted: 0,
+            }
           });
           setAchievements(localAchievements);
         }
       } catch (error) {
         console.error('获取成就数据时发生错误:', error);
-        // 回退到本地数据
+        // 回退到本地数据，使用组员优化的成就数据系统
         const { createAchievements } = await import('../data/achievementsData');
         const localAchievements = createAchievements({
           gamesCompleted: user?.gamesCompleted || 0,
@@ -82,7 +89,14 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
           experience: user?.experience || 0,
           coins: user?.coins || 0,
           totalScore: user?.totalScore || 0,
-          bestTimes: user?.bestTimes || {}
+          bestTimes: user?.bestTimes || {},
+          recentGameResults: (user as any)?.recentGameResults || [],
+          difficultyStats: (user as any)?.difficultyStats || {
+            easyCompleted: 0,
+            mediumCompleted: 0,
+            hardCompleted: 0,
+            expertCompleted: 0,
+          }
         });
         setAchievements(localAchievements);
       } finally {
@@ -200,48 +214,34 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
               className={`achievement-card ${achievement.isUnlocked ? 'unlocked' : 'locked'}`}
             >
               <div className="achievement-header">
-                <div className="achievement-icon">
-                  {achievement.isUnlocked ? achievement.icon : '🔒'}
-                </div>
-                <div 
-                  className="rarity-badge"
-                  style={{ backgroundColor: getRarityColor(achievement.rarity) }}
-                >
-                  {achievement.rarity}
-                </div>
+                {/* 这里可以放图标和稀有度等 */}
               </div>
-              
               <div className="achievement-content">
                 <h3 className={`achievement-title ${achievement.isUnlocked ? 'unlocked-text' : 'locked-text'}`}>
                   {achievement.title}
                 </h3>
-                <p className={`achievement-description ${achievement.isUnlocked ? 'unlocked-text' : 'locked-text'}`}>
-                  {achievement.description}
-                </p>
-                
-                {achievement.maxProgress && achievement.maxProgress > 1 && (
-                  <div className="progress-container">
-                    <div className="progress-bar">
-                      <div 
-                        className="progress-bar-fill"
-                        style={{ 
-                          width: `${Math.min(((achievement.progress || 0) / achievement.maxProgress) * 100, 100)}%` 
-                        }}
-                      />
+                <p className="achievement-description">{achievement.description}</p>
+                {typeof achievement.progress === 'number' && typeof achievement.maxProgress === 'number' && achievement.maxProgress > 1 && (
+                  <div className="achievement-progress-bar">
+                    <div className="progress-info">
+                      <span className="progress-text">进度：</span>
+                      <span className="progress-numbers">{achievement.progress} / {achievement.maxProgress}</span>
+                      <span className="progress-percentage">{Math.floor((achievement.progress / achievement.maxProgress) * 100)}%</span>
                     </div>
-                    <span className="progress-text">
-                      {achievement.progress || 0} / {achievement.maxProgress}
-                    </span>
+                    <div className="progress-bar">
+                      <div
+                        className="progress-fill"
+                        style={{ width: `${Math.min(100, (achievement.progress / achievement.maxProgress) * 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
                 )}
-                
                 {achievement.reward && (
                   <div className="achievement-reward">
                     <span className="reward-label">奖励：</span>
                     <span className="reward-text">{achievement.reward}</span>
                   </div>
                 )}
-                
                 {achievement.isUnlocked && achievement.unlockedAt && (
                   <div className="unlock-date">
                     解锁于 {formatDate(achievement.unlockedAt)}

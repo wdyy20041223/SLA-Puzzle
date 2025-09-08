@@ -1,8 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AuthState, User, LoginCredentials, RegisterCredentials, GameCompletionResult } from '../types';
-import { apiService } from '../services/apiService';
-import { calculateLevelFromExp } from '../utils/experienceSystem';
+import { apiService, User as ApiUser } from '../services/apiService';
 import { formatApiError } from '../utils/errorFormatter';
+
+// 转换API用户类型到内部用户类型
+const convertApiUserToUser = (apiUser: ApiUser): User => {
+  return {
+    ...apiUser,
+    createdAt: new Date(apiUser.createdAt),
+    lastLoginAt: new Date(apiUser.lastLoginAt),
+  };
+};
 
 interface AuthContextType {
   authState: AuthState;
@@ -57,9 +65,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const response = await apiService.getUserProfile();
           if (response.success && response.data) {
+            let user = convertApiUserToUser(response.data.user);
+            
+            // 整合组员的头像显示修复：清理可能不属于当前用户的头像/头像框（防止不同账号互相污染）
+            const owned = user.ownedItems || [];
+            if (user.avatar && !/^default_/.test(user.avatar) && !(typeof user.avatar === 'string' && user.avatar.length <= 2) && !(user.avatar as string).startsWith?.('http') && !owned.includes(user.avatar)) {
+              user.avatar = 'default_user';
+            }
+            if (user.avatarFrame && !owned.includes(user.avatarFrame)) {
+              user.avatarFrame = undefined;
+            }
+            
             setAuthState({
               isAuthenticated: true,
-              user: response.data.user,
+              user: user,
               isLoading: false,
               error: null,
             });
@@ -84,9 +103,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await apiService.login(credentials);
       
       if (response.success && response.data) {
+        let user = convertApiUserToUser(response.data.user);
+        
+        // 整合组员的头像显示修复：清理头像/头像框，确保只有当前账号拥有的物品才能生效
+        const owned = user.ownedItems || [];
+        if (user.avatar && !/^default_/.test(user.avatar) && !(typeof user.avatar === 'string' && user.avatar.length <= 2) && !(user.avatar as string).startsWith?.('http') && !owned.includes(user.avatar)) {
+          user.avatar = 'default_user';
+        }
+        if (user.avatarFrame && !owned.includes(user.avatarFrame)) {
+          user.avatarFrame = undefined;
+        }
+        
         setAuthState({
           isAuthenticated: true,
-          user: response.data.user,
+          user: user,
           isLoading: false,
           error: null,
         });
@@ -142,7 +172,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('注册成功');
         setAuthState({
           isAuthenticated: true,
-          user: response.data.user,
+          user: convertApiUserToUser(response.data.user),
           isLoading: false,
           error: null,
         });
@@ -206,44 +236,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     try {
-      const usersResponse = await cloudStorage.getUsers();
-      if (!usersResponse.success) {
+      // 调用后端API更新用户奖励
+      const response = await apiService.updateUserRewards(coins, experience);
+      
+      if (response.success) {
+        // 重新获取用户数据来确保状态同步
+        const userResponse = await apiService.getUserProfile();
+        if (userResponse.success && userResponse.data?.user) {
+          setAuthState(prev => ({
+            ...prev,
+            user: convertApiUserToUser(userResponse.data!.user),
+          }));
+        }
+        return true;
+      } else {
+        console.error('更新用户奖励失败:', response.error);
         return false;
       }
-
-      const users = usersResponse.data || [];
-      const currentUser = authState.user;
-      const newCoins = currentUser.coins + coins;
-      const newExperience = currentUser.experience + experience;
-      const newLevel = calculateLevelFromExp(newExperience);
-
-      // 更新用户数据
-      const updatedUser = {
-        ...currentUser,
-        coins: newCoins,
-        experience: newExperience,
-        level: newLevel,
-      };
-
-      // 更新用户列表
-      const updatedUsers = users.map((u: any) => 
-        u.id === currentUser.id ? { ...u, ...updatedUser } : u
-      );
-
-      // 保存到云端
-      const saveResponse = await cloudStorage.saveUsers(updatedUsers);
-      if (!saveResponse.success) {
-        return false;
-      }
-
-      // 更新本地状态
-      localStorage.setItem('puzzle_current_user', JSON.stringify(updatedUser));
-      setAuthState(prev => ({
-        ...prev,
-        user: updatedUser,
-      }));
-
-      return true;
     } catch (error) {
       console.error('更新用户奖励失败:', error);
       return false;
@@ -258,38 +267,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const currentUser = authState.user;
       
-      // 获取用户列表
-      const usersResponse = await cloudStorage.getUsers();
-      if (!usersResponse.success) {
-        return false;
+      // 整合组员的头像显示修复：验证 avatar 和 avatarFrame 是否由用户拥有或为默认项
+      const owned = currentUser.ownedItems || [];
+      const sanitizedUpdates: Partial<User> = { ...updates };
+      if (updates.avatar) {
+        const av = updates.avatar as string;
+        const isDefault = /^default_/.test(av) || (typeof av === 'string' && av.length <= 2) || av.startsWith('http');
+        // 如果头像不是默认资源、不是emoji，也不是URL，则必须在 ownedItems 中
+        if (!isDefault && !owned.includes(av)) {
+          // 不允许非法设置
+          delete sanitizedUpdates.avatar;
+        }
       }
-      const users = usersResponse.data || [];
-      
-      // 更新用户信息
-      const updatedUser = {
-        ...currentUser,
-        ...updates,
+      if (updates.avatarFrame && !owned.includes(updates.avatarFrame as string)) {
+        delete sanitizedUpdates.avatarFrame;
+      }
+
+      // 调用后端API更新用户资料，先转换类型
+      const apiUpdates: Partial<ApiUser> = {
+        ...sanitizedUpdates,
+        createdAt: sanitizedUpdates.createdAt?.toISOString(),
+        lastLoginAt: sanitizedUpdates.lastLoginAt?.toISOString(),
       };
-
-      // 更新用户列表
-      const updatedUsers = users.map((u: any) => 
-        u.id === currentUser.id ? { ...u, ...updatedUser } : u
-      );
-
-      // 保存到云端
-      const saveResponse = await cloudStorage.saveUsers(updatedUsers);
-      if (!saveResponse.success) {
+      const response = await apiService.updateUserProfile(apiUpdates);
+      
+      if (response.success) {
+        // 重新获取用户数据来确保状态同步
+        const userResponse = await apiService.getUserProfile();
+        if (userResponse.success && userResponse.data?.user) {
+          setAuthState(prev => ({
+            ...prev,
+            user: convertApiUserToUser(userResponse.data!.user),
+          }));
+        }
+        return true;
+      } else {
+        console.error('更新用户资料失败:', response.error);
         return false;
       }
-
-      // 更新本地状态
-      localStorage.setItem('puzzle_current_user', JSON.stringify(updatedUser));
-      setAuthState(prev => ({
-        ...prev,
-        user: updatedUser,
-      }));
-
-      return true;
     } catch (error) {
       console.error('更新用户资料失败:', error);
       return false;
@@ -308,7 +323,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const gameCompletionData = {
         puzzleName: '自定义拼图', // 默认名称，后续可以传递实际的拼图名称
         difficulty: result.difficulty,
-        pieceShape: 'square', // 默认形状，后续可以根据实际游戏类型传递
+        pieceShape: 'square' as const, // 修复类型错误，使用具体的字面量类型
         gridSize: `${Math.sqrt(result.totalPieces || 9)}x${Math.sqrt(result.totalPieces || 9)}`, // 根据总片数计算网格大小
         totalPieces: result.totalPieces || 9,
         completionTime: result.completionTime,
@@ -319,16 +334,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const response = await apiService.recordGameCompletion(gameCompletionData);
       
-      if (response.success && response.data) {
+      if (response.success) {
         // 检查并解锁成就
         await checkAndUnlockAchievements(result, authState.user);
         
         // 重新获取用户数据（包含更新后的金币、经验和成就）
         const userResponse = await apiService.getUserProfile();
-        if (userResponse.success && userResponse.data) {
+        if (userResponse.success && userResponse.data?.user) {
           setAuthState(prev => ({
             ...prev,
-            user: userResponse.data.user
+            user: convertApiUserToUser(userResponse.data!.user)
           }));
         }
 
@@ -345,58 +360,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+
   // 重置用户进度（等级、金币、经验、成就等）
   const resetUserProgress = async (): Promise<boolean> => {
     try {
-      const currentUser = authState.user;
-      if (!currentUser) {
-        console.error('没有当前用户');
-        return false;
-      }
-
-      // 获取所有用户
-      const usersResponse = await cloudStorage.getUsers();
-      if (!usersResponse.success) {
-        console.error('获取用户列表失败:', usersResponse.error);
-        return false;
-      }
-
-      const users = usersResponse.data || [];
-
-      // 重置用户数据到初始状态
-      const resetUser = {
-        ...currentUser,
+      // 调用后端API重置用户进度，如果方法不存在则使用updateUserProfile来重置
+      // 首先重置用户的基本数据
+      const resetData = {
         experience: 0,
-        coins: 100, // 重置为初始金币数量
-        level: 1, // 重置为1级
+        coins: 100,
+        level: 1,
         gamesCompleted: 0,
-        achievements: [], // 清空成就
-        bestTimes: {}, // 清空最佳时间记录
-        totalTimePlayed: 0,
-        lastLoginAt: new Date(),
+        achievements: [],
+        bestTimes: {},
+        totalScore: 0
       };
-
-      // 更新用户列表
-      const updatedUsers = users.map((u: any) => 
-        u.id === currentUser.id ? { ...u, ...resetUser } : u
-      );
-
-      // 保存到云端
-      const saveResponse = await cloudStorage.saveUsers(updatedUsers);
-      if (!saveResponse.success) {
-        console.error('保存重置数据失败:', saveResponse.error);
+      
+      const response = await apiService.updateUserProfile(resetData);
+      
+      if (response.success) {
+        // 重新获取用户数据来确保状态同步
+        const userResponse = await apiService.getUserProfile();
+        if (userResponse.success && userResponse.data?.user) {
+          setAuthState(prev => ({
+            ...prev,
+            user: convertApiUserToUser(userResponse.data!.user),
+          }));
+        }
+        console.log('用户进度重置成功');
+        return true;
+      } else {
+        console.error('重置用户进度失败:', response.error);
         return false;
       }
-
-      // 更新本地状态
-      localStorage.setItem('puzzle_current_user', JSON.stringify(resetUser));
-      setAuthState(prev => ({
-        ...prev,
-        user: resetUser,
-      }));
-
-      console.log('用户进度重置成功');
-      return true;
     } catch (error) {
       console.error('重置用户进度失败:', error);
       return false;
@@ -449,10 +445,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 批量解锁成就
       if (achievementsToUnlock.length > 0) {
         console.log('尝试解锁成就:', achievementsToUnlock);
-        const response = await apiService.request('/achievements/batch-update', {
-          method: 'POST',
-          body: JSON.stringify({ achievements: achievementsToUnlock }),
-        });
+        const response = await apiService.batchUpdateAchievements(achievementsToUnlock);
         
         if (response.success) {
           console.log('成就解锁成功:', response.data);

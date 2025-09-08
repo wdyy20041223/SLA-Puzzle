@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import './Shop.css';
@@ -137,7 +137,12 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
     }));
   };
 
-  const [shopItems, setShopItems] = useState<ShopItem[]>(initializeShopItems());
+  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
+
+  // 监听用户变化，更新商店物品状态
+  useEffect(() => {
+    setShopItems(initializeShopItems());
+  }, [user?.id, userOwnedItems]); // 当用户ID或拥有物品发生变化时重新初始化
 
   const categories = [
     { id: 'all', label: '全部', icon: '🛍️' },
@@ -214,7 +219,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
       const response = await apiService.acquireItem(backendItemType, item.id, item.price);
       
       if (response.success) {
-        // 更新商店物品状态
+        // 更新商店物品状态，确保在不同账号间有正确的状态
         const updatedItems = shopItems.map(shopItem => 
           shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
         );
@@ -227,8 +232,14 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
         const { apiService } = await import('../services/apiService');
         const userResponse = await apiService.getUserProfile();
         if (userResponse.success && userResponse.data) {
+          // 转换API用户类型到内部用户类型
+          const convertedUser = {
+            ...userResponse.data.user,
+            createdAt: new Date(userResponse.data.user.createdAt),
+            lastLoginAt: new Date(userResponse.data.user.lastLoginAt),
+          };
           // 更新 AuthContext 中的用户数据
-          setAuthenticatedUser(userResponse.data.user, apiService.getToken() || '');
+          setAuthenticatedUser(convertedUser, apiService.getToken() || '');
           console.log('购买成功，用户数据已更新');
         }
       } else {
