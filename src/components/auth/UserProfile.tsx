@@ -98,8 +98,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onOpenShop, onOpenProf
   };
 
   const renderAvatar = () => {
-    // 如果有设置头像ID，从映射中获取对应的emoji
+    const owned = user.ownedItems || [];
+    // 如果有设置头像ID，从映射中获取对应的emoji（并验证用户拥有权限）
     if (user.avatar && user.avatar !== 'default_user' && avatarMap[user.avatar]) {
+      if (!owned.includes(user.avatar)) {
+        // 未拥有的头像回退到默认
+        return <span className="avatar-emoji">{avatarMap['default_user']}</span>;
+      }
       return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
     }
     // 如果是直接的emoji字符串（兼容旧数据）
@@ -110,24 +115,19 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onOpenShop, onOpenProf
     if (user.avatar && user.avatar.startsWith('http')) {
       return <img src={user.avatar} alt={user.username} />;
     }
-    // 默认显示用户名首字母
-    return <span>{user.username.charAt(0).toUpperCase()}</span>;
+  // 默认显示用户名首字母
+  return <span>{user.username.charAt(0).toUpperCase()}</span>;
   };
 
   return (
     <div className="user-profile">
       <div className="user-profile-header">
         <div 
-          className={`user-avatar ${user.avatarFrame ? 'with-frame' : ''}`}
+          className={`user-avatar ${user.avatarFrame && (user.ownedItems || []).includes(user.avatarFrame) ? 'with-frame' : ''}`}
           onClick={handleAvatarClick}
           title="点击更改头像"
         >
           {renderAvatar()}
-          {user.avatarFrame && user.avatarFrame !== 'frame_none' && (
-            <div className="avatar-frame-indicator">
-              {user.avatarFrame === 'decoration_frame' ? '🖼️' : '✨'}
-            </div>
-          )}
         </div>
         <button
           className="user-profile-button"

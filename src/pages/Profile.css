@@ -88,23 +88,6 @@
   line-height: 1;
 }
 
-.avatar-frame-indicator {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: 1.1rem;
-  background: white;
-  border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  pointer-events: none;
-}
-
 .change-avatar-btn {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;

@@ -153,18 +153,26 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
                 </p>
                 
                 {achievement.maxProgress && achievement.maxProgress > 1 && (
-                  <div className="progress-container">
+                  <div className="achievement-progress">
+                    <div className="progress-info">
+                      <span className="progress-label">
+                        {achievement.isUnlocked ? '已完成' : '进度'}
+                      </span>
+                      <span className="progress-numbers">
+                        {achievement.progress || 0} / {achievement.maxProgress}
+                      </span>
+                    </div>
                     <div className="progress-bar">
                       <div 
-                        className="progress-bar-fill"
+                        className="progress-fill"
                         style={{ 
                           width: `${Math.min(((achievement.progress || 0) / achievement.maxProgress) * 100, 100)}%` 
                         }}
                       />
                     </div>
-                    <span className="progress-text">
-                      {achievement.progress || 0} / {achievement.maxProgress}
-                    </span>
+                    <div className="progress-percentage">
+                      {Math.round(((achievement.progress || 0) / achievement.maxProgress) * 100)}%
+                    </div>
                   </div>
                 )}
                 

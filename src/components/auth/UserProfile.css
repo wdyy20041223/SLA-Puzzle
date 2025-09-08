@@ -68,24 +68,6 @@
   line-height: 1;
 }
 
-.avatar-frame-indicator {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  font-size: 0.6rem;
-  background: white;
-  border-radius: 50%;
-  width: 12px;
-  height: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  /* 防止头像框指示器影响其他元素的点击 */
-  pointer-events: none;
-}
-
 .user-name {
   font-weight: 500;
   max-width: 120px;

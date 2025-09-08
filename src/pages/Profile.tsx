@@ -69,8 +69,12 @@ export const Profile: React.FC<ProfilePageProps> = ({ onBackToMenu }) => {
   };
 
   const renderAvatar = () => {
-    // 如果有设置头像ID，从映射中获取对应的emoji
+    const owned = user.ownedItems || [];
+    // 如果有设置头像ID，从映射中获取对应的emoji（并验证拥有权限）
     if (user.avatar && user.avatar !== 'default_user' && avatarMap[user.avatar]) {
+      if (!owned.includes(user.avatar)) {
+        return <span className="avatar-emoji">{avatarMap['default_user']}</span>;
+      }
       return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
     }
     // 如果是直接的emoji字符串（兼容旧数据）
@@ -101,15 +105,10 @@ export const Profile: React.FC<ProfilePageProps> = ({ onBackToMenu }) => {
           {/* 头像区域 */}
           <div className="avatar-section">
             <div 
-              className={`profile-avatar ${user.avatarFrame ? 'with-frame' : ''}`}
+              className={`profile-avatar ${user.avatarFrame && (user.ownedItems || []).includes(user.avatarFrame) ? 'with-frame' : ''}`}
               onClick={() => setShowAvatarSelector(true)}
             >
               {renderAvatar()}
-              {user.avatarFrame && user.avatarFrame !== 'frame_none' && (
-                <div className="avatar-frame-indicator">
-                  {user.avatarFrame === 'decoration_frame' ? '🖼️' : '✨'}
-                </div>
-              )}
             </div>
             <button
               className="change-avatar-btn"
