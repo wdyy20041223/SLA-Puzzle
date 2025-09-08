@@ -25,19 +25,75 @@ interface Achievement {
 export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) => {
   const { authState } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const user = authState.user;
 
-  // 使用新的成就数据系统
-  const achievements: Achievement[] = createAchievements({
-    gamesCompleted: user?.gamesCompleted || 0,
-    achievements: user?.achievements || [],
-    level: user?.level || 1,
-    experience: user?.experience || 0,
-    coins: user?.coins || 0,
-    totalScore: user?.totalScore || 0,
-    bestTimes: user?.bestTimes || {}
-  });
+  // 从后端获取成就数据
+  React.useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        const { apiService } = await import('../services/apiService');
+        const response = await apiService.getAchievements();
+        
+        if (response.success && response.data) {
+          // 转换后端数据格式为前端格式
+          const formattedAchievements: Achievement[] = response.data.achievements.map((achievement: any) => ({
+            id: achievement.id,
+            title: achievement.title,
+            description: achievement.description,
+            icon: achievement.icon,
+            category: achievement.category,
+            progress: achievement.progress,
+            maxProgress: achievement.maxProgress,
+            isUnlocked: achievement.isUnlocked,
+            unlockedAt: achievement.unlockedAt ? new Date(achievement.unlockedAt) : undefined,
+            rarity: achievement.rarity,
+            reward: achievement.rewardCoins > 0 || achievement.rewardExperience > 0 
+              ? `金币 +${achievement.rewardCoins} 经验 +${achievement.rewardExperience}`
+              : undefined
+          }));
+          
+          setAchievements(formattedAchievements);
+        } else {
+          console.error('获取成就数据失败:', response.error);
+          // 如果后端失败，回退到本地数据
+          const { createAchievements } = await import('../data/achievementsData');
+          const localAchievements = createAchievements({
+            gamesCompleted: user?.gamesCompleted || 0,
+            achievements: user?.achievements || [],
+            level: user?.level || 1,
+            experience: user?.experience || 0,
+            coins: user?.coins || 0,
+            totalScore: user?.totalScore || 0,
+            bestTimes: user?.bestTimes || {}
+          });
+          setAchievements(localAchievements);
+        }
+      } catch (error) {
+        console.error('获取成就数据时发生错误:', error);
+        // 回退到本地数据
+        const { createAchievements } = await import('../data/achievementsData');
+        const localAchievements = createAchievements({
+          gamesCompleted: user?.gamesCompleted || 0,
+          achievements: user?.achievements || [],
+          level: user?.level || 1,
+          experience: user?.experience || 0,
+          coins: user?.coins || 0,
+          totalScore: user?.totalScore || 0,
+          bestTimes: user?.bestTimes || {}
+        });
+        setAchievements(localAchievements);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (authState.isAuthenticated) {
+      fetchAchievements();
+    }
+  }, [authState.isAuthenticated, user]);
 
   const categories = [
     { id: 'all', label: '全部', icon: '🏆' },
@@ -73,6 +129,17 @@ export const Achievements: React.FC<AchievementPageProps> = ({ onBackToMenu }) =
       day: 'numeric'
     });
   };
+
+  if (loading) {
+    return (
+      <div className="achievements-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>加载成就数据中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="achievements-page">
