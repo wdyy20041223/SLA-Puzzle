@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import './Shop.css';
@@ -122,7 +122,7 @@ const mockShopItems: ShopItem[] = [
 ];
 
 export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
-  const { authState } = useAuth();
+  const { authState, purchaseItem } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   const user = authState.user;
@@ -137,7 +137,12 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
     }));
   };
 
-  const [shopItems, setShopItems] = useState<ShopItem[]>(initializeShopItems());
+  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
+
+  // 监听用户变化，更新商店物品状态
+  useEffect(() => {
+    setShopItems(initializeShopItems());
+  }, [user?.id, userOwnedItems]); // 当用户ID或拥有物品发生变化时重新初始化
 
   const categories = [
     { id: 'all', label: '全部', icon: '🛍️' },
@@ -170,7 +175,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
     return labels[rarity];
   };
 
-  const handlePurchase = (item: ShopItem) => {
+  const handlePurchase = async (item: ShopItem) => {
     if (item.owned) {
       alert('您已经拥有这个物品了！');
       return;
@@ -181,25 +186,18 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
       return;
     }
 
-    // 更新商店物品状态
-    const updatedItems = shopItems.map(shopItem => 
-      shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
-    );
-    setShopItems(updatedItems);
-
-    // 更新用户数据
-    const currentUser = JSON.parse(localStorage.getItem('puzzle_current_user') || '{}');
-    const updatedUser = {
-      ...currentUser,
-      coins: currentUser.coins - item.price,
-      ownedItems: [...(currentUser.ownedItems || []), item.id]
-    };
-    localStorage.setItem('puzzle_current_user', JSON.stringify(updatedUser));
-
-    alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
-    
-    // 刷新页面以更新UI
-    window.location.reload();
+    try {
+      const success = await purchaseItem(item.id, item.price);
+      if (success) {
+        alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
+        // 购买成功后，shopItems 会通过 useEffect 自动更新
+      } else {
+        alert('购买失败，请稍后重试。');
+      }
+    } catch (error) {
+      console.error('购买失败:', error);
+      alert('购买失败，请稍后重试。');
+    }
   };
 
   return (

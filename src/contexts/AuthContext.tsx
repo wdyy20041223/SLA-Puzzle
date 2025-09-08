@@ -13,6 +13,7 @@ interface AuthContextType {
   updateUserProfile: (updates: Partial<User>) => Promise<boolean>;
   handleGameCompletion: (result: GameCompletionResult) => Promise<boolean>;
   resetUserProgress: () => Promise<boolean>;
+  purchaseItem: (itemId: string, price: number) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,7 +46,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const savedUser = localStorage.getItem('puzzle_current_user');
     if (savedUser) {
       try {
-        const user: User = JSON.parse(savedUser);
+        let user: User = JSON.parse(savedUser);
+        // 清理可能不属于当前用户的头像/头像框（防止不同账号互相污染）
+        const owned = user.ownedItems || [];
+        if (user.avatar && !/^default_/.test(user.avatar) && !(typeof user.avatar === 'string' && user.avatar.length <= 2) && !(user.avatar as string).startsWith?.('http') && !owned.includes(user.avatar)) {
+          user.avatar = 'default_user';
+        }
+        if (user.avatarFrame && !owned.includes(user.avatarFrame)) {
+          user.avatarFrame = undefined;
+        }
         setAuthState({
           isAuthenticated: true,
           user,
@@ -90,6 +99,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // 更新最后登录时间
         userWithoutPassword.lastLoginAt = new Date();
+        // 清理头像/头像框，确保只有当前账号拥有的物品才能生效
+        const owned = userWithoutPassword.ownedItems || [];
+        if (userWithoutPassword.avatar && !/^default_/.test(userWithoutPassword.avatar) && !(typeof userWithoutPassword.avatar === 'string' && userWithoutPassword.avatar.length <= 2) && !(userWithoutPassword.avatar as string).startsWith?.('http') && !owned.includes(userWithoutPassword.avatar)) {
+          userWithoutPassword.avatar = 'default_user';
+        }
+        if (userWithoutPassword.avatarFrame && !owned.includes(userWithoutPassword.avatarFrame)) {
+          userWithoutPassword.avatarFrame = undefined;
+        }
         
         // 更新云端用户数据
         const updatedUsers = users.map((u: any) => 
@@ -179,7 +196,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         gamesCompleted: 0,
         achievements: [], // 初始成就列表
         bestTimes: {}, // 初始最佳时间记录
-        ownedItems: ['avatar_cat', 'decoration_frame'], // 初始拥有一些物品用于测试
+        ownedItems: [], // 新用户默认不拥有任何商店物品
+        recentGameResults: [], // 初始化最近游戏结果
+        difficultyStats: {
+          easyCompleted: 0,
+          mediumCompleted: 0,
+          hardCompleted: 0,
+          expertCompleted: 0,
+        }
       };
 
       users.push(newUser);
@@ -297,10 +321,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       const users = usersResponse.data || [];
       
+      // 验证 avatar 和 avatarFrame 是否由用户拥有或为默认项
+      const owned = currentUser.ownedItems || [];
+      const sanitizedUpdates: Partial<User> = { ...updates };
+      if (updates.avatar) {
+        const av = updates.avatar as string;
+        const isDefault = /^default_/.test(av) || (typeof av === 'string' && av.length <= 2) || av.startsWith('http');
+        // 如果头像不是默认资源、不是emoji，也不是URL，则必须在 ownedItems 中
+        if (!isDefault && !owned.includes(av)) {
+          // 不允许非法设置
+          delete sanitizedUpdates.avatar;
+        }
+      }
+      if (updates.avatarFrame && !owned.includes(updates.avatarFrame as string)) {
+        delete sanitizedUpdates.avatarFrame;
+      }
+
       // 更新用户信息
       const updatedUser = {
         ...currentUser,
-        ...updates,
+        ...sanitizedUpdates,
       };
 
       // 更新用户列表
@@ -380,6 +420,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         recentGameResults.splice(0, recentGameResults.length - 10);
       }
 
+      // 更新难度统计
+      const difficultyStats = {
+        easyCompleted: (currentUser as any).difficultyStats?.easyCompleted || 0,
+        mediumCompleted: (currentUser as any).difficultyStats?.mediumCompleted || 0,
+        hardCompleted: (currentUser as any).difficultyStats?.hardCompleted || 0,
+        expertCompleted: (currentUser as any).difficultyStats?.expertCompleted || 0,
+      };
+
+      console.log('🎯 游戏完成前的难度统计:', difficultyStats);
+
+      // 根据当前完成的难度增加对应统计
+      switch (result.difficulty) {
+        case 'easy':
+          difficultyStats.easyCompleted += 1;
+          break;
+        case 'medium':
+          difficultyStats.mediumCompleted += 1;
+          break;
+        case 'hard':
+          difficultyStats.hardCompleted += 1;
+          break;
+        case 'expert':
+          difficultyStats.expertCompleted += 1;
+          break;
+      }
+
+      console.log('🎯 游戏完成后的难度统计:', difficultyStats, '当前难度:', result.difficulty);
+
+      // 检查难度相关成就
+      const difficultyAchievements = [];
+      if (difficultyStats.easyCompleted >= 20 && !achievements.includes('easy_master')) {
+        achievements.push('easy_master');
+        difficultyAchievements.push('easy_master');
+        console.log('🏆 解锁简单模式专家成就!');
+      }
+      if (difficultyStats.hardCompleted >= 10 && !achievements.includes('hard_challenger')) {
+        achievements.push('hard_challenger');
+        difficultyAchievements.push('hard_challenger');
+        console.log('🏆 解锁困难挑战者成就!');
+      }
+      if (difficultyStats.expertCompleted >= 5 && !achievements.includes('expert_elite')) {
+        achievements.push('expert_elite');
+        difficultyAchievements.push('expert_elite');
+        console.log('🏆 解锁专家精英成就!');
+      }
+
       // 更新用户数据
       const updatedUser = {
         ...currentUser,
@@ -390,6 +476,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         achievements,
         bestTimes,
         recentGameResults,
+        difficultyStats,
         lastLoginAt: new Date(),
       };
 
@@ -417,6 +504,63 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return false;
     } finally {
       setProcessingGameCompletion(false);
+    }
+  };
+
+  const purchaseItem = async (itemId: string, price: number): Promise<boolean> => {
+    if (!authState.isAuthenticated || !authState.user) {
+      return false;
+    }
+
+    try {
+      const currentUser = authState.user;
+      
+      // 检查是否已拥有该物品
+      if (currentUser.ownedItems?.includes(itemId)) {
+        return false; // 已拥有
+      }
+
+      // 检查金币是否足够
+      if (currentUser.coins < price) {
+        return false; // 金币不足
+      }
+
+      // 获取用户列表
+      const usersResponse = await cloudStorage.getUsers();
+      if (!usersResponse.success) {
+        return false;
+      }
+      const users = usersResponse.data || [];
+
+      // 更新用户数据
+      const updatedUser = {
+        ...currentUser,
+        coins: currentUser.coins - price,
+        ownedItems: [...(currentUser.ownedItems || []), itemId],
+      };
+
+      // 更新用户列表
+      const updatedUsers = users.map((u: any) => 
+        u.id === currentUser.id ? { ...u, ...updatedUser } : u
+      );
+
+      // 保存到云端
+      const saveResponse = await cloudStorage.saveUsers(updatedUsers);
+      if (!saveResponse.success) {
+        return false;
+      }
+
+      // 更新本地状态
+      localStorage.setItem('puzzle_current_user', JSON.stringify(updatedUser));
+      setAuthState(prev => ({
+        ...prev,
+        user: updatedUser,
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('购买物品失败:', error);
+      return false;
     }
   };
 
@@ -448,6 +592,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         achievements: [], // 清空成就
         bestTimes: {}, // 清空最佳时间记录
         totalTimePlayed: 0,
+        recentGameResults: [], // 清空最近游戏结果（重要：重置高效解密者的连续记录）
+        difficultyStats: { // 清空难度统计（重要：重置难度相关成就进度）
+          easyCompleted: 0,
+          mediumCompleted: 0,
+          hardCompleted: 0,
+          expertCompleted: 0,
+        },
         lastLoginAt: new Date(),
       };
 
@@ -488,6 +639,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateUserProfile,
     handleGameCompletion,
     resetUserProgress,
+    purchaseItem,
   };
 
   return (
