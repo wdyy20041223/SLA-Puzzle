@@ -84,8 +84,14 @@
 }
 
 .avatar-emoji {
-  font-size: 2.5rem;
+  font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", "EmojiOne Mozilla", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem; /* 微调以防止部分 emoji 被裁剪 */
   line-height: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .change-avatar-btn {

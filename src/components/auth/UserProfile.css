@@ -63,9 +63,15 @@
 }
 
 .avatar-emoji {
-  font-size: 0.85rem;
-  /* 确保emoji不会溢出容器 */
+  /* Emoji 字体回退，确保跨平台显示一致 */
+  font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", "EmojiOne Mozilla", sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem; /* 小头像使用适中字号，避免裁剪 */
   line-height: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .user-name {

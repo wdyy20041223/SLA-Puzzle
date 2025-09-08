@@ -70,8 +70,12 @@ export const Profile: React.FC<ProfilePageProps> = ({ onBackToMenu }) => {
 
   const renderAvatar = () => {
     const owned = user.ownedItems || [];
-    // 如果有设置头像ID，从映射中获取对应的emoji（并验证拥有权限）
-    if (user.avatar && user.avatar !== 'default_user' && avatarMap[user.avatar]) {
+    // 如果是默认头像（id 以 default_ 开头），直接渲染
+    if (user.avatar && /^default_/.test(user.avatar) && avatarMap[user.avatar]) {
+      return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
+    }
+    // 如果是商店购买头像，需校验 owned
+    if (user.avatar && avatarMap[user.avatar]) {
       if (!owned.includes(user.avatar)) {
         return <span className="avatar-emoji">{avatarMap['default_user']}</span>;
       }
