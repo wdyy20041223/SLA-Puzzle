@@ -6,6 +6,7 @@ import { GameCompletionModal } from './GameCompletionModal';
 import { SaveLoadModal } from './SaveLoadModal';
 import { LeaderboardModal } from '../leaderboard/LeaderboardModal';
 import { Button } from '../common/Button';
+import { OriginalImagePreview } from '../common/OriginalImagePreview';
 import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,6 +28,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   onBackToMenu,
 }) => {
   const [showAnswers, setShowAnswers] = useState(false);
+const [showOriginalImage, setShowOriginalImage] = useState(false);
   const [completionResult, setCompletionResult] = useState<GameCompletionResult | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isProcessingCompletion, setIsProcessingCompletion] = useState(false); // 防重复处理
@@ -325,6 +327,14 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             💡 提示
           </Button>
           <Button 
+            onClick={() => setShowOriginalImage(true)} 
+            variant="secondary" 
+            size="small"
+            className="original-image-button"
+          >
+            👀 查看原图
+          </Button>
+          <Button 
             onClick={() => setShowAnswers(!showAnswers)} 
             variant={showAnswers ? "primary" : "secondary"} 
             size="small"
@@ -362,7 +372,14 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           </Button>
         </div>
       </div>
-      {/* 游戏主体 */}
+
+  <OriginalImagePreview
+    imageUrl={puzzleConfig.originalImage}
+    isVisible={showOriginalImage}
+    onClose={() => setShowOriginalImage(false)}
+  />
+
+  {/* 游戏主体 */}
       <div className="game-content">
         {gameState && (
           <PuzzleWorkspace
