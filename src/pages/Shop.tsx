@@ -249,7 +249,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
       }
     } catch (error) {
       console.error('购买物品时发生错误:', error);
-      alert('购买失败，请稍后重试');
+      alert(`购买失败：${error instanceof Error ? error.message : '网络错误，请稍后重试'}`);
     }
   };
 
