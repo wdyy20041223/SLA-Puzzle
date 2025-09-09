@@ -3,6 +3,7 @@ import { PuzzleConfig } from './types';
 import { MainMenu } from './pages/MainMenu';
 import { PuzzleGame } from './components/game/PuzzleGame';
 import { LoadedPuzzleGame } from './components/game/LoadedPuzzleGame';
+import { TetrisPuzzleGame } from './pages/TetrisPuzzleGame';
 import { PuzzleEditor } from './components/editor/PuzzleEditor';
 import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
@@ -16,12 +17,13 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/auth/Auth';
 import './App.css';
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
   const [currentView, setCurrentView] = useState<AppView>('menu');
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleConfig | null>(null);
+  const [currentTetrisPuzzle, setCurrentTetrisPuzzle] = useState<PuzzleConfig | null>(null);
   const [loadGameSaveId, setLoadGameSaveId] = useState<string | null>(null);
   const [irregularGameParams, setIrregularGameParams] = useState<{
     imageData?: string;
@@ -61,9 +63,15 @@ const AppContent: React.FC = () => {
     setCurrentView('irregular-game');
   };
 
+  const handleStartTetrisGame = (puzzleConfig: PuzzleConfig) => {
+    setCurrentTetrisPuzzle(puzzleConfig);
+    setCurrentView('tetris-game');
+  };
+
   const handleBackToMenu = () => {
     setCurrentView('menu');
     setCurrentPuzzle(null);
+    setCurrentTetrisPuzzle(null);
     setLoadGameSaveId(null);
     setIrregularGameParams({});
   };
@@ -113,6 +121,7 @@ const AppContent: React.FC = () => {
             onStartGame={handleStartGame}
             onLoadGame={handleLoadGame}
             onStartIrregularGame={handleStartIrregularGame}
+            onStartTetrisGame={handleStartTetrisGame}
             onOpenEditor={handleOpenEditor}
             onOpenAchievements={handleOpenAchievements}
             onOpenDailyChallenge={handleOpenDailyChallenge}
@@ -123,7 +132,7 @@ const AppContent: React.FC = () => {
             onOpenSettings={handleOpenSettings}
           />
         );
-      
+
       case 'game':
         if (loadGameSaveId) {
           // 加载保存的游戏
@@ -152,12 +161,12 @@ const AppContent: React.FC = () => {
             </div>
           );
         }
-      
+
       case 'editor':
         return (
           <PuzzleEditor onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'irregular-game':
         return (
           <IrregularPuzzleGame
@@ -166,37 +175,56 @@ const AppContent: React.FC = () => {
             gridSize={irregularGameParams.gridSize}
           />
         );
-      
+
+      case 'tetris-game':
+        if (currentTetrisPuzzle) {
+          return (
+            <TetrisPuzzleGame
+              puzzleConfig={currentTetrisPuzzle}
+              onGameComplete={handleGameComplete}
+              onBackToMenu={handleBackToMenu}
+            />
+          );
+        } else {
+          return (
+            <div className="error-view">
+              <h2>错误</h2>
+              <p>俄罗斯方块拼图配置加载失败</p>
+              <Button onClick={handleBackToMenu}>返回菜单</Button>
+            </div>
+          );
+        }
+
       case 'achievements':
         return (
           <Achievements onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'dailyChallenge':
         return (
           <DailyChallenge onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'multiplayer':
         return (
           <Multiplayer onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'shop':
         return (
           <Shop onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'profile':
         return (
           <Profile onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'leaderboard':
         return (
           <Leaderboard onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'settings':
         return (
           <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -212,7 +240,7 @@ const AppContent: React.FC = () => {
             </div>
           </div>
         );
-      
+
       default:
         return (
           <div className="error-view">

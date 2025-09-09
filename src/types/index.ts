@@ -16,7 +16,7 @@ export interface PuzzlePiece {
 }
 
 // 拼图形状类型
-export type PieceShape = 'square' | 'triangle' | 'irregular';
+export type PieceShape = 'square' | 'triangle' | 'irregular' | 'tetris';
 
 // 拼图配置
 export interface PuzzleConfig {
