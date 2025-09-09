@@ -33,16 +33,16 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isProcessingCompletion, setIsProcessingCompletion] = useState(false); // 防重复处理
   const [hasProcessedCompletion, setHasProcessedCompletion] = useState(false); // 标记是否已处理
-  
+
   // 保存/加载相关状态
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<'save' | 'load'>('save');
-  
+
   // 排行榜相关状态
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  
+
   const { authState, handleGameCompletion } = useAuth();
-  
+
   const {
     gameState,
     isGameStarted,
@@ -52,6 +52,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
     initializeGame,
     placePieceToSlot,
     removePieceFromSlot,
+    getHint,
     rotatePiece,
     flipPiece,
     undo,
@@ -72,7 +73,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
     deleteSavedGame,
     canSaveGame,
     getGameProgress,
-  } = usePuzzleGame({ 
+  } = usePuzzleGame({
     userId: authState.user?.id,
     preloadedGameState
   });
@@ -144,7 +145,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
                 'hard': 1.3,
                 'expert': 1.6
               };
-              
+
               // 基础公式：拼图块数 * 难度系数 * 1.2
               return Math.round(baseSize * difficultyMultiplier[config.difficulty] * 1.2);
             };
@@ -291,8 +292,8 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           <div className="puzzle-info">
             <p>难度: {puzzleConfig.difficulty}</p>
             <p>拼图块: {puzzleConfig.gridSize.rows} × {puzzleConfig.gridSize.cols}</p>
-            <p>形状: {puzzleConfig.pieceShape === 'square' ? '方形' : 
-                     puzzleConfig.pieceShape === 'triangle' ? '三角形' : '异形'}</p>
+            <p>形状: {puzzleConfig.pieceShape === 'square' ? '方形' :
+              puzzleConfig.pieceShape === 'triangle' ? '三角形' : '异形'}</p>
           </div>
           <div className="start-actions">
             <Button onClick={startGame} variant="primary" size="large">
@@ -318,20 +319,18 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
             <span className="moves-counter">步数: {gameState?.moves || 0}</span>
           </div>
         </div>
-        
+
         <div className="game-controls">
           <GameHelpButton />
-          <Button 
-            onClick={() => {
-              // TODO: 实现提示功能
-              alert('提示功能正在开发中，敬请期待！\n\n未来版本将提供：\n• 高亮显示可能的正确位置\n• 自动放置一块拼图\n• 边缘拼图块优先提示');
-            }} 
-            variant="secondary" 
+          <Button
+            onClick={getHint}
+            variant="secondary"
             size="small"
             className="hint-button"
           >
             💡 提示
           </Button>
+
           <Button 
             onClick={() => setShowOriginalImage(true)} 
             variant="secondary" 
@@ -343,6 +342,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           <Button 
             onClick={() => setShowAnswers(!showAnswers)} 
             variant={showAnswers ? "primary" : "secondary"} 
+
             size="small"
             className="answer-toggle"
           >
@@ -351,19 +351,19 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
             ↩️ 撤销
           </Button>
-          <Button 
-            onClick={handleSaveGame} 
-            variant="secondary" 
+          <Button
+            onClick={handleSaveGame}
+            variant="secondary"
             size="small"
             className="save-button"
             disabled={!canSaveGame()}
           >
             💾 保存进度
           </Button>
-          {puzzleConfig.pieceShape === 'square' && (
-            <Button 
-              onClick={handleShowLeaderboard} 
-              variant="secondary" 
+          {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
+            <Button
+              onClick={handleShowLeaderboard}
+              variant="secondary"
               size="small"
               className="leaderboard-button"
             >
@@ -450,7 +450,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
         />
 
         {/* 排行榜模态框 */}
-        {puzzleConfig.pieceShape === 'square' && (
+        {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
           <LeaderboardModal
             isVisible={showLeaderboard}
             onClose={handleCloseLeaderboard}
