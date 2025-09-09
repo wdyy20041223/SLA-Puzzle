@@ -6,10 +6,13 @@ export interface PuzzlePiece {
   correctSlot: number; // 正确的槽位编号
   rotation: number; // 旋转角度 (0, 90, 180, 270)
   isFlipped: boolean; // 是否翻转
+  correctRotation: number; // 正确的旋转角度
+  correctIsFlipped?: boolean; // 正确的翻转状态（可选，因为某些拼图类型不支持翻转）
   imageData: string; // base64 或路径
   width: number;
   height: number;
   shape: PieceShape;
+  triangleType?: 'upper' | 'lower'; // 三角形类型，仅当shape为triangle时有效
 }
 
 // 拼图形状类型
@@ -51,6 +54,7 @@ export interface GameMove {
   fromSlot?: number | null; // 从哪个槽位移动（null表示从处理区）
   toSlot?: number | null; // 移动到哪个槽位（null表示移回处理区）
   replacedPieceId?: string; // 被替换的拼图块ID（仅用于replace操作）
+  delta?: number; // 旋转角度差值（仅用于rotate操作）
   timestamp: Date;
 }
 

@@ -511,3 +511,5 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
     </div>
   );
 };
+
+export default IrregularPuzzleGame;

@@ -6,6 +6,7 @@ import { GameCompletionModal } from './GameCompletionModal';
 import { SaveLoadModal } from './SaveLoadModal';
 import { LeaderboardModal } from '../leaderboard/LeaderboardModal';
 import { Button } from '../common/Button';
+import { OriginalImagePreview } from '../common/OriginalImagePreview';
 import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
 import { useAuth } from '../../contexts/AuthContext';
@@ -27,20 +28,21 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   onBackToMenu,
 }) => {
   const [showAnswers, setShowAnswers] = useState(false);
+const [showOriginalImage, setShowOriginalImage] = useState(false);
   const [completionResult, setCompletionResult] = useState<GameCompletionResult | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isProcessingCompletion, setIsProcessingCompletion] = useState(false); // 防重复处理
   const [hasProcessedCompletion, setHasProcessedCompletion] = useState(false); // 标记是否已处理
-  
+
   // 保存/加载相关状态
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
   const [saveLoadMode, setSaveLoadMode] = useState<'save' | 'load'>('save');
-  
+
   // 排行榜相关状态
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  
+
   const { authState, handleGameCompletion } = useAuth();
-  
+
   const {
     gameState,
     isGameStarted,
@@ -50,6 +52,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     initializeGame,
     placePieceToSlot,
     removePieceFromSlot,
+    getHint,
     rotatePiece,
     flipPiece,
     undo,
@@ -70,7 +73,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
     deleteSavedGame,
     canSaveGame,
     getGameProgress,
-  } = usePuzzleGame({ 
+  } = usePuzzleGame({
     userId: authState.user?.id,
     preloadedGameState
   });
@@ -142,7 +145,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
                 'hard': 1.3,
                 'expert': 1.6
               };
-              
+
               // 基础公式：拼图块数 * 难度系数 * 1.2
               return Math.round(baseSize * difficultyMultiplier[config.difficulty] * 1.2);
             };
@@ -161,6 +164,12 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
                 experience: authState.user.experience,
                 bestTimes: authState.user.bestTimes,
                 recentGameResults: (authState.user as any).recentGameResults || [], // 添加最近游戏结果
+                difficultyStats: (authState.user as any).difficultyStats || {
+                  easyCompleted: 0,
+                  mediumCompleted: 0,
+                  hardCompleted: 0,
+                  expertCompleted: 0,
+                }
               },
               authState.user.achievements || [],
               perfectMoves,
@@ -217,7 +226,13 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         case 'r':
         case 'R':
           if (selectedPiece) {
-            rotatePiece(selectedPiece, 0);
+            rotatePiece(selectedPiece, 90);
+          }
+          break;
+        case 'l':
+        case 'L':
+          if (selectedPiece) {
+            rotatePiece(selectedPiece, -90);
           }
           break;
         case 'f':
@@ -277,8 +292,8 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           <div className="puzzle-info">
             <p>难度: {puzzleConfig.difficulty}</p>
             <p>拼图块: {puzzleConfig.gridSize.rows} × {puzzleConfig.gridSize.cols}</p>
-            <p>形状: {puzzleConfig.pieceShape === 'square' ? '方形' : 
-                     puzzleConfig.pieceShape === 'triangle' ? '三角形' : '异形'}</p>
+            <p>形状: {puzzleConfig.pieceShape === 'square' ? '方形' :
+              puzzleConfig.pieceShape === 'triangle' ? '三角形' : '异形'}</p>
           </div>
           <div className="start-actions">
             <Button onClick={startGame} variant="primary" size="large">
@@ -304,23 +319,30 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             <span className="moves-counter">步数: {gameState?.moves || 0}</span>
           </div>
         </div>
-        
+
         <div className="game-controls">
           <GameHelpButton />
-          <Button 
-            onClick={() => {
-              // TODO: 实现提示功能
-              alert('提示功能正在开发中，敬请期待！\n\n未来版本将提供：\n• 高亮显示可能的正确位置\n• 自动放置一块拼图\n• 边缘拼图块优先提示');
-            }} 
-            variant="secondary" 
+          <Button
+            onClick={getHint}
+            variant="secondary"
             size="small"
             className="hint-button"
           >
             💡 提示
           </Button>
+
+          <Button 
+            onClick={() => setShowOriginalImage(true)} 
+            variant="secondary" 
+            size="small"
+            className="original-image-button"
+          >
+            👀 查看原图
+          </Button>
           <Button 
             onClick={() => setShowAnswers(!showAnswers)} 
             variant={showAnswers ? "primary" : "secondary"} 
+
             size="small"
             className="answer-toggle"
           >
@@ -329,19 +351,19 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
             ↩️ 撤销
           </Button>
-          <Button 
-            onClick={handleSaveGame} 
-            variant="secondary" 
+          <Button
+            onClick={handleSaveGame}
+            variant="secondary"
             size="small"
             className="save-button"
             disabled={!canSaveGame()}
           >
             💾 保存进度
           </Button>
-          {puzzleConfig.pieceShape === 'square' && (
-            <Button 
-              onClick={handleShowLeaderboard} 
-              variant="secondary" 
+          {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
+            <Button
+              onClick={handleShowLeaderboard}
+              variant="secondary"
               size="small"
               className="leaderboard-button"
             >
@@ -356,7 +378,14 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
           </Button>
         </div>
       </div>
-      {/* 游戏主体 */}
+
+  <OriginalImagePreview
+    imageUrl={puzzleConfig.originalImage}
+    isVisible={showOriginalImage}
+    onClose={() => setShowOriginalImage(false)}
+  />
+
+  {/* 游戏主体 */}
       <div className="game-content">
         {gameState && (
           <PuzzleWorkspace
@@ -366,7 +395,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             onPieceSelect={setSelectedPiece}
             onPlacePiece={placePieceToSlot}
             onRemovePiece={removePieceFromSlot}
-            onRotatePiece={(pieceId) => rotatePiece(pieceId, 0)}
+            onRotatePiece={(pieceId) => rotatePiece(pieceId, 90)}
             onFlipPiece={flipPiece}
             draggedPiece={draggedPiece}
             dragOverSlot={dragOverSlot}
@@ -421,7 +450,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         />
 
         {/* 排行榜模态框 */}
-        {puzzleConfig.pieceShape === 'square' && (
+        {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
           <LeaderboardModal
             isVisible={showLeaderboard}
             onClose={handleCloseLeaderboard}
@@ -435,7 +464,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
       {/* 操作提示 */}
       <div className="game-tips">
-        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | Ctrl+S 保存进度 | A键切换答案显示 | H键查看提示 | ESC 取消选择</p>
+        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键顺时针旋转, L键逆时针旋转 | F键翻转 | Ctrl+Z 撤销 | Ctrl+S 保存进度 | A键切换答案显示 | H键查看提示 | ESC 取消选择</p>
       </div>
     </div>
   );

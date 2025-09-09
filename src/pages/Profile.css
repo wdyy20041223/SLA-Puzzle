@@ -84,25 +84,14 @@
 }
 
 .avatar-emoji {
-  font-size: 2.5rem;
-  line-height: 1;
-}
-
-.avatar-frame-indicator {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: 1.1rem;
-  background: white;
-  border-radius: 50%;
-  width: 26px;
-  height: 26px;
-  display: flex;
+  font-family: "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Symbol", "EmojiOne Mozilla", sans-serif;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  z-index: 2;
-  pointer-events: none;
+  font-size: 2.4rem; /* 微调以防止部分 emoji 被裁剪 */
+  line-height: 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .change-avatar-btn {
@@ -455,11 +444,107 @@
   }
 }
 
+/* 拥有物品区域样式 */
+.owned-items-section {
+  grid-column: span 2;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+}
+
+.owned-items-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.owned-items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.owned-item-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.owned-item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.owned-item-icon {
+  font-size: 2rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.owned-item-info {
+  flex: 1;
+}
+
+.owned-item-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.owned-item-category {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.item-in-use {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #4CAF50;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.no-owned-items {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.no-owned-items .empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.no-owned-items p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .profile-content {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+  
+  .owned-items-section {
+    grid-column: span 1;
+  }
+  
+  .owned-items-grid {
+    grid-template-columns: 1fr;
   }
   
   .profile-card {

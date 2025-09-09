@@ -22,6 +22,9 @@ export interface IrregularPuzzlePiece extends Omit<PuzzlePiece, 'shape' | 'curre
   // 是否在正确位置
   isCorrect: boolean;
   
+  // 正确的旋转角度
+  correctRotation: number;
+  
   // 基础位置和尺寸（不考虑扩展）
   basePosition: Position;
   baseSize: Size;

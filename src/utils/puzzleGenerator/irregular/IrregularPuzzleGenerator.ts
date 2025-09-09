@@ -20,6 +20,7 @@ import { applySvgMaskToImage } from './svgMaskUtil';
  */
 export class IrregularPuzzleGenerator {
 
+
   /**
    * 生成完整的异形拼图
    * @param params 生成参数
@@ -207,6 +208,7 @@ export class IrregularPuzzleGenerator {
     return puzzleConfig;
   }
 
+
   /**
    * 生成简化版异形拼图（用于测试）
    * @param imageData 图像数据
@@ -376,7 +378,9 @@ export class IrregularPuzzleGenerator {
       const randomPos = this.getRandomStartPosition();
       piece.x = randomPos.x;
       piece.y = randomPos.y;
-      piece.rotation = 0;
+      // 随机旋转：0°, 90°, 180°, 270°
+      const rotations = [0, 90, 180, 270];
+      piece.rotation = rotations[Math.floor(Math.random() * rotations.length)];
       piece.isCorrect = false;
       piece.isDraggable = true; // 确保所有块都可拖拽
     });

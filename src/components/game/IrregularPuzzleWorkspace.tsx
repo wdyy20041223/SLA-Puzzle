@@ -451,12 +451,22 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     const incorrectPieces = pieces.filter(piece => !piece.isCorrect && piece.isDraggable);
     if (incorrectPieces.length === 0) return;
 
+
     const randomPiece = incorrectPieces[Math.floor(Math.random() * incorrectPieces.length)];
 
     setPieces(prevPieces =>
       prevPieces.map(piece =>
         piece.id === randomPiece.id
+
+    setPieces(prevPieces =>
+      prevPieces.map(piece =>
+        piece.id === randomPiece.id
           ? {
+            ...piece,
+            x: piece.basePosition.x,
+            y: piece.basePosition.y,
+            isCorrect: true
+          }
             ...piece,
             x: piece.basePosition.x,
             y: piece.basePosition.y,
@@ -546,6 +556,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
                   }}
                   draggable={false}
                 />
+
 
                 {/* 选中指示器 */}
                 {selectedPieceId === piece.id && (
@@ -677,6 +688,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
         </div>
 
         {/* 拼接板标题 */}
+        <div
         <div
           style={{
             position: 'absolute',
