@@ -60,8 +60,8 @@ class ApiService {
 
   constructor() {
     // 从环境变量或配置文件获取API基础URL
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
-    
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://10.194.112.121:3001/api';
+
     // 从localStorage获取保存的token
     this.token = localStorage.getItem('puzzle_auth_token');
   }
@@ -93,7 +93,7 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -339,7 +339,7 @@ export const cloudStorage = {
         };
       }
     }
-    
+
     // 回退到本地存储
     try {
       const users = localStorage.getItem('puzzle_users');
@@ -368,12 +368,12 @@ export const cloudStorage = {
         totalScore: user.totalScore,
         gamesCompleted: user.gamesCompleted,
       });
-      
+
       if (response.success) {
         return { success: true, data: users };
       }
     }
-    
+
     // 回退到本地存储
     try {
       localStorage.setItem('puzzle_users', JSON.stringify(users));
@@ -404,11 +404,11 @@ export const cloudStorage = {
       password: 'temp_password',
       confirmPassword: 'temp_password',
     });
-    
+
     if (!response.success && response.code === 'USER_ALREADY_EXISTS') {
       return { success: true, data: true };
     }
-    
+
     return { success: true, data: false };
   },
 };

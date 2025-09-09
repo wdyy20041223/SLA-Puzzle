@@ -103,7 +103,7 @@ export class IrregularPuzzleGenerator {
         position: sliceResult.basePositions[i],
         tolerance: 20
       }];
-      
+
       // 随机旋转：0°, 90°, 180°, 270°
       const rotations = [0, 90, 180, 270];
       const randomRotation = i === fixedPieceIndex ? 0 : rotations[Math.floor(Math.random() * rotations.length)];
@@ -277,7 +277,7 @@ export class IrregularPuzzleGenerator {
     correctPieces: number;
     totalPieces: number;
     completionRate: number;
-  } { 
+  } {
     let correctPieces = 0;
     const totalPieces = pieces.length;
 
@@ -288,13 +288,13 @@ export class IrregularPuzzleGenerator {
 
       const deltaX = Math.abs(piece.x - targetX);
       const deltaY = Math.abs(piece.y - targetY);
-      
+
       // 检查位置和旋转是否都正确
       const isPositionCorrect = deltaX <= tolerance && deltaY <= tolerance;
       const isRotationCorrect = piece.rotation === piece.correctRotation; // 正确的旋转角度应与correctRotation匹配
-      
+
       const isCorrect = isPositionCorrect && isRotationCorrect;
-      
+
       if (isCorrect) {
         correctPieces++;
         piece.isCorrect = true;
@@ -327,7 +327,7 @@ export class IrregularPuzzleGenerator {
         piece.rotation = 0;
         return;
       }
-      
+
       // 其他块随机分布，并随机旋转
       const randomPos = this.getRandomStartPosition();
       piece.x = randomPos.x;

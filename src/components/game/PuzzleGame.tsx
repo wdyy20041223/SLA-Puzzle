@@ -431,7 +431,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         />
 
         {/* 排行榜模态框 */}
-        {puzzleConfig.pieceShape === 'square' && (
+        {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
           <LeaderboardModal
             isVisible={showLeaderboard}
             onClose={handleCloseLeaderboard}

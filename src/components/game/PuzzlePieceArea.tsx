@@ -28,9 +28,9 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
   onDragEnd,
   onDropToProcessingArea,
 }) => {
-const handlePieceClick = (pieceId: string) => {
-  onPieceSelect(selectedPieceId === pieceId ? null : pieceId);
-};
+  const handlePieceClick = (pieceId: string) => {
+    onPieceSelect(selectedPieceId === pieceId ? null : pieceId);
+  };
 
   const handlePieceDoubleClick = (pieceId: string) => {
     // 双击旋转（预留功能）
@@ -118,7 +118,7 @@ const handlePieceClick = (pieceId: string) => {
                 <div className="selected-label">已选择</div>
               )}
             </div>
-            ))}
+          ))}
         </div>
       )}
 
