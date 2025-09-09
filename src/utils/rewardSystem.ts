@@ -258,9 +258,13 @@ export function checkAchievements(
   const newAchievements: Achievement[] = [];
   const now = new Date();
 
+  // ✅ 在成就检查时使用即将完成的游戏数（当前值+1）
+  const completedGamesAfterThis = userStats.gamesCompleted + 1;
+
   // 调试输出
   console.log('🔍 成就检查开始:', {
-    userStats,
+    当前游戏完成数: userStats.gamesCompleted,
+    完成本局后游戏数: completedGamesAfterThis,
     gameResult,
     currentTime: now.toLocaleString(),
     hour: now.getHours(),
@@ -268,8 +272,9 @@ export function checkAchievements(
     unlockedAchievements
   });
 
-  // 检查进度成就（可以与其他成就同时触发）
-  if (userStats.gamesCompleted === 1 && !unlockedAchievements.includes('first_game')) {
+  // 检查进度成就（基于完成本局后的游戏数）
+  if (completedGamesAfterThis === 1 && !unlockedAchievements.includes('first_game')) {
+    console.log('🎉 触发首次游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.first_game,
       unlocked: true,
@@ -277,7 +282,8 @@ export function checkAchievements(
     });
   }
 
-  if (userStats.gamesCompleted === 10 && !unlockedAchievements.includes('games_10')) {
+  if (completedGamesAfterThis === 10 && !unlockedAchievements.includes('games_10')) {
+    console.log('🎉 触发10局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_10,
       unlocked: true,
@@ -285,7 +291,8 @@ export function checkAchievements(
     });
   }
 
-  if (userStats.gamesCompleted === 50 && !unlockedAchievements.includes('games_50')) {
+  if (completedGamesAfterThis === 50 && !unlockedAchievements.includes('games_50')) {
+    console.log('🎉 触发50局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_50,
       unlocked: true,
@@ -293,7 +300,8 @@ export function checkAchievements(
     });
   }
 
-  if (userStats.gamesCompleted === 100 && !unlockedAchievements.includes('games_100')) {
+  if (completedGamesAfterThis === 100 && !unlockedAchievements.includes('games_100')) {
+    console.log('🎉 触发100局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_100,
       unlocked: true,
