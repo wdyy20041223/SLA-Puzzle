@@ -69,11 +69,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             
             // 整合组员的头像显示修复：清理可能不属于当前用户的头像/头像框（防止不同账号互相污染）
             const owned = user.ownedItems || [];
-            if (user.avatar && !/^default_/.test(user.avatar) && !(typeof user.avatar === 'string' && user.avatar.length <= 2) && !(user.avatar as string).startsWith?.('http') && !owned.includes(user.avatar)) {
-              user.avatar = 'default_user';
+            
+            // 检查物品拥有权的函数（与updateUserProfile保持一致）
+            const checkItemOwnership = (itemId: string, itemType: 'avatar' | 'frame') => {
+              // 检查原始ID
+              if (owned.includes(itemId)) return true;
+              
+              // 检查带前缀的ID
+              if (itemType === 'avatar') {
+                return owned.includes(`avatar_${itemId}`);
+              } else if (itemType === 'frame') {
+                return owned.includes(`avatar_frame_${itemId}`) || 
+                       owned.includes(`decoration_${itemId}`);
+              }
+              
+              return false;
+            };
+            
+            // 验证头像
+            if (user.avatar) {
+              const av = user.avatar as string;
+              const isDefault = /^default_/.test(av) || (typeof av === 'string' && av.length <= 2) || av.startsWith('http');
+              // 如果头像不是默认资源、不是emoji，也不是URL，则必须在 ownedItems 中
+              if (!isDefault && !checkItemOwnership(av, 'avatar')) {
+                user.avatar = 'default_user';
+              }
             }
-            if (user.avatarFrame && !owned.includes(user.avatarFrame)) {
-              user.avatarFrame = undefined;
+            
+            // 验证头像框
+            if (user.avatarFrame) {
+              const frame = user.avatarFrame as string;
+              if (!checkItemOwnership(frame, 'frame')) {
+                user.avatarFrame = undefined;
+              }
             }
             
             setAuthState({
@@ -104,15 +132,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (response.success && response.data) {
         let user = convertApiUserToUser(response.data.user);
-        
-        // 整合组员的头像显示修复：清理头像/头像框，确保只有当前账号拥有的物品才能生效
-        const owned = user.ownedItems || [];
-        if (user.avatar && !/^default_/.test(user.avatar) && !(typeof user.avatar === 'string' && user.avatar.length <= 2) && !(user.avatar as string).startsWith?.('http') && !owned.includes(user.avatar)) {
-          user.avatar = 'default_user';
-        }
-        if (user.avatarFrame && !owned.includes(user.avatarFrame)) {
-          user.avatarFrame = undefined;
-        }
+          
+          // 整合组员的头像显示修复：清理头像/头像框，确保只有当前账号拥有的物品才能生效
+          const owned = user.ownedItems || [];
+          
+          // 检查物品拥有权的函数（与updateUserProfile保持一致）
+          const checkItemOwnership = (itemId: string, itemType: 'avatar' | 'frame') => {
+            // 检查原始ID
+            if (owned.includes(itemId)) return true;
+            
+            // 检查带前缀的ID
+            if (itemType === 'avatar') {
+              return owned.includes(`avatar_${itemId}`);
+            } else if (itemType === 'frame') {
+              return owned.includes(`avatar_frame_${itemId}`) || 
+                     owned.includes(`decoration_${itemId}`);
+            }
+            
+            return false;
+          };
+          
+          // 验证头像
+          if (user.avatar) {
+            const av = user.avatar as string;
+            const isDefault = /^default_/.test(av) || (typeof av === 'string' && av.length <= 2) || av.startsWith('http');
+            // 如果头像不是默认资源、不是emoji，也不是URL，则必须在 ownedItems 中
+            if (!isDefault && !checkItemOwnership(av, 'avatar')) {
+              user.avatar = 'default_user';
+            }
+          }
+          
+          // 验证头像框
+          if (user.avatarFrame) {
+            const frame = user.avatarFrame as string;
+            if (!checkItemOwnership(frame, 'frame')) {
+              user.avatarFrame = undefined;
+            }
+          }
         
         setAuthState({
           isAuthenticated: true,
