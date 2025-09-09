@@ -250,20 +250,6 @@ export class IrregularPuzzleGenerator {
   }
 
   /**
-   * 计算网格对齐的位置（支持原点偏移）
-   * @param position 原始位置（相对于拼接板容器）
-   * @param gridSize 网格大小
-   * @param offset 原点偏移，例如 50
-   */
-  private static calculateGridAlignedPositionWithOffset(
-    position: number,
-    gridSize: number,
-    offset: number
-  ): number {
-    return Math.round((position - offset) / gridSize) * gridSize + offset;
-  }
-
-  /**
    * 计算拼图难度
    * @param gridSize 网格尺寸
    * @returns 难度等级
