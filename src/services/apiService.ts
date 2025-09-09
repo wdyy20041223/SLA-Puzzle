@@ -61,7 +61,7 @@ class ApiService {
   constructor() {
     // 从环境变量或配置文件获取API基础URL
     //this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://10.194.112.121/api';
+    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://10.194.112.121:3001/api';
     // 从localStorage获取保存的token
     this.token = localStorage.getItem('puzzle_auth_token');
   }
