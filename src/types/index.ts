@@ -118,6 +118,29 @@ export interface PuzzleLeaderboardEntry {
   lastCompletedAt: Date; // 最后完成时间
 }
 
+// 拼图前三名记录
+export interface PuzzleTopRecord {
+  playerName: string;
+  time: number;
+  moves: number;
+  difficulty: DifficultyLevel;
+  completedAt: Date;
+}
+
+// 拼图排行榜条目（包含前三名）
+export interface PuzzleLeaderboardWithTop3 {
+  id: string;
+  puzzleId: string;
+  puzzleName: string;
+  pieceShape: PieceShape;
+  topPlayers: PuzzleTopRecord[]; // 前3名玩家
+  totalCompletions: number;
+  averageTime: number;
+  averageMoves: number;
+  difficulties: DifficultyLevel[];
+  lastCompletedAt: Date;
+}
+
 // 编辑器状态
 export interface EditorState {
   currentAsset?: Asset;

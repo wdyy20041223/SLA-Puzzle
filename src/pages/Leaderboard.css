@@ -871,3 +871,203 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* 新增：前3名拼图排行榜样式 */
+.puzzle-card-with-top3 {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.puzzle-card-with-top3:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.top-players-section {
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.top-players-section h5 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.top-players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.top-player-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.top-player-card.rank-1 {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border-color: #d4af37;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.top-player-card.rank-2 {
+  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+  border-color: #a0a0a0;
+  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+}
+
+.top-player-card.rank-3 {
+  background: linear-gradient(135deg, #cd7f32 0%, #deb887 100%);
+  border-color: #b8860b;
+  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
+}
+
+.top-player-card.empty-slot {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  opacity: 0.6;
+}
+
+.player-rank {
+  font-size: 1.5em;
+  margin-right: 15px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-info.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-stats {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.player-stats span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.completion-date {
+  font-size: 0.8em;
+  color: #888;
+}
+
+.you-badge {
+  background: #007bff;
+  color: white;
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: normal;
+}
+
+/* 新增：同一玩家多成绩相关样式 */
+.record-number {
+  background: #6c757d;
+  color: white;
+  font-size: 0.7em;
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-left: 6px;
+  font-weight: normal;
+}
+
+.top-player-card.current-user {
+  border: 2px solid #007bff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+}
+
+.top-player-card.current-user .record-number {
+  background: #28a745;
+}
+
+/* 同一玩家多个成绩的视觉区分 */
+.top-player-card:has(.record-number) {
+  position: relative;
+}
+
+.top-player-card:has(.record-number)::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  border-radius: 2px 0 0 2px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .puzzle-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .player-stats {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .top-player-card {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .player-rank {
+    margin-right: 0;
+    margin-bottom: 8px;
+    align-self: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-players-list {
+    gap: 8px;
+  }
+  
+  .top-player-card {
+    padding: 10px;
+  }
+  
+  .player-rank {
+    font-size: 1.2em;
+  }
+  
+  .puzzle-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+}

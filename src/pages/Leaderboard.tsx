@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DailyChallengeLeaderboardEntry, PuzzleLeaderboardEntry, LeaderboardEntry, DifficultyLevel, PieceShape } from '../types';
+import { DailyChallengeLeaderboardEntry, LeaderboardEntry, DifficultyLevel, PieceShape } from '../types';
 import { LeaderboardService } from '../services/leaderboardService';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,7 +20,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
   
   // 数据状态
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-  const [puzzleLeaderboardData, setPuzzleLeaderboardData] = useState<PuzzleLeaderboardEntry[]>([]);
+  const [puzzleLeaderboardData, setPuzzleLeaderboardData] = useState<any[]>([]);
   const [dailyChallengeData, setDailyChallengeData] = useState<DailyChallengeLeaderboardEntry[]>([]);
   const [playerDailyStats, setPlayerDailyStats] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
@@ -88,8 +88,8 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
           break;
         
         case 'puzzle':
-          // 加载单拼图排行榜（合并同一拼图的所有关卡）
-          const puzzleData = LeaderboardService.getPuzzleConsolidatedLeaderboard(50);
+          // 加载单拼图排行榜（包含前3名）
+          const puzzleData = LeaderboardService.getPuzzleLeaderboardWithTop3(50);
           setPuzzleLeaderboardData(puzzleData);
           break;
         
@@ -245,7 +245,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
         {viewMode === 'puzzle' && (
           <div className="puzzle-leaderboard-section">
             <h2>🧩 单拼图排行榜</h2>
-            <p className="section-description">同一张拼图的所有成绩合并显示，展示每个拼图的最佳记录持有者</p>
+            <p className="section-description">每个拼图显示前3快的成绩，同一玩家可占据多个席位</p>
             
             {puzzleLeaderboardData.length === 0 ? (
               <div className="empty-state">
@@ -254,50 +254,89 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
               </div>
             ) : (
               <div className="puzzle-cards-grid">
-                {puzzleLeaderboardData.map((entry, index) => (
-                  <div key={entry.id} className="puzzle-card">
+                {puzzleLeaderboardData.map((entry) => (
+                  <div key={entry.id} className="puzzle-card-with-top3">
                     <div className="puzzle-card-header">
-                      <div className="puzzle-rank">{getRankDisplay(index)}</div>
                       <div className="puzzle-info">
                         <h4 className="puzzle-name">{entry.puzzleName}</h4>
                         <span className="puzzle-shape">{getShapeDisplay(entry.pieceShape)}</span>
                       </div>
                     </div>
                     
-                    <div className="puzzle-stats">
-                      <div className="best-record">
-                        <h5>🏆 最佳记录</h5>
-                        <div className="record-holder">
-                          <span className="player-name">{entry.playerName}</span>
-                          {entry.playerName === authState.user?.username && (
-                            <span className="you-badge">你</span>
-                          )}
-                        </div>
-                        <div className="record-details">
-                          <span className="time">⏱️ {formatTime(entry.bestTime)}</span>
-                          <span className="moves">🎯 {entry.bestMoves}步</span>
-                        </div>
+                    <div className="top-players-section">
+                      <h5>🏆 前三名</h5>
+                      <div className="top-players-list">
+                        {entry.topPlayers.map((player: any, playerIndex: number) => {
+                          // 计算同一玩家在前三名中的序号
+                          const samePlayerRecords = entry.topPlayers.filter((p: any) => p.playerName === player.playerName);
+                          const recordNumber = samePlayerRecords.length > 1 ? 
+                            samePlayerRecords.findIndex((p: any) => 
+                              p.time === player.time && p.moves === player.moves && 
+                              p.completedAt === player.completedAt) + 1 : 0;
+                          
+                          return (
+                            <div key={`${player.playerName}-${playerIndex}-${player.time}-${player.moves}`} 
+                                 className={`top-player-card rank-${playerIndex + 1} ${player.playerName === authState.user?.username ? 'current-user' : ''}`}>
+                              <div className="player-rank">
+                                {getRankDisplay(playerIndex)}
+                              </div>
+                              <div className="player-info">
+                                <div className="player-name">
+                                  {player.playerName}
+                                  {recordNumber > 0 && (
+                                    <span className="record-number">#{recordNumber}</span>
+                                  )}
+                                  {player.playerName === authState.user?.username && (
+                                    <span className="you-badge">你</span>
+                                  )}
+                                </div>
+                                <div className="player-stats">
+                                  <span className="time">⏱️ {formatTime(player.time)}</span>
+                                  <span className="moves">🎯 {player.moves}步</span>
+                                  <span className="difficulty">
+                                    {getDifficultyDisplay(player.difficulty)}
+                                  </span>
+                                </div>
+                                <div className="completion-date">
+                                  {new Date(player.completedAt).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        
+                        {/* 填充空位（如果不足3名） */}
+                        {Array.from({ length: 3 - entry.topPlayers.length }, (_, emptyIndex) => (
+                          <div key={`empty-${emptyIndex}`} className="top-player-card empty-slot">
+                            <div className="player-rank">
+                              {getRankDisplay(entry.topPlayers.length + emptyIndex)}
+                            </div>
+                            <div className="player-info empty">
+                              <div className="empty-text">暂无记录</div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      
-                      <div className="puzzle-meta">
-                        <div className="meta-item">
-                          <span className="label">总完成次数</span>
-                          <span className="value">{entry.totalCompletions}</span>
-                        </div>
-                        <div className="meta-item">
-                          <span className="label">平均用时</span>
-                          <span className="value">{formatTime(entry.averageTime)}</span>
-                        </div>
-                        <div className="meta-item">
-                          <span className="label">平均步数</span>
-                          <span className="value">{entry.averageMoves}</span>
-                        </div>
-                        <div className="meta-item">
-                          <span className="label">完成难度</span>
-                          <span className="value">
-                            {entry.difficulties.map(d => getDifficultyDisplay(d)).join(', ')}
-                          </span>
-                        </div>
+                    </div>
+                    
+                    <div className="puzzle-meta">
+                      <div className="meta-item">
+                        <span className="label">总完成次数</span>
+                        <span className="value">{entry.totalCompletions}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="label">平均用时</span>
+                        <span className="value">{formatTime(entry.averageTime)}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="label">平均步数</span>
+                        <span className="value">{entry.averageMoves}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span className="label">完成难度</span>
+                        <span className="value">
+                          {entry.difficulties.map((d: any) => getDifficultyDisplay(d)).join(', ')}
+                        </span>
                       </div>
                     </div>
                   </div>
