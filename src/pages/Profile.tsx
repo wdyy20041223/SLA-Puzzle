@@ -71,27 +71,53 @@ export const Profile: React.FC<ProfilePageProps> = ({ onBackToMenu }) => {
 
   const renderAvatar = () => {
     const owned = user.ownedItems || [];
+    
+    // 检查物品拥有权的函数（与AvatarSelector保持一致）
+    const checkItemOwnership = (itemId: string) => {
+      // 检查原始ID
+      if (owned.includes(itemId)) return true;
+      // 检查带avatar_前缀的ID
+      if (owned.includes(`avatar_${itemId}`)) return true;
+      return false;
+    };
+    
     // 如果是默认头像（id 以 default_ 开头），直接渲染
     if (user.avatar && /^default_/.test(user.avatar) && avatarMap[user.avatar]) {
       return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
     }
+    
     // 如果是商店购买头像，需校验 owned
     if (user.avatar && avatarMap[user.avatar]) {
-      if (!owned.includes(user.avatar)) {
+      if (!checkItemOwnership(user.avatar)) {
         return <span className="avatar-emoji">{avatarMap['default_user']}</span>;
       }
       return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
     }
+    
     // 如果是直接的emoji字符串（兼容旧数据）
     if (user.avatar && user.avatar.length <= 2) {
       return <span className="avatar-emoji">{user.avatar}</span>;
     }
+    
     // 如果是图片URL
     if (user.avatar && user.avatar.startsWith('http')) {
       return <img src={user.avatar} alt={user.username} />;
     }
+    
     // 默认显示用户名首字母
     return <span>{user.username.charAt(0).toUpperCase()}</span>;
+  };
+
+  // 检查头像框拥有权的函数
+  const checkFrameOwnership = (frameId: string) => {
+    const owned = user.ownedItems || [];
+    // 检查原始ID
+    if (owned.includes(frameId)) return true;
+    // 检查带avatar_frame_前缀的ID
+    if (owned.includes(`avatar_frame_${frameId}`)) return true;
+    // 检查带decoration_前缀的ID
+    if (owned.includes(`decoration_${frameId}`)) return true;
+    return false;
   };
 
   return (
@@ -110,7 +136,7 @@ export const Profile: React.FC<ProfilePageProps> = ({ onBackToMenu }) => {
           {/* 头像区域 */}
           <div className="avatar-section">
             <div 
-              className={`profile-avatar ${user.avatarFrame && (user.ownedItems || []).includes(user.avatarFrame) ? 'with-frame' : ''}`}
+              className={`profile-avatar ${user.avatarFrame && checkFrameOwnership(user.avatarFrame) ? 'with-frame' : ''}`}
               onClick={() => setShowAvatarSelector(true)}
             >
               {renderAvatar()}

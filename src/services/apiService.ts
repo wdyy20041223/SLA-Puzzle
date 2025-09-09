@@ -60,6 +60,8 @@ class ApiService {
 
   constructor() {
     // 从环境变量或配置文件获取API基础URL
+
+    //this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
     this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://10.194.112.121:3001/api';
 
     // 从localStorage获取保存的token
@@ -326,89 +328,7 @@ class ApiService {
 // 创建单例实例
 export const apiService = new ApiService();
 
-// 兼容性：为了平滑迁移，保留原有的cloudStorage接口
-export const cloudStorage = {
-  async getUsers(): Promise<ApiResponse<any[]>> {
-    // 如果已登录，尝试从服务器获取用户信息
-    if (apiService.isAuthenticated()) {
-      const response = await apiService.getUserProfile();
-      if (response.success && response.data) {
-        return {
-          success: true,
-          data: [response.data.user],
-        };
-      }
-    }
 
-    // 回退到本地存储
-    try {
-      const users = localStorage.getItem('puzzle_users');
-      return {
-        success: true,
-        data: users ? JSON.parse(users) : [],
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Failed to get users',
-      };
-    }
-  },
+// 移除原有的cloudStorage接口，确保所有数据交互都通过API完成
+// 不再使用localStorage作为回退方案，所有数据操作都必须通过数据库完成
 
-  async saveUsers(users: any[]): Promise<ApiResponse<any[]>> {
-    // 如果已登录，更新服务器上的用户信息
-    if (apiService.isAuthenticated() && users.length > 0) {
-      const user = users[0];
-      const response = await apiService.updateUserProfile({
-        avatar: user.avatar,
-        avatarFrame: user.avatarFrame,
-        coins: user.coins,
-        experience: user.experience,
-        level: user.level,
-        totalScore: user.totalScore,
-        gamesCompleted: user.gamesCompleted,
-      });
-
-      if (response.success) {
-        return { success: true, data: users };
-      }
-    }
-
-    // 回退到本地存储
-    try {
-      localStorage.setItem('puzzle_users', JSON.stringify(users));
-      return { success: true, data: users };
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Failed to save users',
-      };
-    }
-  },
-
-  async validateUser(username: string, password: string): Promise<ApiResponse<any>> {
-    const response = await apiService.login({ username, password });
-    if (response.success && response.data) {
-      return {
-        success: true,
-        data: response.data.user,
-      };
-    }
-    return response;
-  },
-
-  async checkUsernameExists(username: string): Promise<ApiResponse<boolean>> {
-    // 尝试注册来检查用户名是否存在
-    const response = await apiService.register({
-      username,
-      password: 'temp_password',
-      confirmPassword: 'temp_password',
-    });
-
-    if (!response.success && response.code === 'USER_ALREADY_EXISTS') {
-      return { success: true, data: true };
-    }
-
-    return { success: true, data: false };
-  },
-};
