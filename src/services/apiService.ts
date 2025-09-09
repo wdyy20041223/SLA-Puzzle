@@ -60,8 +60,10 @@ class ApiService {
 
   constructor() {
     // 从环境变量或配置文件获取API基础URL
+
     //this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
     this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://10.194.112.121:3001/api';
+
     // 从localStorage获取保存的token
     this.token = localStorage.getItem('puzzle_auth_token');
   }
@@ -93,7 +95,7 @@ class ApiService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -326,5 +328,7 @@ class ApiService {
 // 创建单例实例
 export const apiService = new ApiService();
 
+
 // 移除原有的cloudStorage接口，确保所有数据交互都通过API完成
 // 不再使用localStorage作为回退方案，所有数据操作都必须通过数据库完成
+
