@@ -234,7 +234,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
       if (!prev) return null;
 
       const updatedPieces = prev.config.pieces.map(piece =>
-        piece.id === pieceId ? { ...piece, rotation: (piece.rotation + delta + 360) % 360 } : piece
+        piece.id === pieceId ? { ...piece, rotation: piece.rotation + delta } : piece
       );
 
       const move: GameMove = {
@@ -294,7 +294,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
       // 基础位置检查
       const isCorrectPosition = piece.correctSlot === slotIndex;
       // 旋转和翻转检查
-      const isCorrectOrientation = piece.rotation === piece.correctRotation && piece.isFlipped === piece.correctIsFlipped;
+      const isCorrectOrientation = (piece.rotation % 360 + 360) % 360 === piece.correctRotation && piece.isFlipped === piece.correctIsFlipped;
       return isCorrectPosition && isCorrectOrientation;
     });
   }, []);
@@ -344,6 +344,14 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
             }
           }
           break;
+        case 'rotate':
+          // 撤销旋转：应用相反的delta值
+          updatedPieces = updatedPieces.map(piece =>
+            piece.id === lastMove.pieceId
+              ? { ...piece, rotation: piece.rotation - lastMove.delta }
+              : piece
+          );
+          break;
         case 'replace':
           // 撤销替换：将新拼图块移回原位置，恢复被替换的拼图块
           if (lastMove.toSlot !== null && lastMove.toSlot !== undefined) {
@@ -377,14 +385,6 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
               }
             }
           }
-          break;
-        case 'rotate':
-          // 撤销旋转（预留功能）
-          updatedPieces = updatedPieces.map(piece =>
-            piece.id === lastMove.pieceId 
-              ? { ...piece, rotation: (piece.rotation - 90 + 360) % 360 }
-              : piece
-          );
           break;
         case 'flip':
           // 撤销翻转（预留功能）
