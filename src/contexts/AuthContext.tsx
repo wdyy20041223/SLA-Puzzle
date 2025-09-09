@@ -267,19 +267,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const currentUser = authState.user;
       
+      // 检查物品拥有权的函数（与AvatarSelector保持一致）
+      const checkItemOwnership = (itemId: string, itemType: 'avatar' | 'frame') => {
+        const owned = currentUser.ownedItems || [];
+        // 检查原始ID
+        if (owned.includes(itemId)) return true;
+        
+        // 检查带前缀的ID
+        if (itemType === 'avatar') {
+          return owned.includes(`avatar_${itemId}`);
+        } else if (itemType === 'frame') {
+          return owned.includes(`avatar_frame_${itemId}`) || 
+                 owned.includes(`decoration_${itemId}`);
+        }
+        
+        return false;
+      };
+      
       // 整合组员的头像显示修复：验证 avatar 和 avatarFrame 是否由用户拥有或为默认项
-      const owned = currentUser.ownedItems || [];
       const sanitizedUpdates: Partial<User> = { ...updates };
       if (updates.avatar) {
         const av = updates.avatar as string;
         const isDefault = /^default_/.test(av) || (typeof av === 'string' && av.length <= 2) || av.startsWith('http');
         // 如果头像不是默认资源、不是emoji，也不是URL，则必须在 ownedItems 中
-        if (!isDefault && !owned.includes(av)) {
+        if (!isDefault && !checkItemOwnership(av, 'avatar')) {
+          console.error(`头像验证失败: ${av} 不在拥有物品中`);
           // 不允许非法设置
           delete sanitizedUpdates.avatar;
         }
       }
-      if (updates.avatarFrame && !owned.includes(updates.avatarFrame as string)) {
+      if (updates.avatarFrame && !checkItemOwnership(updates.avatarFrame as string, 'frame')) {
+        console.error(`头像框验证失败: ${updates.avatarFrame} 不在拥有物品中`);
         delete sanitizedUpdates.avatarFrame;
       }
 
