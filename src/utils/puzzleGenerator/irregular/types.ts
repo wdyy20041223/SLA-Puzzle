@@ -43,6 +43,12 @@ export interface IrregularPuzzlePiece extends Omit<PuzzlePiece, 'shape' | 'curre
   // 网格坐标
   gridRow: number;
   gridCol: number;
+
+  // 新增：四个方向的异形标识（1=凸出，-1=凹陷，0=平）
+  up: number;
+  right: number;
+  down: number;
+  left: number;
 }
 
 // 尺寸接口

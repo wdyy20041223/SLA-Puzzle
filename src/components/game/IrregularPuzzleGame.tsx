@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { IrregularPuzzleConfig, IrregularPuzzleGenerator, IrregularPuzzlePiece } from '../utils/puzzleGenerator/irregular';
 import { IrregularAnswerGrid } from '../components/game/IrregularAnswerGrid';
-import IrregularAnswerGridIrregular from '../components/game/IrregularAnswerGridIrregular';
 import { Timer } from '../components/common/Timer';
 import { Button } from '../components/common/Button';
 import { GameHelpButton } from '../components/common/GameHelp';
@@ -145,12 +144,14 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
 
     // 检查槽位是否已被占用，如果被占用则移回处理区
     let newAnswerGrid = [...answerGrid];
-    let existingPieceId: string | null = null;
-    
     if (newAnswerGrid[slotIndex] !== null) {
       const existingPiece = newAnswerGrid[slotIndex];
       if (existingPiece) {
-        existingPieceId = existingPiece.id;
+        // 将原有拼图块的状态重置为未放置
+        const updatedPieces = puzzleConfig.pieces.map(p =>
+          p.id === existingPiece.id ? { ...p, isCorrect: false } : p
+        );
+        setPuzzleConfig({ ...puzzleConfig, pieces: updatedPieces });
       }
     }
 
@@ -160,14 +161,10 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       newAnswerGrid[currentSlotIndex] = null;
     }
 
-    // 一次性更新所有拼图块的状态
+    // 更新拼图配置，将拼图块标记为已放置
     const updatedPieces = puzzleConfig.pieces.map(p => {
       if (p.id === pieceId) {
-        // 当前拖拽的拼图块标记为已放置
         return { ...p, isCorrect: true };
-      } else if (existingPieceId && p.id === existingPieceId) {
-        // 被覆盖的拼图块标记为未放置，回到处理区
-        return { ...p, isCorrect: false };
       }
       return p;
     });
@@ -463,7 +460,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
             </div>
             {/* 使用异形拼图答题网格，采用方形拼图的模式 */}
             <div style={{ flex: 1, overflow: 'hidden' }}>
-              <IrregularAnswerGridIrregular
+              <IrregularAnswerGrid
                 gridSize={puzzleConfig.gridSize}
                 answerGrid={answerGrid}
                 originalImage={puzzleConfig.originalImage}
