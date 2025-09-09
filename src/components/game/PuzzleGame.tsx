@@ -223,7 +223,13 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
         case 'r':
         case 'R':
           if (selectedPiece) {
-            rotatePiece(selectedPiece, 0);
+            rotatePiece(selectedPiece, 90);
+          }
+          break;
+        case 'l':
+        case 'L':
+          if (selectedPiece) {
+            rotatePiece(selectedPiece, -90);
           }
           break;
         case 'f':
@@ -372,7 +378,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             onPieceSelect={setSelectedPiece}
             onPlacePiece={placePieceToSlot}
             onRemovePiece={removePieceFromSlot}
-            onRotatePiece={(pieceId) => rotatePiece(pieceId, 0)}
+            onRotatePiece={(pieceId) => rotatePiece(pieceId, 90)}
             onFlipPiece={flipPiece}
             draggedPiece={draggedPiece}
             dragOverSlot={dragOverSlot}
@@ -441,7 +447,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
 
       {/* 操作提示 */}
       <div className="game-tips">
-        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键旋转 | F键翻转 | Ctrl+Z 撤销 | Ctrl+S 保存进度 | A键切换答案显示 | H键查看提示 | ESC 取消选择</p>
+        <p>💡 操作提示：点击选择拼图块，再点击答题卡槽位放置 | R键顺时针旋转, L键逆时针旋转 | F键翻转 | Ctrl+Z 撤销 | Ctrl+S 保存进度 | A键切换答案显示 | H键查看提示 | ESC 取消选择</p>
       </div>
     </div>
   );
