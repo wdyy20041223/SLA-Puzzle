@@ -386,14 +386,14 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
   }, [gameState, setSelectedPiece]);
 
   // 旋转拼图块
-  const rotatePiece = useCallback((pieceId: string, rotation: number) => {
+  const rotatePiece = useCallback((pieceId: string, delta: number) => {
     if (!gameState) return;
 
     setGameState(prev => {
       if (!prev) return null;
 
       const updatedPieces = prev.config.pieces.map(piece =>
-        piece.id === pieceId ? { ...piece, rotation } : piece
+        piece.id === pieceId ? { ...piece, rotation: (piece.rotation + delta + 360) % 360 } : piece
       );
 
       const move: GameMove = {
@@ -401,6 +401,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
         pieceId,
         action: 'rotate',
         timestamp: new Date(),
+        delta,
       };
 
       return {
@@ -445,14 +446,13 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
     if (answerGrid.some(slot => slot === null)) {
       return false;
     }
-
     // 检查每个拼图块是否在正确的位置（考虑旋转和翻转）
     return answerGrid.every((piece, slotIndex) => {
       if (!piece) return false;
       // 基础位置检查
       const isCorrectPosition = piece.correctSlot === slotIndex;
-      // 旋转和翻转检查（预留接口，当前阶段返回true）
-      const isCorrectOrientation = piece.rotation === 0 && !piece.isFlipped;
+      // 旋转和翻转检查
+      const isCorrectOrientation = piece.rotation === piece.correctRotation && piece.isFlipped === piece.correctIsFlipped;
       return isCorrectPosition && isCorrectOrientation;
     });
   }, []);
