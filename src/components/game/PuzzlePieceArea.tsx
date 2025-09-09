@@ -28,9 +28,9 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
   onDragEnd,
   onDropToProcessingArea,
 }) => {
-  const handlePieceClick = (pieceId: string) => {
-    onPieceSelect(pieceId);
-  };
+const handlePieceClick = (pieceId: string) => {
+  onPieceSelect(selectedPieceId === pieceId ? null : pieceId);
+};
 
   const handlePieceDoubleClick = (pieceId: string) => {
     // 双击旋转（预留功能）
@@ -88,39 +88,34 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
       ) : (
         <div className="pieces-grid">
           {pieces.map((piece) => (
-            <div
-              key={piece.id}
-              className={`puzzle-piece-item ${
-                selectedPieceId === piece.id ? 'selected' : ''
-              } ${draggedPiece === piece.id ? 'dragging' : ''}`}
-              draggable={true}
-              onClick={() => handlePieceClick(piece.id)}
-              onDoubleClick={() => handlePieceDoubleClick(piece.id)}
-              onContextMenu={(e) => handleContextMenu(e, piece.id)}
-              onDragStart={(e) => handleDragStart(e, piece.id)}
-              onDragEnd={handleDragEnd}
-              style={{
-                transform: `rotate(${piece.rotation}deg) ${
-                  piece.isFlipped ? 'scaleX(-1)' : ''
-                }`,
-              }}
-            >
-              {showAnswers && (
-                <div className="piece-number">{piece.originalIndex + 1}</div>
-              )}
-              <img
-                src={piece.imageData}
-                alt={`拼图块 ${piece.originalIndex + 1}`}
-                className="piece-image"
-                draggable={false}
-              />
-              {selectedPieceId === piece.id && (
-                <div className="selection-indicator">
-                  <span>已选择</span>
+              <div key={piece.id} className="puzzle-piece-container">
+                <div
+                  className={`puzzle-piece-item ${selectedPieceId === piece.id ? 'selected' : ''} ${draggedPiece === piece.id ? 'dragging' : ''}`}
+                  draggable={true}
+                  onClick={() => handlePieceClick(piece.id)}
+                  onDoubleClick={() => handlePieceDoubleClick(piece.id)}
+                  onContextMenu={(e) => handleContextMenu(e, piece.id)}
+                  onDragStart={(e) => handleDragStart(e, piece.id)}
+                  onDragEnd={handleDragEnd}
+                  style={{
+                    transform: `rotate(${piece.rotation}deg) ${piece.isFlipped ? 'scaleX(-1)' : ''}`
+                  }}
+                >
+                  {showAnswers && (
+                    <div className="piece-number">{piece.originalIndex + 1}</div>
+                  )}
+                  <img
+                    src={piece.imageData}
+                    alt={`拼图块 ${piece.originalIndex + 1}`}
+                    className="piece-image"
+                    draggable={false}
+                  />
                 </div>
-              )}
-            </div>
-          ))}
+                {selectedPieceId === piece.id && (
+                  <div className="selected-label">已选择</div>
+                )}
+              </div>
+            ))}
         </div>
       )}
       

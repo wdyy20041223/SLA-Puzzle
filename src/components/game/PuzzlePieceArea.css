@@ -97,6 +97,25 @@
 .selection-indicator {
   position: absolute;
   bottom: 0;
+}
+
+.puzzle-piece-container {
+  position: relative;
+  display: inline-block;
+}
+
+.selected-label {
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px 4px 0 0;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
   left: 0;
   right: 0;
   background: linear-gradient(135deg, #10b981, #059669);

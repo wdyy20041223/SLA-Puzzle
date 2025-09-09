@@ -148,7 +148,8 @@ export class PositionCalculator {
     piece: IrregularPuzzlePiece,
     gridLayout: GridLayout
   ): SnapTarget[] {
-    const correctPosition = this.calculateBasePosition(piece.correctSlot, gridLayout);
+    // 对于异形拼图，直接使用basePosition作为正确位置
+    const correctPosition = piece.basePosition;
     
     return [{
       position: correctPosition,
