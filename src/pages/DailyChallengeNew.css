@@ -246,6 +246,102 @@
   font-weight: 500;
 }
 
+.no-effects-hint {
+  display: block;
+  font-size: 14px;
+  color: #90EE90;
+  font-weight: normal;
+  margin-top: 5px;
+}
+
+/* 基础游戏控制按钮 */
+.game-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.game-controls .btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.game-controls .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.game-controls .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 辅助功能区域 */
+.helper-section {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preview-section,
+.answer-section {
+  margin-bottom: 20px;
+}
+
+.preview-section:last-child,
+.answer-section:last-child {
+  margin-bottom: 0;
+}
+
+.preview-section h4,
+.answer-section h4 {
+  color: #FFD700;
+  margin-bottom: 15px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-image {
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.preview-image img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.answer-grid {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.answer-hint {
+  color: #90EE90;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.5;
+}
+
 /* 历史记录页面 */
 .challenge-history h3 {
   font-size: 24px;

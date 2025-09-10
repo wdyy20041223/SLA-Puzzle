@@ -1,0 +1,138 @@
+/* 每日挑战特效样式 */
+
+/* 雾里探花特效：未选中的拼图块模糊 */
+.effect-blur-unselected .puzzle-piece:not(.selected) {
+  filter: blur(3px);
+  transition: filter 0.3s ease;
+}
+
+.effect-blur-unselected .puzzle-piece.selected {
+  filter: none;
+}
+
+/* 一手遮天特效：放置后的拼图块变黑 */
+.effect-invisible-placed .answer-slot .puzzle-piece {
+  background: #000000 !important;
+  filter: brightness(0) !important;
+}
+
+/* 管中窥豹特效：隐藏的槽位样式 */
+.answer-slot.hidden-slot {
+  opacity: 0.3;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #f0f0f0,
+    #f0f0f0 10px,
+    #e0e0e0 10px,
+    #e0e0e0 20px
+  );
+}
+
+/* 作茧自缚特效：非角落槽位禁用样式 */
+.corner-only-mode .answer-slot:not(.corner-slot) {
+  opacity: 0.5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #ffcccc,
+    #ffcccc 10px,
+    #ffaaaa 10px,
+    #ffaaaa 20px
+  );
+}
+
+.corner-slot.available {
+  box-shadow: 0 0 10px #ffaa00;
+  animation: pulse-corner 1.5s infinite;
+}
+
+@keyframes pulse-corner {
+  0% { box-shadow: 0 0 10px #ffaa00; }
+  50% { box-shadow: 0 0 20px #ff8800; }
+  100% { box-shadow: 0 0 10px #ffaa00; }
+}
+
+/* 最终防线特效：错误提示 */
+.effect-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 0, 0, 0.2);
+  z-index: 1000;
+  pointer-events: none;
+  animation: error-flash 0.5s ease-out;
+}
+
+@keyframes error-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 精打细算特效：步数警告 */
+.step-limit-warning {
+  background: linear-gradient(45deg, #ff9800, #ff5722);
+  color: white;
+  font-weight: bold;
+  animation: warning-pulse 1s infinite;
+}
+
+@keyframes warning-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* 举步维艰特效：步数显示样式 */
+.double-steps-indicator {
+  position: relative;
+}
+
+.double-steps-indicator::after {
+  content: "×2";
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: #ff5722;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+/* 天旋地转特效：拼图块旋转动画 */
+.effect-rotate-pieces .puzzle-piece {
+  transition: transform 0.5s ease;
+}
+
+/* 镜中奇缘特效：镜像提示 */
+.mirror-effect-hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(148, 0, 211, 0.9);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+}
+
+/* 生死时速特效：时间紧急提示 */
+.time-critical {
+  animation: time-urgent 1s infinite;
+}
+
+@keyframes time-urgent {
+  0% { color: #ff0000; }
+  50% { color: #ff6600; }
+  100% { color: #ff0000; }
+}
+
+/* 璀璨星河特效：亮度变化容器 */
+.brightness-effect {
+  transition: filter 0.1s ease;
+}

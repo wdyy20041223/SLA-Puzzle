@@ -209,6 +209,100 @@
             cursor: not-allowed;
             transform: none;
         }
+        
+        /* 辅助功能样式 */
+        .helper-section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .helper-controls h3 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        
+        .helper-note {
+            color: #90EE90;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        .preview-section h4,
+        .answer-section h4 {
+            color: #FFD700;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .preview-image {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .preview-placeholder {
+            color: #FFD700;
+            font-size: 18px;
+            padding: 20px;
+        }
+        
+        .answer-grid {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .answer-hint {
+            color: #90EE90;
+            font-style: italic;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        /* 游戏控制按钮 */
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .no-effects-hint {
+            color: #90EE90;
+            font-size: 14px;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(144, 238, 144, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #90EE90;
+        }
     </style>
 </head>
 <body>
@@ -237,7 +331,7 @@
             
             <!-- 3星特效 -->
             <div class="effects-section">
-                <h3 class="effects-title">⭐⭐⭐ 3星特效</h3>
+                <h3 class="effects-title">⭐⭐⭐ 3星特效（今日随机3个）</h3>
                 <div class="effects-grid">
                     <div class="effect-card" onclick="toggleEffect(this)">
                         <div class="effect-name">天旋地转</div>
@@ -250,18 +344,8 @@
                         <div class="effect-stars">★★★</div>
                     </div>
                     <div class="effect-card" onclick="toggleEffect(this)">
-                        <div class="effect-name">管中窥豹</div>
-                        <div class="effect-description">本关卡答题区最开始只展示一半的拼图块</div>
-                        <div class="effect-stars">★★★</div>
-                    </div>
-                    <div class="effect-card" onclick="toggleEffect(this)">
                         <div class="effect-name">镜中奇缘</div>
                         <div class="effect-description">本关卡正确答案与原图块成镜像关系</div>
-                        <div class="effect-stars">★★★</div>
-                    </div>
-                    <div class="effect-card" onclick="toggleEffect(this)">
-                        <div class="effect-name">举步维艰</div>
-                        <div class="effect-description">每一步统计时算作2步</div>
                         <div class="effect-stars">★★★</div>
                     </div>
                 </div>
@@ -269,7 +353,7 @@
             
             <!-- 4星特效 -->
             <div class="effects-section">
-                <h3 class="effects-title">⭐⭐⭐⭐ 4星特效</h3>
+                <h3 class="effects-title">⭐⭐⭐⭐ 4星特效（今日随机2个）</h3>
                 <div class="effects-grid">
                     <div class="effect-card" onclick="toggleEffect(this)">
                         <div class="effect-name">作茧自缚</div>
@@ -277,18 +361,8 @@
                         <div class="effect-stars">★★★★</div>
                     </div>
                     <div class="effect-card" onclick="toggleEffect(this)">
-                        <div class="effect-name">一手遮天</div>
-                        <div class="effect-description">本关卡放置后的拼图块为纯黑色不可见</div>
-                        <div class="effect-stars">★★★★</div>
-                    </div>
-                    <div class="effect-card" onclick="toggleEffect(this)">
                         <div class="effect-name">一叶障目</div>
                         <div class="effect-description">本关卡不允许查看原图</div>
-                        <div class="effect-stars">★★★★</div>
-                    </div>
-                    <div class="effect-card" onclick="toggleEffect(this)">
-                        <div class="effect-name">生死时速</div>
-                        <div class="effect-description">本关卡限时126*(拼图块数量/9)秒</div>
                         <div class="effect-stars">★★★★</div>
                     </div>
                 </div>
@@ -296,23 +370,33 @@
             
             <!-- 5星特效 -->
             <div class="effects-section">
-                <h3 class="effects-title">⭐⭐⭐⭐⭐ 5星特效</h3>
+                <h3 class="effects-title">⭐⭐⭐⭐⭐ 5星特效（今日随机1个）</h3>
                 <div class="effects-grid">
                     <div class="effect-card" onclick="toggleEffect(this)">
                         <div class="effect-name">最终防线</div>
                         <div class="effect-description">本关卡不允许任何一次放置失误</div>
                         <div class="effect-stars">★★★★★</div>
                     </div>
-                    <div class="effect-card" onclick="toggleEffect(this)">
-                        <div class="effect-name">精打细算</div>
-                        <div class="effect-description">本关卡必须在1.5*拼图块数量次步数内完成</div>
-                        <div class="effect-stars">★★★★★</div>
-                    </div>
-                    <div class="effect-card" onclick="toggleEffect(this)">
-                        <div class="effect-name">璀璨星河</div>
-                        <div class="effect-description">答题区拼图块亮度随时间呈正弦变化</div>
-                        <div class="effect-stars">★★★★★</div>
-                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 游戏辅助功能 -->
+        <div class="helper-section" id="helperSection" style="display: none;">
+            <div class="helper-controls">
+                <h3>🎮 游戏辅助功能</h3>
+                <p class="helper-note">无特效时可使用以下功能辅助游戏</p>
+            </div>
+            <div class="preview-section">
+                <h4>🖼️ 原图预览</h4>
+                <div class="preview-image">
+                    <div class="preview-placeholder">🏰 原图将在此显示</div>
+                </div>
+            </div>
+            <div class="answer-section">
+                <h4>💡 答案提示</h4>
+                <div class="answer-grid">
+                    <div class="answer-hint">提示：在无特效模式下，您可以查看完整的解题步骤和最优路径</div>
                 </div>
             </div>
         </div>
@@ -333,6 +417,24 @@
                     <div class="stat-label">分数倍率</div>
                 </div>
             </div>
+            
+            <!-- 基础游戏控制 -->
+            <div class="game-controls">
+                <button class="control-btn" id="previewBtn" onclick="togglePreview()">
+                    📖 查看原图
+                </button>
+                <button class="control-btn" id="answerBtn" onclick="toggleAnswer()">
+                    💡 显示答案
+                </button>
+                <button class="control-btn" onclick="resetSelection()">
+                    🔄 重置选择
+                </button>
+            </div>
+            
+            <div class="no-effects-hint" id="noEffectsHint" style="display: block;">
+                💡 无特效时享受完整游戏体验（包含查看原图、显示答案等功能）
+            </div>
+            
             <button class="start-button" onclick="startChallenge()">
                 🚀 开始挑战
             </button>
@@ -341,6 +443,8 @@
     
     <script>
         let selectedEffects = [];
+        let showPreview = false;
+        let showAnswer = false;
         
         function toggleEffect(card) {
             const effectName = card.querySelector('.effect-name').textContent;
@@ -356,6 +460,7 @@
             }
             
             updateSummary();
+            updateControls();
         }
         
         function updateSummary() {
@@ -366,19 +471,106 @@
             document.getElementById('selectedCount').textContent = count;
             document.getElementById('totalStars').textContent = totalStars;
             document.getElementById('scoreMultiplier').textContent = multiplier;
+            
+            // 显示/隐藏无特效提示
+            const noEffectsHint = document.getElementById('noEffectsHint');
+            if (count === 0) {
+                noEffectsHint.style.display = 'block';
+            } else {
+                noEffectsHint.style.display = 'none';
+            }
+        }
+        
+        function updateControls() {
+            const previewBtn = document.getElementById('previewBtn');
+            const answerBtn = document.getElementById('answerBtn');
+            
+            // 检查是否有限制特效
+            const hasNoPreview = selectedEffects.some(e => e.name === '一叶障目');
+            const hasNoMistakes = selectedEffects.some(e => e.name === '最终防线');
+            
+            previewBtn.disabled = hasNoPreview;
+            answerBtn.disabled = hasNoMistakes;
+            
+            if (hasNoPreview) {
+                previewBtn.textContent = '🚫 原图被禁用';
+            } else {
+                previewBtn.textContent = showPreview ? '🙈 隐藏原图' : '📖 查看原图';
+            }
+            
+            if (hasNoMistakes) {
+                answerBtn.textContent = '🚫 答案被禁用';
+            } else {
+                answerBtn.textContent = showAnswer ? '🙈 隐藏答案' : '💡 显示答案';
+            }
+        }
+        
+        function togglePreview() {
+            const hasNoPreview = selectedEffects.some(e => e.name === '一叶障目');
+            if (hasNoPreview) return;
+            
+            showPreview = !showPreview;
+            updateHelperSection();
+            updateControls();
+        }
+        
+        function toggleAnswer() {
+            const hasNoMistakes = selectedEffects.some(e => e.name === '最终防线');
+            if (hasNoMistakes) return;
+            
+            showAnswer = !showAnswer;
+            updateHelperSection();
+            updateControls();
+        }
+        
+        function updateHelperSection() {
+            const helperSection = document.getElementById('helperSection');
+            if (showPreview || showAnswer) {
+                helperSection.style.display = 'block';
+            } else {
+                helperSection.style.display = 'none';
+            }
+        }
+        
+        function resetSelection() {
+            // 清除所有选中的特效
+            selectedEffects = [];
+            document.querySelectorAll('.effect-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // 重置辅助功能
+            showPreview = false;
+            showAnswer = false;
+            
+            updateSummary();
+            updateControls();
+            updateHelperSection();
         }
         
         function startChallenge() {
             if (selectedEffects.length === 0) {
-                alert('请至少选择一个特效！');
+                alert('🎮 开始基础挑战！\n\n无特效模式，享受完整游戏体验\n• 可查看原图辅助\n• 可显示答案提示\n• 标准评分公式\n\n祝你好运！');
                 return;
             }
             
             const totalStars = selectedEffects.reduce((sum, effect) => sum + effect.stars, 0);
             const effectNames = selectedEffects.map(e => e.name).join('、');
             
-            alert(`🎮 开始挑战！\n\n选中特效：${effectNames}\n总星级：${totalStars}\n评分公式：(0.1×${totalStars}+1)×(60/用时)×(1.2×拼图块数/步数)×100\n\n祝你好运！`);
+            let restrictionText = '';
+            if (selectedEffects.some(e => e.name === '一叶障目')) {
+                restrictionText += '\n⚠️ 无法查看原图';
+            }
+            if (selectedEffects.some(e => e.name === '最终防线')) {
+                restrictionText += '\n⚠️ 无法使用答案提示';
+            }
+            
+            alert(`🎮 开始特效挑战！\n\n选中特效：${effectNames}\n总星级：${totalStars}\n评分公式：(0.1×${totalStars}+1)×(60/用时)×(1.2×拼图块数/步数)×100${restrictionText}\n\n祝你好运！`);
         }
+        
+        // 初始化
+        updateSummary();
+        updateControls();
     </script>
 </body>
 </html>

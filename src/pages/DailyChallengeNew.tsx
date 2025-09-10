@@ -65,10 +65,12 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const [totalCoins, setTotalCoins] = useState(0);
   const [totalExperience, setTotalExperience] = useState(0);
   const [unlockedItems, setUnlockedItems] = useState<{name: string, icon: string, date: string}[]>([]);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
-  // 解析每日特效文本
-  const parseDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
-    const effects = {
+  // 获取所有可用特效
+  const getAllEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
+    return {
       star3: [
         { id: 'rotate', name: '天旋地转', description: '本关卡拼图块包含旋转与翻转', star: 3 as const },
         { id: 'blur', name: '雾里探花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
@@ -88,7 +90,42 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         { id: 'brightness', name: '璀璨星河', description: '答题区拼图块亮度随时间呈正弦变化', star: 5 as const }
       ]
     };
-    return effects;
+  };
+
+  // 基于日期随机选择每日特效
+  const generateDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
+    const today = new Date().toISOString().split('T')[0];
+    const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+    
+    // 简单的伪随机函数
+    const pseudoRandom = (seed: number) => {
+      let state = seed;
+      return () => {
+        state = (state * 9301 + 49297) % 233280;
+        return state / 233280;
+      };
+    };
+
+    const random = pseudoRandom(seed);
+    const allEffects = getAllEffects();
+
+    // 随机选择3个3星特效
+    const shuffled3Star = [...allEffects.star3].sort(() => random() - 0.5);
+    const selected3Star = shuffled3Star.slice(0, 3);
+
+    // 随机选择2个4星特效
+    const shuffled4Star = [...allEffects.star4].sort(() => random() - 0.5);
+    const selected4Star = shuffled4Star.slice(0, 2);
+
+    // 随机选择1个5星特效
+    const shuffled5Star = [...allEffects.star5].sort(() => random() - 0.5);
+    const selected5Star = shuffled5Star.slice(0, 1);
+
+    return {
+      star3: selected3Star,
+      star4: selected4Star,
+      star5: selected5Star
+    };
   };
 
   // 拼图图片库
@@ -196,7 +233,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         setIsLoading(true);
         
         // 初始化特效数据
-        const effects = parseDailyEffects();
+        const effects = generateDailyEffects();
         setDailyEffects(effects);
         
         // 生成今日挑战
@@ -348,16 +385,72 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
             </div>
           </div>
 
+          {/* 预览和答案显示区域 */}
+          {(showPreview || showAnswer) && (
+            <div className="helper-section">
+              {showPreview && !selectedEffects.includes('no_preview') && (
+                <div className="preview-section">
+                  <h4>🖼️ 原图预览</h4>
+                  <div className="preview-image">
+                    <img src={todayChallenge.puzzleImage} alt="原图预览" />
+                  </div>
+                </div>
+              )}
+              
+              {showAnswer && !selectedEffects.includes('no_mistakes') && (
+                <div className="answer-section">
+                  <h4>💡 答案提示</h4>
+                  <div className="answer-grid">
+                    <div className="answer-hint">
+                      提示：在无特效模式下，您可以查看完整的解题步骤和最优路径
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="challenge-actions">
             <div className="selected-effects-summary">
               已选择 {selectedEffects.length} 个特效，总星级: {getTotalStars()}
+              {selectedEffects.length === 0 && <span className="no-effects-hint">（无特效时享受完整游戏体验）</span>}
             </div>
+            
+            {/* 基础游戏功能按钮 */}
+            <div className="game-controls">
+              <Button
+                onClick={() => setShowPreview(!showPreview)}
+                variant="secondary"
+                disabled={selectedEffects.includes('no_preview')}
+              >
+                {showPreview ? '隐藏' : '查看'}原图
+              </Button>
+              <Button
+                onClick={() => setShowAnswer(!showAnswer)}
+                variant="secondary"
+                disabled={selectedEffects.includes('no_mistakes')}
+              >
+                {showAnswer ? '隐藏' : '显示'}答案
+              </Button>
+              <Button
+                onClick={() => {
+                  // 重置游戏逻辑
+                  setSelectedEffects([]);
+                  setShowAnswer(false);
+                  setShowPreview(false);
+                }}
+                variant="secondary"
+              >
+                重置选择
+              </Button>
+            </div>
+            
             <Button
               onClick={handleStartChallenge}
               variant="primary"
               disabled={todayChallenge.isCompleted}
             >
-              {todayChallenge.isCompleted ? '已完成' : '开始挑战'}
+              {todayChallenge.isCompleted ? '已完成今日挑战' : '开始挑战'}
             </Button>
           </div>
         </div>
