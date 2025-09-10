@@ -13,6 +13,7 @@ import { diagnosePuzzleAssetPersistence, checkPuzzleAssetData } from '../utils/p
 import { PuzzleAssetManager } from '../utils/PuzzleAssetManager';
 import { testPuzzleAssetDataFlow } from '../utils/puzzleAssetDataFlowTest';
 import { useAuth } from '../contexts/AuthContext';
+import { musicManager } from '../services/musicService';
 import './MainMenu.css';
 
 
@@ -20,28 +21,24 @@ interface MainMenuProps {
   onStartGame: (puzzleConfig: PuzzleConfig) => void;
   onLoadGame?: (saveId: string) => void;
   onStartIrregularGame: (imageData?: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
-  onOpenEditor: () => void;
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
-  onOpenMultiplayer: () => void;
   onOpenShop: () => void;
   onOpenProfile: () => void;
   onOpenLeaderboard: () => void;
-  onOpenSettings: () => void;
+  onBackToHome: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
   onStartGame,
   onLoadGame,
   onStartIrregularGame,
-  onOpenEditor,
   onOpenAchievements,
   onOpenDailyChallenge,
-  onOpenMultiplayer,
   onOpenShop,
   onOpenProfile,
   onOpenLeaderboard,
-  onOpenSettings,
+  onBackToHome,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('easy');
@@ -89,6 +86,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
     setIsGenerating(true);
     try {
+      // 播放战斗音乐（在真正开始游戏时播放一次）
+      musicManager.playBattleMusic();
+      
       // 使用真实的图片数据
       const imageData = selectedAsset.filePath;
       
@@ -97,7 +97,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
         // 将 GridSize 转换为字符串格式
         const gridSizeStr = `${difficultyConfig.gridSize.rows}x${difficultyConfig.gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
-        onStartIrregularGame(imageData, gridSizeStr, isAllowPieceRotation);
+        onStartIrregularGame(imageData, gridSizeStr);
         return;
       }
       
@@ -143,10 +143,16 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col">
       {/* 顶部导航栏 */}
-      <div className="bg-gradient-to-r from-blue-500 to-purple-600 shadow-md px-5 py-3 flex justify-between items-center">
+      <div className="bg-gradient-to-r from-pink-400 to-rose-400 shadow-md px-5 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <span className="text-2xl">🧩</span>
-          <h1 className="text-xl font-bold text-white">拼图游戏</h1>
+          <button
+            onClick={onBackToHome}
+            className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-full transition-colors text-sm flex items-center gap-2"
+          >
+            ← 返回首页
+          </button>
+          <span className="text-2xl">🎯</span>
+          <h1 className="text-xl font-bold text-white">单人游戏</h1>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -198,12 +204,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               isAllowPieceRotation={isAllowPieceRotation}
               onStartGame={handleStartGame}
               onLoadGame={handleOpenLoadModal}
-              onOpenEditor={onOpenEditor}
               onOpenAchievements={onOpenAchievements}
               onOpenDailyChallenge={onOpenDailyChallenge}
-              onOpenMultiplayer={onOpenMultiplayer}
               onOpenLeaderboard={onOpenLeaderboard}
-              onOpenSettings={onOpenSettings}
             />
           </div>
         </div>
