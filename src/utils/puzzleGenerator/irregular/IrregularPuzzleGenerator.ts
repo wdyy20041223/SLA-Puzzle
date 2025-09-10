@@ -116,20 +116,36 @@ export class IrregularPuzzleGenerator {
           pieceSize - destY - Math.round((expandH - imgCropH - (imgCropY - srcY)) * (pieceSize / expandH))
         );
       }
-      // 自动选择SVG蒙版路径
-      let maskRow = row;
-      let maskCol = col;
-      // 3x3模板边界处理，超出用边缘模板
-      if (maskRow >= 3) maskRow = maskRow === gridSize.rows - 1 ? 2 : 1;
-      if (maskCol >= 3) maskCol = maskCol === gridSize.cols - 1 ? 2 : 1;
-      // 上边缘
-      if (maskRow === 0 && maskCol > 0 && maskCol < gridSize.cols - 1) maskCol = 1;
-      // 下边缘
-      if (maskRow === gridSize.rows - 1 && maskCol > 0 && maskCol < gridSize.cols - 1) maskCol = 1;
-      // 左边缘
-      if (maskCol === 0 && maskRow > 0 && maskRow < gridSize.rows - 1) maskRow = 1;
-      // 右边缘
-      if (maskCol === gridSize.cols - 1 && maskRow > 0 && maskRow < gridSize.rows - 1) maskRow = 1;
+      // 自动选择SVG蒙版路径，按3x3模板规律映射
+      let maskRow: number, maskCol: number;
+      if (row === 0) {
+        // 顶部
+        if (col === 0) {
+          maskRow = 0; maskCol = 0; // 左上角
+        } else if (col === gridSize.cols - 1) {
+          maskRow = 0; maskCol = 2; // 右上角
+        } else {
+          maskRow = 0; maskCol = 1; // 上边缘
+        }
+      } else if (row === gridSize.rows - 1) {
+        // 底部
+        if (col === 0) {
+          maskRow = 2; maskCol = 0; // 左下角
+        } else if (col === gridSize.cols - 1) {
+          maskRow = 2; maskCol = 2; // 右下角
+        } else {
+          maskRow = 2; maskCol = 1; // 下边缘
+        }
+      } else {
+        // 中间行
+        if (col === 0) {
+          maskRow = 1; maskCol = 0; // 左边缘
+        } else if (col === gridSize.cols - 1) {
+          maskRow = 1; maskCol = 2; // 右边缘
+        } else {
+          maskRow = 1; maskCol = 1; // 中间块
+        }
+      }
       const svgMaskPath = `/svg/puzzle_piece_${maskRow}_${maskCol}.svg`;
       // 合成图片和SVG mask
   const pieceImageData = await applySvgMaskToImage(canvas, svgMaskPath, pieceSize, pieceSize, true);
@@ -161,6 +177,7 @@ export class IrregularPuzzleGenerator {
         id: i.toString(),
         originalIndex: i,
         rotation: 0,
+        correctRotation: 0,
         imageData: pieceImageData,
         width: pieceSize,
         height: pieceSize,
