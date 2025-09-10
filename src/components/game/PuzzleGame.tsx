@@ -20,6 +20,7 @@ interface PuzzleGameProps {
   preloadedGameState?: GameState;
   onGameComplete?: (completionTime: number, moves: number) => void;
   onBackToMenu?: () => void;
+  isMultiplayer?: boolean; // 是否为多人游戏模式
 }
 
 export const PuzzleGame: React.FC<PuzzleGameProps> = ({
@@ -27,6 +28,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   preloadedGameState,
   onGameComplete,
   onBackToMenu,
+  isMultiplayer = false,
 }) => {
   const [showAnswers, setShowAnswers] = useState(false);
 const [showOriginalImage, setShowOriginalImage] = useState(false);
@@ -136,6 +138,14 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
 
       const processGameCompletion = async () => {
         try {
+          // 多人游戏模式下只调用完成回调，不进行奖励计算
+          if (isMultiplayer) {
+            if (onGameComplete) {
+              onGameComplete(timer, gameState.moves);
+            }
+            return;
+          }
+
           if (authState.isAuthenticated && authState.user) {
             // 根据拼图配置计算理想步数
             const calculatePerfectMoves = (config: PuzzleConfig): number => {
@@ -473,8 +483,8 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           />
         )}
 
-        {/* 简单完成提示（未登录用户或奖励弹窗未显示时） */}
-        {gameState?.isCompleted && !showCompletionModal && (
+        {/* 简单完成提示（未登录用户或奖励弹窗未显示时，且非多人游戏） */}
+        {gameState?.isCompleted && !showCompletionModal && !isMultiplayer && (
           <div className="completion-modal">
             <div className="modal-content">
               <h3>🎉 恭喜完成！</h3>

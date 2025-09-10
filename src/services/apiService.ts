@@ -54,6 +54,56 @@ export interface GameCompletionData {
   experienceEarned?: number;
 }
 
+export interface PuzzleConfigData {
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  gridSize: string;
+  imageName?: string;
+  imageData?: string;
+}
+
+export interface RoomPlayer {
+  userId: string;
+  username: string;
+  status: 'joined' | 'ready' | 'playing' | 'finished' | 'disconnected';
+  isHost: boolean;
+  completionTime?: number;
+  movesCount: number;
+  joinedAt: string;
+  readyAt?: string;
+  finishedAt?: string;
+}
+
+export interface MultiplayerRoom {
+  id: string;
+  roomCode: string;
+  roomName: string;
+  hostUserId: string;
+  maxPlayers: number;
+  currentPlayers: number;
+  status: 'waiting' | 'ready' | 'playing' | 'finished' | 'closed';
+  puzzleConfig: PuzzleConfigData;
+  createdAt: string;
+  gameStartedAt?: string;
+  gameFinishedAt?: string;
+  players: RoomPlayer[];
+}
+
+export interface MultiplayerGameRecord {
+  id: string;
+  roomCode: string;
+  gameMode: 'versus' | 'cooperative';
+  totalPlayers: number;
+  winnerUsername?: string;
+  isWinner: boolean;
+  gameDuration: number;
+  puzzleDifficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  puzzleGridSize: string;
+  myCompletionTime?: number;
+  myMovesCount: number;
+  myRank: number;
+  finishedAt: string;
+}
+
 class ApiService {
   private baseURL: string;
   private token: string | null = null;
@@ -95,9 +145,9 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...options.headers as Record<string, string>,
     };
 
     // 添加认证头
@@ -300,6 +350,105 @@ class ApiService {
    */
   async getGameStats(): Promise<ApiResponse<any>> {
     return this.request('/games/stats');
+  }
+
+  /**
+   * 创建联机对战房间
+   */
+  async createMultiplayerRoom(roomData: {
+    roomName: string;
+    puzzleConfig: PuzzleConfigData;
+    maxPlayers?: number;
+  }): Promise<ApiResponse<{ room: MultiplayerRoom }>> {
+    return this.request('/multiplayer/rooms', {
+      method: 'POST',
+      body: JSON.stringify(roomData),
+    });
+  }
+
+  /**
+   * 通过房间代码加入房间
+   */
+  async joinRoom(roomCode: string): Promise<ApiResponse<{ room: MultiplayerRoom }>> {
+    return this.request('/multiplayer/rooms/join', {
+      method: 'POST',
+      body: JSON.stringify({ roomCode }),
+    });
+  }
+
+  /**
+   * 获取房间信息
+   */
+  async getRoomInfo(roomCode: string): Promise<ApiResponse<{ room: MultiplayerRoom }>> {
+    return this.request(`/multiplayer/rooms/${roomCode}`);
+  }
+
+  /**
+   * 设置玩家准备状态
+   */
+  async setPlayerReady(roomCode: string): Promise<ApiResponse<{ room: MultiplayerRoom }>> {
+    return this.request(`/multiplayer/rooms/${roomCode}/ready`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * 房主开始游戏
+   */
+  async startMultiplayerGame(roomCode: string): Promise<ApiResponse<{ room: MultiplayerRoom }>> {
+    return this.request(`/multiplayer/rooms/${roomCode}/start`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * 完成联机游戏
+   */
+  async finishMultiplayerGame(roomCode: string, gameData: {
+    completionTime: number;
+    movesCount: number;
+  }): Promise<ApiResponse<{ gameEnded: boolean; room: MultiplayerRoom }>> {
+    return this.request(`/multiplayer/rooms/${roomCode}/finish`, {
+      method: 'POST',
+      body: JSON.stringify(gameData),
+    });
+  }
+
+  /**
+   * 离开房间
+   */
+  async leaveRoom(roomCode: string): Promise<ApiResponse<{ message: string }>> {
+    return this.request(`/multiplayer/rooms/${roomCode}/leave`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * 重置房间状态（游戏结束后重新开始）
+   */
+  async resetRoom(roomCode: string): Promise<ApiResponse<{ room: MultiplayerRoom }>> {
+    return this.request(`/multiplayer/rooms/${roomCode}/reset`, {
+      method: 'POST',
+    });
+  }
+
+  /**
+   * 获取多人游戏历史记录
+   */
+  async getMultiplayerHistory(page: number = 1, limit: number = 10): Promise<ApiResponse<{
+    records: MultiplayerGameRecord[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return this.request(`/multiplayer/history?${params}`);
   }
 
   /**

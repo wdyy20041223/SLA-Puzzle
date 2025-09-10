@@ -8,15 +8,17 @@ import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
 import { DailyChallenge } from './pages/DailyChallengeNew';
 import { Multiplayer } from './pages/Multiplayer';
+import { MultiplayerGame } from './pages/MultiplayerGame';
 import { Shop } from './pages/Shop';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
 import { Button } from './components/common/Button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/auth/Auth';
+import { MultiplayerRoom } from './services/apiService';
 import './App.css';
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'multiplayer-game' | 'shop' | 'profile' | 'leaderboard' | 'settings';
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
@@ -27,6 +29,7 @@ const AppContent: React.FC = () => {
     imageData?: string;
     gridSize?: '3x3' | '4x4' | '5x5' | '6x6';
   }>({});
+  const [multiplayerRoom, setMultiplayerRoom] = useState<MultiplayerRoom | null>(null);
 
   // 如果正在加载认证状态，显示加载画面
   if (authState.isLoading) {
@@ -105,6 +108,20 @@ const AppContent: React.FC = () => {
     // 这里可以添加完成后的处理逻辑，比如保存到排行榜
   };
 
+  const handleStartMultiplayerGame = (roomData: { room: MultiplayerRoom }) => {
+    setMultiplayerRoom(roomData.room);
+    setCurrentView('multiplayer-game');
+  };
+
+  const handleBackToMultiplayerRoom = () => {
+    setCurrentView('multiplayer');
+  };
+
+  const handleMultiplayerGameComplete = () => {
+    setMultiplayerRoom(null);
+    setCurrentView('menu');
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'menu':
@@ -179,7 +196,28 @@ const AppContent: React.FC = () => {
       
       case 'multiplayer':
         return (
-          <Multiplayer onBackToMenu={handleBackToMenu} />
+          <Multiplayer 
+            onBackToMenu={handleBackToMenu} 
+            onStartGame={handleStartMultiplayerGame}
+          />
+        );
+      
+      case 'multiplayer-game':
+        if (!multiplayerRoom) {
+          return (
+            <div className="error-view">
+              <h2>房间信息丢失</h2>
+              <p>无法找到房间信息，请重新加入房间</p>
+              <Button onClick={handleBackToMenu}>返回菜单</Button>
+            </div>
+          );
+        }
+        return (
+          <MultiplayerGame
+            room={multiplayerRoom}
+            onBackToRoom={handleBackToMultiplayerRoom}
+            onGameComplete={handleMultiplayerGameComplete}
+          />
         );
       
       case 'shop':
