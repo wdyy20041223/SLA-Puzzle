@@ -88,9 +88,14 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
           break;
         
         case 'puzzle':
-          // 加载单拼图排行榜（包含前3名）
-          const puzzleData = LeaderboardService.getPuzzleLeaderboardWithTop3(50);
-          setPuzzleLeaderboardData(puzzleData);
+          // 加载所有拼图排行榜（包含前3名）
+          try {
+            const allPuzzleData = LeaderboardService.getAllPuzzleLeaderboardWithTop3();
+            setPuzzleLeaderboardData(allPuzzleData);
+          } catch (error) {
+            console.error('加载拼图排行榜失败:', error);
+            setPuzzleLeaderboardData([]);
+          }
           break;
         
         case 'daily':
@@ -244,103 +249,114 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
         {/* 单拼图排行榜 */}
         {viewMode === 'puzzle' && (
           <div className="puzzle-leaderboard-section">
-            <h2>🧩 单拼图排行榜</h2>
-            <p className="section-description">每个拼图显示前3快的成绩，同一玩家可占据多个席位</p>
+            <h2>🧩 所有拼图排行榜</h2>
+            <p className="section-description">展示所有拼图的前3快成绩，没有成绩的拼图显示"暂无成绩"</p>
             
             {puzzleLeaderboardData.length === 0 ? (
               <div className="empty-state">
-                <p>暂无拼图记录</p>
-                <p>开始游戏来创建第一个记录吧！</p>
+                <p>正在加载拼图数据...</p>
               </div>
             ) : (
               <div className="puzzle-cards-grid">
-                {puzzleLeaderboardData.map((entry) => (
-                  <div key={entry.id} className="puzzle-card-with-top3">
-                    <div className="puzzle-card-header">
-                      <div className="puzzle-info">
-                        <h4 className="puzzle-name">{entry.puzzleName}</h4>
-                        <span className="puzzle-shape">{getShapeDisplay(entry.pieceShape)}</span>
+                {puzzleLeaderboardData.map((entry, index) => {
+                  // 安全检查
+                  if (!entry || !entry.id) {
+                    console.warn(`拼图数据项 ${index} 无效:`, entry);
+                    return null;
+                  }
+
+                  return (
+                    <div key={entry.id} className="puzzle-card-with-top3">
+                      <div className="puzzle-card-header">
+                        <div className="puzzle-info">
+                          <h4 className="puzzle-name">{entry.puzzleName || '未知拼图'}</h4>
+                          <span className="puzzle-shape">{getShapeDisplay(entry.pieceShape)}</span>
+                          {!entry.hasRecords && (
+                            <span className="no-records-badge">暂无成绩</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="top-players-section">
-                      <h5>🏆 前三名</h5>
-                      <div className="top-players-list">
-                        {entry.topPlayers.map((player: any, playerIndex: number) => {
-                          // 计算同一玩家在前三名中的序号
-                          const samePlayerRecords = entry.topPlayers.filter((p: any) => p.playerName === player.playerName);
-                          const recordNumber = samePlayerRecords.length > 1 ? 
-                            samePlayerRecords.findIndex((p: any) => 
-                              p.time === player.time && p.moves === player.moves && 
-                              p.completedAt === player.completedAt) + 1 : 0;
-                          
-                          return (
-                            <div key={`${player.playerName}-${playerIndex}-${player.time}-${player.moves}`} 
-                                 className={`top-player-card rank-${playerIndex + 1} ${player.playerName === authState.user?.username ? 'current-user' : ''}`}>
-                              <div className="player-rank">
-                                {getRankDisplay(playerIndex)}
+                      
+                      <div className="top-players-section">
+                        <h5>🏆 前三名</h5>
+                        <div className="top-players-list">
+                          {entry.hasRecords && entry.topPlayers && entry.topPlayers.length > 0 ? (
+                            // 有成绩时显示实际排行
+                            <>
+                              {entry.topPlayers.map((player: any, playerIndex: number) => {
+                                // 安全检查
+                                if (!player) {
+                                  return null;
+                                }
+
+                                // 计算同一玩家在前三名中的序号
+                                const samePlayerRecords = entry.topPlayers.filter((p: any) => p && p.playerName === player.playerName);
+                                const recordNumber = samePlayerRecords.length > 1 ? 
+                                  samePlayerRecords.findIndex((p: any) => 
+                                    p && p.time === player.time && p.moves === player.moves && 
+                                    p.completedAt === player.completedAt) + 1 : 0;
+                                
+                                return (
+                                  <div key={`${player.playerName || 'unknown'}-${playerIndex}-${player.time || 0}-${player.moves || 0}`} 
+                                       className={`top-player-card rank-${playerIndex + 1} ${(player.playerName === authState.user?.username) ? 'current-user' : ''}`}>
+                                    <div className="player-rank">
+                                      {getRankDisplay(playerIndex)}
+                                    </div>
+                                    <div className="player-info">
+                                      <div className="player-name">
+                                        {player.playerName || '未知玩家'}
+                                        {recordNumber > 0 && (
+                                          <span className="record-number">#{recordNumber}</span>
+                                        )}
+                                        {player.playerName === authState.user?.username && (
+                                          <span className="you-badge">你</span>
+                                        )}
+                                      </div>
+                                      <div className="player-stats">
+                                        <span className="time">⏱️ {formatTime(player.time || 0)}</span>
+                                        <span className="moves">🎯 {player.moves || 0}步</span>
+                                        <span className="difficulty">
+                                          {getDifficultyDisplay(player.difficulty || 'easy')}
+                                        </span>
+                                      </div>
+                                      <div className="completion-date">
+                                        {player.completedAt ? new Date(player.completedAt).toLocaleDateString() : '未知日期'}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                              
+                              {/* 填充空位（如果不足3名） */}
+                              {Array.from({ length: 3 - (entry.topPlayers?.length || 0) }, (_, emptyIndex) => (
+                                <div key={`empty-${emptyIndex}`} className="top-player-card empty-slot">
+                                  <div className="player-rank">
+                                    {getRankDisplay((entry.topPlayers?.length || 0) + emptyIndex)}
+                                  </div>
+                                  <div className="player-info empty">
+                                    <div className="empty-text">暂无记录</div>
+                                  </div>
+                                </div>
+                              ))}
+                            </>
+                          ) : (
+                            // 没有成绩时显示"暂无成绩"
+                            Array.from({ length: 3 }, (_, emptyIndex) => (
+                              <div key={`no-record-${emptyIndex}`} className="top-player-card empty-slot no-records">
+                                <div className="player-rank">
+                                  {getRankDisplay(emptyIndex)}
+                                </div>
+                                <div className="player-info empty">
+                                  <div className="empty-text">暂无成绩</div>
+                                </div>
                               </div>
-                              <div className="player-info">
-                                <div className="player-name">
-                                  {player.playerName}
-                                  {recordNumber > 0 && (
-                                    <span className="record-number">#{recordNumber}</span>
-                                  )}
-                                  {player.playerName === authState.user?.username && (
-                                    <span className="you-badge">你</span>
-                                  )}
-                                </div>
-                                <div className="player-stats">
-                                  <span className="time">⏱️ {formatTime(player.time)}</span>
-                                  <span className="moves">🎯 {player.moves}步</span>
-                                  <span className="difficulty">
-                                    {getDifficultyDisplay(player.difficulty)}
-                                  </span>
-                                </div>
-                                <div className="completion-date">
-                                  {new Date(player.completedAt).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        
-                        {/* 填充空位（如果不足3名） */}
-                        {Array.from({ length: 3 - entry.topPlayers.length }, (_, emptyIndex) => (
-                          <div key={`empty-${emptyIndex}`} className="top-player-card empty-slot">
-                            <div className="player-rank">
-                              {getRankDisplay(entry.topPlayers.length + emptyIndex)}
-                            </div>
-                            <div className="player-info empty">
-                              <div className="empty-text">暂无记录</div>
-                            </div>
-                          </div>
-                        ))}
+                            ))
+                          )}
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="puzzle-meta">
-                      <div className="meta-item">
-                        <span className="label">总完成次数</span>
-                        <span className="value">{entry.totalCompletions}</span>
-                      </div>
-                      <div className="meta-item">
-                        <span className="label">平均用时</span>
-                        <span className="value">{formatTime(entry.averageTime)}</span>
-                      </div>
-                      <div className="meta-item">
-                        <span className="label">平均步数</span>
-                        <span className="value">{entry.averageMoves}</span>
-                      </div>
-                      <div className="meta-item">
-                        <span className="label">完成难度</span>
-                        <span className="value">
-                          {entry.difficulties.map((d: any) => getDifficultyDisplay(d)).join(', ')}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                }).filter(Boolean)}
               </div>
             )}
           </div>

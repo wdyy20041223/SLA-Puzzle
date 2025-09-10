@@ -937,6 +937,22 @@
   opacity: 0.6;
 }
 
+.top-player-card.empty-slot.no-records {
+  background: #fff8e1;
+  border-color: #ffcc02;
+  opacity: 0.8;
+}
+
+.no-records-badge {
+  background: #ff9800;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
 .player-rank {
   font-size: 1.5em;
   margin-right: 15px;

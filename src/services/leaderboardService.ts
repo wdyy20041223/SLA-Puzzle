@@ -138,7 +138,117 @@ export class LeaderboardService {
   }
 
   /**
-   * 获取包含前3名的拼图排行榜（同一玩家可有多个成绩）
+   * 获取所有可用拼图的配置
+   */
+  static getAllPuzzleConfigs(): { id: string; name: string; path: string }[] {
+    return [
+      // 图标类拼图
+      { id: 'tauri_logo', name: 'Tauri Logo', path: '/tauri.svg' },
+      { id: 'vite_logo', name: 'Vite Logo', path: '/vite.svg' },
+      { id: 'react_logo', name: 'React Logo', path: '/react.svg' },
+      
+      // 自然风光拼图
+      { id: 'landscape1', name: '山景风光', path: '/images/nature/landscape1.svg' },
+      { id: 'landscape2', name: '日落海景', path: '/images/nature/landscape2.svg' },
+      { id: 'landscape3', name: '森林风光', path: '/images/nature/landscape3.svg' },
+      
+      // 动物拼图
+      { id: 'cat', name: '可爱小猫', path: '/images/animals/cat.svg' },
+      
+      // 建筑拼图
+      { id: 'castle', name: '古典建筑', path: '/images/buildings/castle.svg' },
+      
+      // 动漫拼图
+      { id: 'character', name: '动漫角色', path: '/images/anime/character.svg' },
+      
+      // 商店自定义拼图
+      { id: 'test1', name: '森林花园', path: '/images/test1.svg' },
+      { id: 'test2', name: '黄昏日落', path: '/images/test2.svg' },
+      { id: 'test3', name: '玫瑰花园', path: '/images/test3.svg' },
+    ];
+  }
+
+  /**
+   * 获取包含所有拼图的排行榜（包含前3名），没有成绩的显示"暂无成绩"
+   */
+  static getAllPuzzleLeaderboardWithTop3(): any[] {
+    try {
+      const entries = this.getLeaderboard();
+      const allPuzzles = this.getAllPuzzleConfigs();
+      const pieceShapes: PieceShape[] = ['square', 'irregular', 'triangle'];
+      
+      const result: any[] = [];
+
+      // 为每个拼图和每种拼块形状创建排行榜条目
+      allPuzzles.forEach(puzzle => {
+        pieceShapes.forEach(shape => {
+          try {
+            // 查找该拼图和形状的所有记录
+            const puzzleEntries = entries.filter(entry => {
+              if (!entry || !entry.puzzleId || !entry.pieceShape) return false;
+              const basePuzzleId = this.extractBasePuzzleId(entry.puzzleId);
+              return basePuzzleId === puzzle.id && entry.pieceShape === shape;
+            });
+
+            if (puzzleEntries.length > 0) {
+              // 有记录，按时间和步数排序，取前3名
+              const sortedEntries = puzzleEntries
+                .map(entry => ({
+                  playerName: entry.playerName || '未知玩家',
+                  time: entry.completionTime || 0,
+                  moves: entry.moves || 0,
+                  difficulty: entry.difficulty || 'easy',
+                  completedAt: entry.completedAt || new Date()
+                }))
+                .sort((a, b) => {
+                  if (a.time !== b.time) return a.time - b.time;
+                  return a.moves - b.moves;
+                })
+                .slice(0, 3);
+
+              result.push({
+                id: `puzzle_${puzzle.id}_${shape}`,
+                puzzleId: puzzle.id,
+                puzzleName: puzzle.name,
+                pieceShape: shape,
+                topPlayers: sortedEntries,
+                hasRecords: true
+              });
+            } else {
+              // 没有记录，创建空的排行榜条目
+              result.push({
+                id: `puzzle_${puzzle.id}_${shape}`,
+                puzzleId: puzzle.id,
+                puzzleName: puzzle.name,
+                pieceShape: shape,
+                topPlayers: [],
+                hasRecords: false
+              });
+            }
+          } catch (shapeError) {
+            console.error(`处理拼图 ${puzzle.id} 形状 ${shape} 时发生错误:`, shapeError);
+            // 创建空的排行榜条目作为备选
+            result.push({
+              id: `puzzle_${puzzle.id}_${shape}`,
+              puzzleId: puzzle.id,
+              puzzleName: puzzle.name,
+              pieceShape: shape,
+              topPlayers: [],
+              hasRecords: false
+            });
+          }
+        });
+      });
+
+      return result;
+    } catch (error) {
+      console.error('获取所有拼图排行榜时发生错误:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 获取包含前3名的拼图排行榜（同一玩家可有多个成绩）- 原有方法保持兼容
    */
   static getPuzzleLeaderboardWithTop3(limit: number = 50): any[] {
     const entries = this.getLeaderboard();
