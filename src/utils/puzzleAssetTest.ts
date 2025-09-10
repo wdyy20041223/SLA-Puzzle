@@ -57,5 +57,4 @@ export const testPuzzleAssetSync = async () => {
   } catch (error) {
     console.error('❌ 测试失败:', error);
   }
-};</content>
-<parameter name="filePath">c:\Users\invain\Desktop\SLA-Puzzle\src\utils\puzzleAssetTest.ts
+};

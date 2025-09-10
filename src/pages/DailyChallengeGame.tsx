@@ -216,55 +216,46 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         (record: any) => record.date === today
       );
       
-      // 计算每日挑战得分
+      // 计算每日挑战得分 - 新评分公式：(0.1*星星总数+1)*(60/用时)*(1.2*拼图块数/步数)*100
       const calculateDailyChallengeScore = (
         completed: boolean,
         isPerfect: boolean,
         timeUsed: number,
         moves: number,
-        timeLimit: number,
-        perfectMoves: number
+        starCount: number, // 挑战星数
+        puzzlePieces: number // 拼图块总数
       ): number => {
         if (!completed) return 0;
 
-        let score = 100; // 基础完成分数
+        // 星数加成：(0.1 * 星星总数 + 1)
+        const starBonus = 0.1 * starCount + 1;
+        
+        // 时间效率：60 / 用时（秒）
+        const timeEfficiency = 60 / Math.max(timeUsed, 1);
+        
+        // 步数效率：1.2 * 拼图块数 / 步数
+        const moveEfficiency = (1.2 * puzzlePieces) / Math.max(moves, 1);
+        
+        // 最终得分
+        const finalScore = starBonus * timeEfficiency * moveEfficiency * 100;
 
-        // 时间奖励 (最多40分)
-        const timeRatio = Math.max(0, (timeLimit - timeUsed) / timeLimit);
-        score += Math.round(timeRatio * 40);
-
-        // 步数奖励 (最多30分)
-        if (moves <= perfectMoves) {
-          score += 30; // 完美步数
-        } else {
-          const movesRatio = Math.max(0, (perfectMoves * 2 - moves) / perfectMoves);
-          score += Math.round(movesRatio * 30);
-        }
-
-        // 完美奖励 (额外20分)
-        if (isPerfect) {
-          score += 20;
-        }
-
-        // 难度奖励 (最多10分)
-        const difficultyBonus = {
-          easy: 0,
-          medium: 3,
-          hard: 6,
-          expert: 10
-        };
-        score += difficultyBonus[challenge.difficulty] || 0;
-
-        return Math.max(0, score);
+        return Math.round(Math.max(0, finalScore));
       };
 
+      // 计算拼图块总数
+      const getPuzzlePieces = (gridSize: string): number => {
+        const [rows, cols] = gridSize.split('x').map(Number);
+        return rows * cols;
+      };
+
+      const puzzlePieces = getPuzzlePieces(challenge.gridSize);
       const score = calculateDailyChallengeScore(
         completed,
         isPerfect,
         elapsedTime,
         moves,
-        challenge.timeLimit,
-        challenge.perfectMoves
+        challenge.star, // 使用挑战的星数
+        puzzlePieces
       );
 
       // 创建或更新挑战记录
@@ -324,7 +315,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           isPerfect: isPerfect,
           consecutiveDays: consecutiveDays,
           totalChallengesCompleted: totalChallengesCompleted,
-          averageScore: averageScore
+          averageScore: averageScore,
+          totalStars: challenge.star // 添加星数字段
         });
       }
       

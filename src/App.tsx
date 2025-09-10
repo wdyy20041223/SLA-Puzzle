@@ -6,7 +6,7 @@ import { LoadedPuzzleGame } from './components/game/LoadedPuzzleGame';
 import { PuzzleEditor } from './components/editor/PuzzleEditor';
 import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
-import { DailyChallenge } from './pages/DailyChallenge';
+import { DailyChallenge } from './pages/DailyChallengeNew';
 import { Multiplayer } from './pages/Multiplayer';
 import { Shop } from './pages/Shop';
 import { Profile } from './pages/Profile';

@@ -99,6 +99,7 @@ export interface DailyChallengeLeaderboardEntry {
   consecutiveDays: number; // 连续参与天数
   totalChallengesCompleted: number; // 总挑战完成数
   averageScore: number; // 平均得分
+  totalStars: number; // 选择的挑战总星数
   completedAt: Date;
 }
 

@@ -394,6 +394,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
                 <div className="table-header">
                   <span className="rank">排名</span>
                   <span className="player">玩家</span>
+                  <span className="stars">星数</span>
                   <span className="score">分数</span>
                   <span className="time">用时</span>
                   <span className="moves">步数</span>
@@ -410,6 +411,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
                       )}
                     </span>
                     <span className="player">{entry.playerName}</span>
+                    <span className="stars">{entry.totalStars || '-'}</span>
                     <span className="score">{entry.score}</span>
                     <span className="time">{formatTimeMs(entry.completionTime)}</span>
                     <span className="moves">{entry.moves}</span>
