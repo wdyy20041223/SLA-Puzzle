@@ -73,7 +73,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     return {
       star3: [
         { id: 'rotate', name: '天旋地转', description: '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', star: 3 as const },
-        { id: 'blur', name: '雾里探花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
+        { id: 'blur', name: '雾里看花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
         { id: 'partial', name: '管中窥豹', description: '本关卡答题区最开始只展示一半的拼图块', star: 3 as const },
         { id: 'upside_down', name: '颠倒世界', description: '本关卡中正确答案旋转180°后得到原图', star: 3 as const },
         { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 as const }

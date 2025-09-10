@@ -126,8 +126,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const getEffectClasses = useCallback(() => {
     const classes: string[] = [];
     
-    // 雾里探花特效：模糊未选中的拼图块
-    if (challenge.effects?.includes('blur') || challenge.effects?.includes('雾里探花')) {
+    // 雾里看花特效：模糊未选中的拼图块
+    if (challenge.effects?.includes('blur') || challenge.effects?.includes('雾里看花')) {
       classes.push('effect-blur-unselected');
     }
     
@@ -157,7 +157,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     if (!challenge.effects) return 0;
     return challenge.effects.reduce((total, effectId) => {
       // 基于特效ID计算星数
-      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
+      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
         return total + 3;
       } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
         return total + 4;
@@ -172,7 +172,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const getEffectName = useCallback((effectId: string) => {
     const effectMap: { [key: string]: string } = {
       'rotate': '天旋地转', '天旋地转': '天旋地转',
-      'blur': '雾里探花', '雾里探花': '雾里探花',
+      'blur': '雾里看花', '雾里看花': '雾里看花',
       'partial': '管中窥豹', '管中窥豹': '管中窥豹',
       'upside_down': '颠倒世界', '颠倒世界': '颠倒世界',
       'double_steps': '举步维艰', '举步维艰': '举步维艰',
@@ -191,7 +191,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const getEffectDescription = useCallback((effectId: string) => {
     const descriptionMap: { [key: string]: string } = {
       'rotate': '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', '天旋地转': '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置',
-      'blur': '本关卡拼图块在鼠标选中前模糊化', '雾里探花': '本关卡拼图块在鼠标选中前模糊化',
+      'blur': '本关卡拼图块在鼠标选中前模糊化', '雾里看花': '本关卡拼图块在鼠标选中前模糊化',
       'partial': '本关卡答题区最开始只展示一半的拼图块', '管中窥豹': '本关卡答题区最开始只展示一半的拼图块',
       'upside_down': '本关卡中正确答案旋转180°后得到原图', '颠倒世界': '本关卡中正确答案旋转180°后得到原图',
       'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
@@ -208,7 +208,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
 
   // 获取特效星级
   const getEffectStars = useCallback((effectId: string) => {
-    if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
+    if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
       return 3;
     } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
       return 4;
@@ -675,7 +675,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       // 计算挑战星数
       const challengeStars = challenge.effects?.reduce((total, effectId) => {
         // 基于特效ID计算星数
-        if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
+        if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
           return total + 3;
         } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
           return total + 4;

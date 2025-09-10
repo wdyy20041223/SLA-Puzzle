@@ -1,12 +1,12 @@
 /* 每日挑战特效样式 */
 
-/* 雾里探花特效：未选中的拼图块模糊 */
-.effect-blur-unselected .puzzle-piece:not(.selected) {
-  filter: blur(3px);
+/* 雾里看花特效：未选中的拼图块模糊 */
+.effect-blur-unselected .puzzle-piece-item:not(.selected) {
+  filter: blur(8px);
   transition: filter 0.3s ease;
 }
 
-.effect-blur-unselected .puzzle-piece.selected {
+.effect-blur-unselected .puzzle-piece-item.selected {
   filter: none;
 }
 
