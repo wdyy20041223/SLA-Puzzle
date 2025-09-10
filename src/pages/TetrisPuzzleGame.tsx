@@ -254,9 +254,9 @@ export const TetrisPuzzleGame: React.FC<TetrisPuzzleGameProps> = ({
                 <div className="start-content">
                     <h2>{puzzleConfig.name}</h2>
                     <div className="puzzle-info">
-                        <p>难度: {puzzleConfig.difficulty === 'easy' ? '简单' : 
-                            puzzleConfig.difficulty === 'medium' ? '中等' : 
-                            puzzleConfig.difficulty === 'hard' ? '困难' : '专家'}</p>
+                        <p>难度: {puzzleConfig.difficulty === 'easy' ? '简单' :
+                            puzzleConfig.difficulty === 'medium' ? '中等' :
+                                puzzleConfig.difficulty === 'hard' ? '困难' : '专家'}</p>
                         <p>拼图块: {puzzleConfig.gridSize.rows} × {puzzleConfig.gridSize.cols}</p>
                         <p>形状: 俄罗斯方块</p>
                     </div>
