@@ -229,7 +229,6 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
         
         // 刷新用户数据而不是整个页面
         // 重新获取用户数据
-        const { apiService } = await import('../services/apiService');
         const userResponse = await apiService.getUserProfile();
         if (userResponse.success && userResponse.data) {
           // 转换API用户类型到内部用户类型
@@ -241,13 +240,16 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
           // 更新 AuthContext 中的用户数据
           setAuthenticatedUser(convertedUser, apiService.getToken() || '');
           console.log('购买成功，用户数据已更新');
+          console.log('更新后的用户拥有物品:', convertedUser.ownedItems);
+        } else {
+          console.error('获取用户数据失败:', userResponse.error);
         }
       } else {
         alert(`购买失败：${response.error || '未知错误'}`);
       }
     } catch (error) {
       console.error('购买物品时发生错误:', error);
-      alert('购买失败，请稍后重试');
+      alert(`购买失败：${error instanceof Error ? error.message : '网络错误，请稍后重试'}`);
     }
   };
 
