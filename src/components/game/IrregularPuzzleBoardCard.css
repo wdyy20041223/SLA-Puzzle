@@ -1,0 +1,23 @@
+.irregular-puzzle-board-card {
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.irregular-puzzle-piece-slot {
+  position: absolute;
+  /* 这里的布局样式由传入的 style 控制，间隔和布局与原来一致 */
+  width: 80px; /* 示例宽度，实际可根据原卡片调整 */
+  height: 80px; /* 示例高度，实际可根据原卡片调整 */
+  pointer-events: none; /* 只显示图片，交互可根据需要调整 */
+}
+
+.irregular-puzzle-piece-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  /* 图片范围扩大由组件内 style 控制 */
+}

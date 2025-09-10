@@ -170,12 +170,8 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
               ],
               range: Infinity,
               relativePoints: [{ x: 0, y: 0 }]
-            }),
-            interact.modifiers.restrict({
-              restriction: '#puzzle-board',
-              elementRect: { top: 0, left: 0, bottom: 1, right: 1 },
-              endOnly: true
             })
+            // 移除restrict限制，允许拼图块在待拼接区域和拼接板之间自由拖拽
           ],
           inertia: true
         })
@@ -239,31 +235,74 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
           event.target.style.zIndex = '';
           event.target.style.cursor = 'grab';
 
-          // 在 dragend 时一次性提交状态并做吸附判断
+          // 在 dragend 时一次性提交状态并判断拖拽位置
           const pieceId = event.target.getAttribute('data-piece-id');
           const piece = pieces.find(p => p.id === pieceId);
           if (piece) {
             const finalX = parseFloat(event.target.getAttribute('data-x')) || 0;
             const finalY = parseFloat(event.target.getAttribute('data-y')) || 0;
-            const alignedX = Math.round((piece.x + finalX - gridOffset) / gridSize) * gridSize + gridOffset;
-            const alignedY = Math.round((piece.y + finalY - gridOffset) / gridSize) * gridSize + gridOffset;
+            const finalPieceX = piece.x + finalX;
+            const finalPieceY = piece.y + finalY;
 
-            // 提交对齐后的状态
-            if (onPieceMove) {
-              onPieceMove(pieceId, alignedX, alignedY);
-            }
+            // 检测拖拽位置：左侧为待拼接区域（x < 300），右侧为拼接板区域（x >= 300）
+            const isInWaitingArea = finalPieceX < 300;
 
-            // 检查是否吸附到目标位置
-            if (handleSnapToTarget) {
-              const targetX = Math.round((gridOffset + piece.expandedPosition.x) / gridSize) * gridSize;
-              const targetY = Math.round((gridOffset + piece.expandedPosition.y) / gridSize) * gridSize;
-              const deltaX = Math.abs(alignedX - targetX);
-              const deltaY = Math.abs(alignedY - targetY);
-              const tolerance = gridSize * 1.5;
-              if (deltaX <= tolerance && deltaY <= tolerance) {
-                handleSnapToTarget(pieceId);
+            if (isInWaitingArea) {
+              // 拖拽到待拼接区域：重置拼图块位置
+              setPieces(prevPieces => {
+                return prevPieces.map(p => {
+                  if (p.id === pieceId) {
+                    return {
+                      ...p,
+                      x: 0, // 重置位置，让它回到待拼接区域显示
+                      y: 0,
+                      isCorrect: false // 标记为未完成
+                    };
+                  }
+                  return p;
+                });
+              });
+
+              // 通知外部组件拼图块已移回
+              if (onPieceMove) {
+                onPieceMove(pieceId, 0, 0);
+              }
+            } else {
+              // 拖拽到拼接板区域：进行网格对齐和吸附检查
+              const alignedX = Math.round((finalPieceX - gridOffset) / gridSize) * gridSize + gridOffset;
+              const alignedY = Math.round((finalPieceY - gridOffset) / gridSize) * gridSize + gridOffset;
+
+              // 更新拼图块状态
+              setPieces(prevPieces => {
+                return prevPieces.map(p => {
+                  if (p.id === pieceId) {
+                    // 检查是否在正确位置（根据原始数据）
+                    const targetX = piece.expandedPosition.x + gridOffset;
+                    const targetY = piece.expandedPosition.y + gridOffset;
+                    const isAtCorrectPosition = Math.abs(alignedX - targetX) < 30 && 
+                                               Math.abs(alignedY - targetY) < 30;
+                    
+                    return {
+                      ...p,
+                      x: alignedX,
+                      y: alignedY,
+                      isCorrect: isAtCorrectPosition // 根据位置准确性更新状态
+                    };
+                  }
+                  return p;
+                });
+              });
+
+              // 通知外部组件拼图块位置
+              if (onPieceMove) {
+                onPieceMove(pieceId, alignedX, alignedY);
               }
             }
+
+            // 重置拖拽状态
+            event.target.setAttribute('data-x', '0');
+            event.target.setAttribute('data-y', '0');
+            event.target.style.transform = '';
           }
         });
     });
@@ -290,7 +329,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     });
   }, [pieces.map(p => `${p.id}-${p.x}-${p.y}`).join(',')]); // 依赖于每个拼图块的位置
 
-  // 处理拼图块选择
+  // 处理拼图块选择和移动
   const handlePieceClick = useCallback((pieceId: string) => {
     const piece = pieces.find(p => p.id === pieceId);
     if (!piece) return;
@@ -298,13 +337,59 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     const isInWaiting = !piece.isCorrect;
 
     if (isInWaiting) {
-      // 在待拼接区域：选中/取消选中
-      setSelectedPieceId(selectedPieceId === pieceId ? null : pieceId);
+      // 在待拼接区域：直接移动到拼接板中心位置
+      const boardCenterX = 300; // 拼接板中心X坐标
+      const boardCenterY = 250; // 拼接板中心Y坐标
+      
+      setPieces(prevPieces => {
+        return prevPieces.map(p => {
+          if (p.id === pieceId) {
+            const newX = boardCenterX - piece.expandedSize.width / 2;
+            const newY = boardCenterY - piece.expandedSize.height / 2;
+            
+            return {
+              ...p,
+              x: newX,
+              y: newY,
+              isCorrect: false // 标记为已放置但未完成（需要用户调整到正确位置）
+            };
+          }
+          return p;
+        });
+      });
+      
+      // 通知外部组件拼图块已移动
+      if (onPieceMove) {
+        const newX = boardCenterX - piece.expandedSize.width / 2;
+        const newY = boardCenterY - piece.expandedSize.height / 2;
+        onPieceMove(pieceId, newX, newY);
+      }
+      
+      setSelectedPieceId(pieceId);
     } else {
-      // 在拼接板上：选中/取消选中
-      setSelectedPieceId(selectedPieceId === pieceId ? null : pieceId);
+      // 在拼接板上：将拼图块移回待拼接区域
+      setPieces(prevPieces => {
+        return prevPieces.map(p => {
+          if (p.id === pieceId) {
+            return {
+              ...p,
+              x: 0, // 重置位置，让它回到待拼接区域显示
+              y: 0,
+              isCorrect: false // 标记为未完成
+            };
+          }
+          return p;
+        });
+      });
+      
+      // 通知外部组件拼图块已移回
+      if (onPieceMove) {
+        onPieceMove(pieceId, 0, 0);
+      }
+      
+      setSelectedPieceId(null);
     }
-  }, [selectedPieceId, pieces]);
+  }, [pieces, onPieceMove]);
 
   // 处理拼接板点击：将选中的拼图块移动到点击位置
   const handleBoardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
@@ -366,17 +451,18 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     const incorrectPieces = pieces.filter(piece => !piece.isCorrect && piece.isDraggable);
     if (incorrectPieces.length === 0) return;
 
+
     const randomPiece = incorrectPieces[Math.floor(Math.random() * incorrectPieces.length)];
 
     setPieces(prevPieces =>
       prevPieces.map(piece =>
         piece.id === randomPiece.id
           ? {
-            ...piece,
-            x: piece.basePosition.x,
-            y: piece.basePosition.y,
-            isCorrect: true
-          }
+              ...piece,
+              x: piece.basePosition.x,
+              y: piece.basePosition.y,
+              isCorrect: true
+            }
           : piece
       )
     );
@@ -430,17 +516,26 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
           {pieces.filter(piece => !piece.isCorrect).map((piece, _index) => (
             <div
               key={`waiting-${piece.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePieceClick(piece.id);
-              }}
               className={`
-                relative cursor-pointer rounded-lg transition-all duration-200 p-2
+                puzzle-piece relative cursor-pointer rounded-lg transition-all duration-200 p-2
                 ${selectedPieceId === piece.id
                   ? 'bg-blue-50 border-2 border-blue-500 shadow-lg scale-105'
                   : 'bg-gray-50 border-2 border-transparent hover:border-gray-300 hover:shadow-md'
                 }
               `}
+              data-piece-id={piece.id}
+              data-x="0"
+              data-y="0"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePieceClick(piece.id);
+              }}
+              style={{
+                position: 'relative',
+                width: piece.expandedSize.width,
+                height: piece.expandedSize.height,
+                cursor: 'grab'
+              }}
             >
               <div className="relative aspect-square">
                 <img
@@ -452,6 +547,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
                   }}
                   draggable={false}
                 />
+
 
                 {/* 选中指示器 */}
                 {selectedPieceId === piece.id && (
@@ -583,7 +679,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
         </div>
 
         {/* 拼接板标题 */}
-        <div
+  <div
           style={{
             position: 'absolute',
             top: 5,
