@@ -29,15 +29,19 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 格式化时间显示（秒）
-  const formatTimeMs = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
+  // 格式化时间显示（毫秒）
+  const formatTimeMs = (milliseconds: number): string => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    const ms = milliseconds % 1000;
     
     if (minutes > 0) {
-      return `${minutes}分${remainingSeconds}秒`;
+      return `${minutes}分${seconds}秒`;
+    } else if (seconds > 0) {
+      return `${seconds}.${Math.floor(ms / 100)}秒`;
     } else {
-      return `${remainingSeconds}秒`;
+      return `${ms}毫秒`;
     }
   };
 
@@ -394,7 +398,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
                 <div className="table-header">
                   <span className="rank">排名</span>
                   <span className="player">玩家</span>
-                  <span className="stars">星数</span>
                   <span className="score">分数</span>
                   <span className="time">用时</span>
                   <span className="moves">步数</span>
@@ -411,7 +414,6 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
                       )}
                     </span>
                     <span className="player">{entry.playerName}</span>
-                    <span className="stars">{entry.totalStars || '-'}</span>
                     <span className="score">{entry.score}</span>
                     <span className="time">{formatTimeMs(entry.completionTime)}</span>
                     <span className="moves">{entry.moves}</span>

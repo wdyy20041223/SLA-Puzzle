@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { cloudStorage } from '../services/cloudStorage';
 import { LeaderboardService } from '../services/leaderboardService';
 import { Challenge } from './DailyChallenge';
+import './DailyChallengeGame.css';
 
 interface DailyChallengeGameProps {
   onBackToMenu: () => void;
@@ -36,6 +37,12 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [remainingTime, setRemainingTime] = useState(challenge.timeLimit);
   const [moves, setMoves] = useState(0);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
+  // 检查特效限制
+  const isPreviewDisabled = challenge.effects?.includes('no_preview') || challenge.effects?.includes('一叶障目');
+  const isAnswerDisabled = challenge.effects?.includes('no_mistakes') || challenge.effects?.includes('最终防线');
 
   // 使用usePuzzleGame钩子管理方形拼图状态
   const { 
@@ -51,6 +58,135 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     handleDragEnd,
     handleDragOver
   } = usePuzzleGame();
+  
+  // 特效实现状态
+  const [effectStates, setEffectStates] = useState({
+    brightnessPhase: 0, // 璀璨星河特效的亮度相位
+    visibleSlots: new Set<number>(), // 管中窥豹特效显示的槽位
+    cornerOnlyMode: false, // 作茧自缚特效是否只能在角落放置
+    hasStepError: false, // 最终防线特效是否已有错误
+    actualMoves: 0, // 举步维艰特效的实际步数（显示会翻倍）
+  });
+
+  // 检查是否只能在角落放置（作茧自缚特效）
+  const isCornerSlot = useCallback((slotIndex: number) => {
+    if (!gameState) return false;
+    const { rows, cols } = gameState.config.gridSize;
+    const corners = [0, cols - 1, (rows - 1) * cols, rows * cols - 1];
+    return corners.includes(slotIndex);
+  }, [gameState]);
+
+  // 检查是否可以放置到该槽位（根据特效规则）
+  const canPlaceToSlot = useCallback((slotIndex: number) => {
+    // 作茧自缚特效：只能在角落开始
+    if ((challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) && 
+        gameState && gameState.answerGrid.every(slot => slot === null)) {
+      return isCornerSlot(slotIndex);
+    }
+    
+    // 管中窥豹特效：只能在可见槽位放置
+    if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
+      return effectStates.visibleSlots.has(slotIndex);
+    }
+    
+    return true;
+  }, [challenge.effects, gameState, isCornerSlot, effectStates.visibleSlots]);
+
+  // 获取特效CSS类名
+  const getEffectClasses = useCallback(() => {
+    const classes: string[] = [];
+    
+    // 雾里探花特效：模糊未选中的拼图块
+    if (challenge.effects?.includes('blur') || challenge.effects?.includes('雾里探花')) {
+      classes.push('effect-blur-unselected');
+    }
+    
+    // 一手遮天特效：放置后的拼图块变黑
+    if (challenge.effects?.includes('invisible') || challenge.effects?.includes('一手遮天')) {
+      classes.push('effect-invisible-placed');
+    }
+    
+    return classes.join(' ');
+  }, [challenge.effects]);
+
+  // 获取特效内联样式
+  const getEffectStyles = useCallback(() => {
+    const styles: React.CSSProperties = {};
+    
+    // 璀璨星河特效：答题区亮度变化
+    if (challenge.effects?.includes('brightness') || challenge.effects?.includes('璀璨星河')) {
+      const brightness = 0.7 + 0.3 * Math.sin(effectStates.brightnessPhase); // 0.7到1.0之间变化
+      styles.filter = `brightness(${brightness})`;
+    }
+    
+    return styles;
+  }, [challenge.effects, effectStates.brightnessPhase]);
+
+  // 计算特效总星数
+  const getTotalStars = useCallback(() => {
+    if (!challenge.effects) return 0;
+    return challenge.effects.reduce((total, effectId) => {
+      // 基于特效ID计算星数
+      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'mirror', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '镜中奇缘', '举步维艰'].includes(effectId)) {
+        return total + 3;
+      } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+        return total + 4;
+      } else if (effectId.includes('5') || ['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
+        return total + 5;
+      }
+      return total;
+    }, 0);
+  }, [challenge.effects]);
+
+  // 获取特效名称
+  const getEffectName = useCallback((effectId: string) => {
+    const effectMap: { [key: string]: string } = {
+      'rotate': '天旋地转', '天旋地转': '天旋地转',
+      'blur': '雾里探花', '雾里探花': '雾里探花',
+      'partial': '管中窥豹', '管中窥豹': '管中窥豹',
+      'mirror': '镜中奇缘', '镜中奇缘': '镜中奇缘',
+      'double_steps': '举步维艰', '举步维艰': '举步维艰',
+      'corner_start': '作茧自缚', '作茧自缚': '作茧自缚',
+      'invisible': '一手遮天', '一手遮天': '一手遮天',
+      'no_preview': '一叶障目', '一叶障目': '一叶障目',
+      'time_limit': '生死时速', '生死时速': '生死时速',
+      'no_mistakes': '最终防线', '最终防线': '最终防线',
+      'step_limit': '精打细算', '精打细算': '精打细算',
+      'brightness': '璀璨星河', '璀璨星河': '璀璨星河'
+    };
+    return effectMap[effectId] || effectId;
+  }, []);
+
+  // 获取特效描述
+  const getEffectDescription = useCallback((effectId: string) => {
+    const descriptionMap: { [key: string]: string } = {
+      'rotate': '本关卡拼图块包含旋转与翻转', '天旋地转': '本关卡拼图块包含旋转与翻转',
+      'blur': '本关卡拼图块在鼠标选中前模糊化', '雾里探花': '本关卡拼图块在鼠标选中前模糊化',
+      'partial': '本关卡答题区最开始只展示一半的拼图块', '管中窥豹': '本关卡答题区最开始只展示一半的拼图块',
+      'mirror': '本关卡正确答案与原图块成镜像关系', '镜中奇缘': '本关卡正确答案与原图块成镜像关系',
+      'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
+      'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落',
+      'invisible': '本关卡放置后的拼图块为纯黑色不可见', '一手遮天': '本关卡放置后的拼图块为纯黑色不可见',
+      'no_preview': '本关卡不允许查看原图', '一叶障目': '本关卡不允许查看原图',
+      'time_limit': '本关卡限时126*(拼图块数量/9)秒', '生死时速': '本关卡限时126*(拼图块数量/9)秒',
+      'no_mistakes': '本关卡不允许任何一次放置失误', '最终防线': '本关卡不允许任何一次放置失误',
+      'step_limit': '本关卡必须在1.5*拼图块数量次步数内完成', '精打细算': '本关卡必须在1.5*拼图块数量次步数内完成',
+      'brightness': '答题区拼图块亮度随时间呈正弦变化', '璀璨星河': '答题区拼图块亮度随时间呈正弦变化'
+    };
+    return descriptionMap[effectId] || '未知特效';
+  }, []);
+
+  // 获取特效星级
+  const getEffectStars = useCallback((effectId: string) => {
+    if (['rotate', 'blur', 'partial', 'mirror', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '镜中奇缘', '举步维艰'].includes(effectId)) {
+      return 3;
+    } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+      return 4;
+    } else if (['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
+      return 5;
+    }
+    return 0;
+  }, []);
 
   // 生成拼图配置
   const generatePuzzle = useCallback(async () => {
@@ -72,9 +208,19 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           name: challenge.title
         });
         
+        // 应用特效：天旋地转 - 给拼图块添加随机旋转和翻转
+        if (challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转')) {
+          config.pieces = config.pieces.map(piece => ({
+            ...piece,
+            rotation: Math.floor(Math.random() * 4) * 90, // 0, 90, 180, 270度随机旋转
+            isFlipped: Math.random() > 0.5 // 随机翻转
+          }));
+        }
+        
         setPuzzleConfig(config);
         setProgress({ correct: 0, total: config.pieces.length, percentage: 0 });
         initializeGame(config);
+        
       } else {
         const config = await IrregularPuzzleGenerator.generateSimpleIrregular(
           puzzleImageData,
@@ -84,12 +230,31 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         setPuzzleConfig(config);
         setProgress({ correct: 0, total: config.pieces.length, percentage: 0 });
       }
+      
+      // 设置时间限制（生死时速特效）
+      const timeLimit = challenge.effects?.includes('time_limit') || challenge.effects?.includes('生死时速') 
+        ? (() => {
+            const gridParts = challenge.gridSize.split('x');
+            const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
+            return Math.floor(126 * (totalPieces / 9));
+          })()
+        : challenge.timeLimit;
+        
       setGameStartTime(new Date());
       setIsComplete(false);
       setIsFailed(false);
       setElapsedTime(0);
-      setRemainingTime(challenge.timeLimit);
+      setRemainingTime(timeLimit);
       setMoves(0);
+      
+      // 重置特效状态
+      setEffectStates({
+        brightnessPhase: 0,
+        visibleSlots: new Set(),
+        cornerOnlyMode: false,
+        hasStepError: false,
+        actualMoves: 0,
+      });
       
     } catch (err) {
       console.error('生成异形拼图失败:', err);
@@ -97,7 +262,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [challenge.puzzleImage, challenge.gridSize, challenge.timeLimit]);
+  }, [challenge.puzzleImage, challenge.gridSize, challenge.title, challenge.effects, challenge.timeLimit, puzzleType, initializeGame]);
 
   const handleRestart = () => {
     const canRestart = onRestartChallenge?.();
@@ -111,6 +276,30 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     generatePuzzle();
   }, [generatePuzzle]);
 
+  // 独立的特效初始化
+  useEffect(() => {
+    if (!puzzleConfig || puzzleType !== 'square') return;
+    
+    const [rows, cols] = challenge.gridSize.split('x').map(Number);
+    
+    setEffectStates(prev => {
+      const newStates = { ...prev };
+      
+      // 管中窥豹特效：只显示一半的槽位
+      if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
+        const totalSlots = rows * cols;
+        const visibleCount = Math.floor(totalSlots / 2);
+        const allSlots = Array.from({ length: totalSlots }, (_, i) => i);
+        const shuffled = allSlots.sort(() => Math.random() - 0.5);
+        newStates.visibleSlots = new Set(shuffled.slice(0, visibleCount));
+      } else {
+        newStates.visibleSlots = new Set();
+      }
+      
+      return newStates;
+    });
+  }, [puzzleConfig, challenge.effects, challenge.gridSize, puzzleType]);
+
   // 计时器更新
   useEffect(() => {
     if (isComplete || isFailed) return;
@@ -118,10 +307,28 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const elapsed = Math.floor((now - gameStartTime.getTime()) / 1000);
-      const remaining = challenge.timeLimit - elapsed;
+      
+      // 计算时间限制（生死时速特效）
+      const timeLimit = challenge.effects?.includes('time_limit') || challenge.effects?.includes('生死时速') 
+        ? (() => {
+            const gridParts = challenge.gridSize.split('x');
+            const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
+            return Math.floor(126 * (totalPieces / 9));
+          })()
+        : challenge.timeLimit;
+        
+      const remaining = timeLimit - elapsed;
       
       setElapsedTime(elapsed);
       setRemainingTime(remaining);
+      
+      // 璀璨星河特效：更新亮度相位
+      if (challenge.effects?.includes('brightness') || challenge.effects?.includes('璀璨星河')) {
+        setEffectStates(prev => ({
+          ...prev,
+          brightnessPhase: (elapsed * 0.05) % (2 * Math.PI) // 20秒一个周期
+        }));
+      }
       
       // 检查时间是否用完
       if (remaining <= 0) {
@@ -130,28 +337,81 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [gameStartTime, isComplete, isFailed, challenge.timeLimit]);
+  }, [gameStartTime, isComplete, isFailed, challenge.effects, challenge.gridSize, challenge.timeLimit]);
 
   // 处理拼图完成
   const handlePuzzleComplete = useCallback(() => {
     setIsComplete(true);
     
     // 检查是否在完美步数内完成
-    const isPerfect = moves <= challenge.perfectMoves;
+    const stepLimit = challenge.effects?.includes('step_limit') || challenge.effects?.includes('精打细算') 
+      ? (() => {
+          const gridParts = challenge.gridSize.split('x');
+          const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
+          return Math.floor(1.5 * totalPieces);
+        })()
+      : null;
+    const actualMoves = challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') 
+      ? effectStates.actualMoves : moves;
+    const isPerfect = stepLimit ? actualMoves <= stepLimit : actualMoves <= challenge.perfectMoves;
     
     // 更新用户挑战记录
     if (authState.isAuthenticated && authState.user) {
       updateChallengeRecord(true, isPerfect);
     }
-  }, [moves, challenge.perfectMoves, authState]);
+  }, [moves, challenge.perfectMoves, challenge.effects, challenge.gridSize, effectStates.actualMoves, authState]);
 
-  // 检查方形拼图是否完成 - 现在由usePuzzleGame钩子管理
-  const checkSquarePuzzleCompletion = useCallback(() => {
-    // 此函数已不再需要，因为完成检测逻辑已集成到usePuzzleGame钩子中
-    if (puzzleType === 'square' && gameState?.isCompleted) {
+  // 特效增强的拼图块放置函数
+  const enhancedPlacePieceToSlot = useCallback((pieceId: string, slotIndex: number) => {
+    // 检查特效限制
+    if (!canPlaceToSlot(slotIndex)) {
+      // 如果是最终防线特效，记录错误
+      if (challenge.effects?.includes('no_mistakes') || challenge.effects?.includes('最终防线')) {
+        setEffectStates(prev => ({ ...prev, hasStepError: true }));
+        setIsFailed(true);
+        if (authState.isAuthenticated && authState.user) {
+          updateChallengeRecord(false, false);
+        }
+        return;
+      }
+      return; // 其他特效只是阻止放置
+    }
+    
+    // 执行正常的放置逻辑
+    placePieceToSlot(pieceId, slotIndex);
+    
+    // 更新步数（考虑举步维艰特效）
+    if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰')) {
+      setEffectStates(prev => ({ ...prev, actualMoves: prev.actualMoves + 1 }));
+      setMoves(prev => prev + 2); // 显示为2步
+    } else {
+      setMoves(prev => prev + 1);
+    }
+    
+    // 检查精打细算特效的步数限制
+    if (challenge.effects?.includes('step_limit') || challenge.effects?.includes('精打细算')) {
+      const gridParts = challenge.gridSize.split('x');
+      const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
+      const stepLimit = Math.floor(1.5 * totalPieces);
+      const currentActualMoves = challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') 
+        ? effectStates.actualMoves + 1 : moves + 1;
+      if (currentActualMoves > stepLimit) {
+        setIsFailed(true);
+        if (authState.isAuthenticated && authState.user) {
+          updateChallengeRecord(false, false);
+        }
+        return;
+      }
+    }
+    
+  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState]);
+
+  // 监听游戏完成状态（仿照普通关卡的完成检测机制）
+  useEffect(() => {
+    if (gameState?.isCompleted && !isComplete) {
       handlePuzzleComplete();
     }
-  }, [puzzleType, gameState?.isCompleted, handlePuzzleComplete]);
+  }, [gameState?.isCompleted, isComplete, handlePuzzleComplete]);
   
   // 处理时间用完
   const handleTimeUp = useCallback(() => {
@@ -169,7 +429,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   }, []);
 
   // 更新挑战记录
-  const updateChallengeRecord = async (completed: boolean, isPerfect: boolean) => {
+  const updateChallengeRecord = async (completed: boolean, _isPerfect: boolean) => {
     try {
       // 获取用户数据
       const usersResponse = await cloudStorage.getUsers();
@@ -216,55 +476,59 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         (record: any) => record.date === today
       );
       
-      // 计算每日挑战得分
+      // 计算每日挑战得分 - 新评分公式：(0.1*星星总数+1)*(60/用时)*(1.2*拼图块数/步数)*100
       const calculateDailyChallengeScore = (
         completed: boolean,
-        isPerfect: boolean,
+        _isPerfect: boolean,
         timeUsed: number,
         moves: number,
-        timeLimit: number,
-        perfectMoves: number
+        starCount: number, // 挑战星数
+        puzzlePieces: number // 拼图块总数
       ): number => {
         if (!completed) return 0;
 
-        let score = 100; // 基础完成分数
+        // 星数加成：(0.1 * 星星总数 + 1)
+        const starBonus = 0.1 * starCount + 1;
+        
+        // 时间效率：60 / 用时（秒）
+        const timeEfficiency = 60 / Math.max(timeUsed, 1);
+        
+        // 步数效率：1.2 * 拼图块数 / 步数
+        const moveEfficiency = (1.2 * puzzlePieces) / Math.max(moves, 1);
+        
+        // 最终得分
+        const finalScore = starBonus * timeEfficiency * moveEfficiency * 100;
 
-        // 时间奖励 (最多40分)
-        const timeRatio = Math.max(0, (timeLimit - timeUsed) / timeLimit);
-        score += Math.round(timeRatio * 40);
-
-        // 步数奖励 (最多30分)
-        if (moves <= perfectMoves) {
-          score += 30; // 完美步数
-        } else {
-          const movesRatio = Math.max(0, (perfectMoves * 2 - moves) / perfectMoves);
-          score += Math.round(movesRatio * 30);
-        }
-
-        // 完美奖励 (额外20分)
-        if (isPerfect) {
-          score += 20;
-        }
-
-        // 难度奖励 (最多10分)
-        const difficultyBonus = {
-          easy: 0,
-          medium: 3,
-          hard: 6,
-          expert: 10
-        };
-        score += difficultyBonus[challenge.difficulty] || 0;
-
-        return Math.max(0, score);
+        return Math.round(Math.max(0, finalScore));
       };
 
+      // 计算拼图块总数
+      const getPuzzlePieces = (gridSize: string): number => {
+        const [rows, cols] = gridSize.split('x').map(Number);
+        return rows * cols;
+      };
+
+      // 计算挑战星数
+      const challengeStars = challenge.effects?.reduce((total, effectId) => {
+        // 基于特效ID计算星数
+        if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'mirror', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '镜中奇缘', '举步维艰'].includes(effectId)) {
+          return total + 3;
+        } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+          return total + 4;
+        } else if (effectId.includes('5') || ['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
+          return total + 5;
+        }
+        return total;
+      }, 0) || 0;
+
+      const puzzlePieces = getPuzzlePieces(challenge.gridSize);
       const score = calculateDailyChallengeScore(
         completed,
         isPerfect,
         elapsedTime,
         moves,
-        challenge.timeLimit,
-        challenge.perfectMoves
+        challengeStars,
+        puzzlePieces
       );
 
       // 创建或更新挑战记录
@@ -324,7 +588,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           isPerfect: isPerfect,
           consecutiveDays: consecutiveDays,
           totalChallengesCompleted: totalChallengesCompleted,
-          averageScore: averageScore
+          averageScore: averageScore,
+          totalStars: challengeStars // 使用计算出的星数字段
         });
       }
       
@@ -461,19 +726,65 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               <div className="text-xs text-gray-500">剩余时间</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-semibold text-gray-700">
-                {progress.correct}/{progress.total}
-              </div>
+              <div className="text-lg font-semibold text-gray-700">{progress.correct}/{progress.total}</div>
               <div className="text-xs text-gray-500">正确块数</div>
             </div>
-            <div className="text-center">
+            <div className={`text-center ${challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? 'double-steps-indicator' : ''}`}>
               <div className="text-lg font-semibold text-gray-700">{moves}</div>
-              <div className="text-xs text-gray-500">当前步数</div>
+              <div className="text-xs text-gray-500">
+                {challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? '显示步数' : '当前步数'}
+              </div>
             </div>
           </div>
 
           {/* 右侧：游戏操作 */}
           <div className="flex items-center space-x-3">
+            {/* 显示当前激活的特效 */}
+            {challenge.effects && challenge.effects.length > 0 && (
+              <div className="text-center">
+                <div className="text-sm font-semibold text-purple-600">
+                  {challenge.effects.length}个特效
+                </div>
+                <div className="text-xs text-gray-500">
+                  {getTotalStars()}星加成
+                </div>
+              </div>
+            )}
+            
+            {/* 步数限制提示（精打细算特效） */}
+            {(challenge.effects?.includes('step_limit') || challenge.effects?.includes('精打细算')) && (
+              (() => {
+                const gridParts = challenge.gridSize.split('x');
+                const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
+                const stepLimit = Math.floor(1.5 * totalPieces);
+                const currentMoves = challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? effectStates.actualMoves : moves;
+                return (
+                  <div className={`text-center ${currentMoves > stepLimit * 0.8 ? 'step-limit-warning' : ''}`}>
+                    <div className="text-sm font-semibold text-orange-600">
+                      {stepLimit - currentMoves}
+                    </div>
+                    <div className="text-xs text-gray-500">剩余步数</div>
+                  </div>
+                );
+              })()
+            )}
+            
+            <Button 
+              onClick={() => setShowPreview(!showPreview)}
+              variant="secondary" 
+              size="small"
+              disabled={isPreviewDisabled}
+            >
+              {isPreviewDisabled ? '🚫 原图' : (showPreview ? '🙈 隐藏原图' : '🖼️ 查看原图')}
+            </Button>
+            <Button 
+              onClick={() => setShowAnswer(!showAnswer)}
+              variant="secondary" 
+              size="small"
+              disabled={isAnswerDisabled}
+            >
+              {isAnswerDisabled ? '🚫 答案' : (showAnswer ? '🙈 隐藏答案' : '💡 显示答案')}
+            </Button>
             <Button onClick={handleRestart} variant="secondary" size="small">
               🔄 重新开始
             </Button>
@@ -501,27 +812,104 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
 
       {/* 游戏主体 */}
       <div className="p-6">
+        {/* 特效提示信息 */}
+        {challenge.effects && challenge.effects.length > 0 && (
+          <div className="mb-4 bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <h3 className="text-lg font-semibold text-purple-800 mb-2 flex items-center">
+              ✨ 当前特效
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {challenge.effects.map((effectId, index) => {
+                const effectName = getEffectName(effectId);
+                const effectDescription = getEffectDescription(effectId);
+                const effectStars = getEffectStars(effectId);
+                return (
+                  <div key={index} className="bg-white rounded-lg p-3 border border-purple-100">
+                    <div className="font-semibold text-purple-700 flex items-center justify-between">
+                      <span>{effectName}</span>
+                      <span className="text-yellow-500">{'★'.repeat(effectStars)}</span>
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">{effectDescription}</div>
+                  </div>
+                );
+              })}
+            </div>
+            {/* 镜中奇缘特效提示 */}
+            {(challenge.effects.includes('mirror') || challenge.effects.includes('镜中奇缘')) && (
+              <div className="mirror-effect-hint">
+                💫 镜像模式：拼图块需要水平翻转才能正确拼接
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 预览和答案显示区域 */}
+        {(showPreview || showAnswer) && (
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {showPreview && !isPreviewDisabled && (
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  🖼️ 原图预览
+                </h3>
+                <div className="flex justify-center">
+                  <img 
+                    src={challenge.puzzleImage} 
+                    alt="原图预览" 
+                    className="max-w-full max-h-60 rounded-lg shadow-sm"
+                    style={{ objectFit: 'contain' }}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {showAnswer && !isAnswerDisabled && (
+              <div className="bg-white rounded-lg shadow-md p-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                  💡 答案提示
+                </h3>
+                <div className="space-y-3">
+                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-800">
+                      <strong>💎 完美步数目标：</strong> {challenge.perfectMoves} 步
+                    </p>
+                  </div>
+                  <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-800">
+                      <strong>🎯 解题建议：</strong> 
+                      {challenge.gridSize === '3x3' && '先完成四个角落，然后填充边缘，最后完成中心区域。'}
+                      {challenge.gridSize === '4x4' && '从外向内逐层完成，优先放置边角特征明显的拼图块。'}
+                      {challenge.gridSize === '5x5' && '分区域完成，先识别特征明显的区域作为起点。'}
+                      {challenge.gridSize === '6x6' && '采用分块策略，将整个拼图分为几个区域分别完成。'}
+                    </p>
+                  </div>
+                  <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-800">
+                      <strong>⏱️ 时间管理：</strong> 剩余时间 {Math.floor(remainingTime / 60)}:{(remainingTime % 60).toString().padStart(2, '0')}，
+                      建议每块用时不超过 {Math.floor(remainingTime / (stats.totalPieces - progress.correct))} 秒
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div 
-          className="bg-white rounded-lg shadow-lg overflow-hidden"
+          className={`bg-white rounded-lg shadow-lg overflow-hidden ${getEffectClasses()}`}
           style={{ 
             width: '1200px', 
             height: '650px',
-            margin: '0 auto'
+            margin: '0 auto',
+            ...getEffectStyles()
           }}
         >
-          {/* 注意：这里禁用了预览图片功能 */}
           {puzzleType === 'square' && gameState ? (
             <PuzzleWorkspace
               gameState={gameState}
               selectedPiece={selectedPiece}
-              showAnswers={false}
+              showAnswers={showAnswer && !isAnswerDisabled}
               onPieceSelect={handlePieceSelect}
-              onPlacePiece={(pieceId: string, slotIndex: number) => {
-                placePieceToSlot(pieceId, slotIndex);
-                setMoves(prev => prev + 1);
-                // 检查是否完成拼图
-                checkSquarePuzzleCompletion();
-              }}
+              onPlacePiece={enhancedPlacePieceToSlot}
               onRemovePiece={removePieceFromSlot}
               onRotatePiece={(id) => rotatePiece(id, 90)}
               onFlipPiece={flipPiece}

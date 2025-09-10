@@ -12,7 +12,7 @@ import { GameHelpButton } from '../common/GameHelp';
 import { useAuth } from '../../contexts/AuthContext';
 import { calculateGameCompletion } from '../../utils/rewardSystem';
 import { validateGameReward } from '../../utils/rewardDebugger';
-import { LeaderboardService } from '../../services/leaderboardService';
+import { HybridLeaderboardService } from '../../services/hybridLeaderboardService';
 import './PuzzleGame.css';
 
 interface PuzzleGameProps {
@@ -251,7 +251,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
             // 记录到排行榜（仅限方形拼图）
             if (authState.user && puzzleConfig.pieceShape === 'square') {
               try {
-                LeaderboardService.addEntry({
+                await HybridLeaderboardService.addEntry({
                   puzzleId: puzzleConfig.id,
                   puzzleName: puzzleConfig.name,
                   playerName: authState.user.username,

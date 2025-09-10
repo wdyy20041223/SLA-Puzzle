@@ -1,0 +1,524 @@
+/* 每日挑战主容器 */
+.daily-challenge-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  color: white;
+}
+
+.daily-challenge-container.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-spinner {
+  font-size: 24px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* 头部区域 */
+.daily-challenge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.daily-challenge-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-stats {
+  display: flex;
+  gap: 15px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* 标签页 */
+.challenge-tabs {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 5px;
+  margin-bottom: 30px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.tab-button.active {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* 内容区域 */
+.challenge-content {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 30px;
+  backdrop-filter: blur(10px);
+}
+
+/* 今日挑战页面 */
+.today-challenges {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.challenge-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  min-width: 120px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* 拼图预览区域 */
+.daily-puzzle-section h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #FFD700;
+}
+
+.puzzle-preview {
+  display: flex;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+}
+
+.puzzle-preview img {
+  width: 120px;
+  height: 120px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.puzzle-info {
+  flex: 1;
+}
+
+.puzzle-info h4 {
+  font-size: 20px;
+  margin: 0 0 10px 0;
+  color: #FFD700;
+}
+
+.puzzle-info p {
+  margin: 0 0 15px 0;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+.puzzle-details {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+}
+
+.puzzle-details span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 5px 10px;
+  border-radius: 6px;
+}
+
+/* 特效选择区域 */
+.effect-selection-section {
+  margin-bottom: 30px;
+}
+
+.effect-selection-section h4 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #FFD700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.effect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+
+.effect-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.effect-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.effect-card.selected {
+  border-color: #FFD700;
+  background: rgba(255, 215, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+}
+
+.effect-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #FFD700;
+}
+
+.effect-description {
+  font-size: 14px;
+  opacity: 0.9;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.effect-star {
+  font-size: 14px;
+  color: #FFD700;
+  text-align: right;
+}
+
+/* 挑战操作区域 */
+.challenge-actions {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.selected-effects-summary {
+  font-size: 16px;
+  margin-bottom: 15px;
+  color: #FFD700;
+  font-weight: 500;
+}
+
+.no-effects-hint {
+  display: block;
+  font-size: 14px;
+  color: #90EE90;
+  font-weight: normal;
+  margin-top: 5px;
+}
+
+/* 基础游戏控制按钮 */
+.game-controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.game-controls .btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 15px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.game-controls .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.game-controls .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 辅助功能区域 */
+.helper-section {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preview-section,
+.answer-section {
+  margin-bottom: 20px;
+}
+
+.preview-section:last-child,
+.answer-section:last-child {
+  margin-bottom: 0;
+}
+
+.preview-section h4,
+.answer-section h4 {
+  color: #FFD700;
+  margin-bottom: 15px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-image {
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.preview-image img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.answer-grid {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.answer-hint {
+  color: #90EE90;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* 历史记录页面 */
+.challenge-history h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #FFD700;
+}
+
+.empty-history {
+  text-align: center;
+  padding: 60px 20px;
+  opacity: 0.7;
+}
+
+.empty-history p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  align-items: center;
+}
+
+.history-date {
+  font-weight: bold;
+  color: #FFD700;
+}
+
+.history-challenge {
+  font-size: 16px;
+}
+
+.history-stars {
+  color: #FFD700;
+  font-size: 18px;
+}
+
+.history-status {
+  font-size: 14px;
+}
+
+/* 奖励页面 */
+.rewards-section h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #FFD700;
+}
+
+.rewards-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 30px;
+}
+
+.reward-stat {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 12px;
+  min-width: 120px;
+}
+
+.reward-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #FFD700;
+  margin-bottom: 5px;
+}
+
+.reward-label {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.unlocked-items h4 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #FFD700;
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.item-card {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.item-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.item-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.item-date {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.effect-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .daily-challenge-container {
+    padding: 15px;
+  }
+  
+  .daily-challenge-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .challenge-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .puzzle-preview {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .effect-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .history-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .rewards-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

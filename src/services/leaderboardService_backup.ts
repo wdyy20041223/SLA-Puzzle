@@ -81,16 +81,10 @@ export class LeaderboardService {
   ): LeaderboardEntry[] {
     const entries = this.getLeaderboard();
     
-    // 首先根据puzzleId找到对应的拼图名称
-    const puzzleConfig = this.getAllPuzzleConfigs().find(p => p.id === puzzleId);
-    if (!puzzleConfig) {
-      return []; // 如果找不到对应的拼图配置，返回空数组
-    }
-    
-    // 筛选特定拼图名称、难度和形状的记录
+    // 筛选特定拼图、难度和形状的记录
     const filteredEntries = entries.filter(entry => {
-      const basePuzzleName = this.extractBasePuzzleName(entry.puzzleName);
-      return basePuzzleName === puzzleConfig.name && 
+      const basePuzzleId = this.extractBasePuzzleId(entry.puzzleId);
+      return basePuzzleId === puzzleId && 
              entry.difficulty === difficulty && 
              entry.pieceShape === shape;
     });
@@ -246,10 +240,11 @@ export class LeaderboardService {
    */
   static getAllPuzzleConfigs(): Array<{ id: string; name: string }> {
     return [
-      // 图标类拼图 - 对应首页主要拼图（使用实际的拼图名称）
-      { id: 'tauri_logo', name: 'Tauri Logo' },
-      { id: 'vite_logo', name: 'Vite Logo' },
-      { id: 'react_logo', name: 'React Logo' },
+      // 基础拼图
+      { id: 'puzzle1', name: '初级拼图' },
+      { id: 'puzzle2', name: '中级拼图' },
+      { id: 'puzzle3', name: '高级拼图' },
+      { id: 'puzzle4', name: '专家拼图' },
       
       // 自然风光拼图
       { id: 'landscape1', name: '山景风光' },
@@ -257,18 +252,18 @@ export class LeaderboardService {
       { id: 'landscape3', name: '森林风光' },
       
       // 动物拼图
-      { id: 'cat1', name: '可爱小猫' },
+      { id: 'cat', name: '可爱小猫' },
       
       // 建筑拼图
-      { id: 'castle1', name: '古典建筑' },
+      { id: 'castle', name: '古典建筑' },
       
       // 动漫拼图
-      { id: 'anime1', name: '动漫角色' },
+      { id: 'character', name: '动漫角色' },
       
-      // 商店拼图素材 - 使用与AssetLibrary一致的名称
-      { id: 'puzzle_image_1', name: '森林花园' },
-      { id: 'puzzle_image_2', name: '黄昏日落' },
-      { id: 'puzzle_image_3', name: '玫瑰花园' },
+      // 商店自定义拼图
+      { id: 'test1', name: '森林花园' },
+      { id: 'test2', name: '黄昏日落' },
+      { id: 'test3', name: '玫瑰花园' },
     ];
   }
 
