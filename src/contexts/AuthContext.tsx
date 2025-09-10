@@ -700,55 +700,122 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAndUnlockAchievements = async (gameResult: GameCompletionResult, user: User) => {
     try {
       const achievementsToUnlock = [];
+      
+      // 获取用户已解锁的成就列表
+      const userAchievements = user.achievements || [];
+      
+      // 辅助函数：检查成就是否已解锁
+      const isAchievementUnlocked = (achievementId: string) => {
+        return userAchievements.includes(achievementId);
+      };
+
+      // 获取官方成就ID列表（与rewardSystem.ts保持一致）
+      const getOfficialAchievementIds = () => {
+        return [
+          // 基础进度成就
+          'first_game',
+          'games_10', 
+          'games_50',
+          'games_100',
+          'games_500',
+          
+          // 难度专精成就
+          'easy_master',
+          'hard_challenger', 
+          'expert_elite',
+          
+          // 速度成就
+          'speed_demon',
+          // 'speed_runner', // 移除：速度跑者成就
+          'lightning_fast',
+          'time_master',
+          
+          // 技巧成就
+          'perfectionist',
+          'efficient_solver',
+          'no_mistakes',
+          
+          // 特殊时间成就
+          'night_owl',
+          'early_bird', 
+          'weekend_warrior',
+          
+          // 等级成就
+          // 'level_up', // 移除：等级提升成就
+          'level_10',
+          'level_25',
+          'max_level'
+        ];
+      };
+
+      const officialAchievementIds = getOfficialAchievementIds();
 
       // 检查各种成就条件
       const gamesCompleted = (user.gamesCompleted || 0) + 1;
 
-      // 进度成就
-      if (gamesCompleted === 1) {
+      // 进度成就 - 只有在未解锁且在官方列表中时才添加
+      if (gamesCompleted === 1 && !isAchievementUnlocked('first_game') && officialAchievementIds.includes('first_game')) {
         achievementsToUnlock.push({ achievementId: 'first_game', progress: 1 });
       }
-      if (gamesCompleted === 10) {
+      if (gamesCompleted === 10 && !isAchievementUnlocked('games_10') && officialAchievementIds.includes('games_10')) {
         achievementsToUnlock.push({ achievementId: 'games_10', progress: 1 });
       }
-      if (gamesCompleted === 50) {
+      if (gamesCompleted === 50 && !isAchievementUnlocked('games_50') && officialAchievementIds.includes('games_50')) {
         achievementsToUnlock.push({ achievementId: 'games_50', progress: 1 });
       }
-      if (gamesCompleted === 100) {
+      if (gamesCompleted === 100 && !isAchievementUnlocked('games_100') && officialAchievementIds.includes('games_100')) {
         achievementsToUnlock.push({ achievementId: 'games_100', progress: 1 });
       }
 
-      // 难度成就
-      if (gameResult.difficulty === 'easy') {
+      // 难度成就 - 只有在未解锁且在官方列表中时才添加
+      if (gameResult.difficulty === 'easy' && !isAchievementUnlocked('easy_master') && officialAchievementIds.includes('easy_master')) {
         achievementsToUnlock.push({ achievementId: 'easy_master', progress: 1 });
       }
-      if (gameResult.difficulty === 'hard') {
+      if (gameResult.difficulty === 'hard' && !isAchievementUnlocked('hard_challenger') && officialAchievementIds.includes('hard_challenger')) {
         achievementsToUnlock.push({ achievementId: 'hard_challenger', progress: 1 });
       }
-      if (gameResult.difficulty === 'expert') {
+      if (gameResult.difficulty === 'expert' && !isAchievementUnlocked('expert_solver') && officialAchievementIds.includes('expert_solver')) {
         achievementsToUnlock.push({ achievementId: 'expert_solver', progress: 1 });
       }
 
-      // 速度成就（假设小于60秒为快速完成）
-      if (gameResult.completionTime < 60) {
+      // 速度成就（假设小于60秒为快速完成）- 只有在未解锁且在官方列表中时才添加
+      if (gameResult.completionTime < 60 && !isAchievementUnlocked('speed_demon') && officialAchievementIds.includes('speed_demon')) {
         achievementsToUnlock.push({ achievementId: 'speed_demon', progress: 1 });
       }
 
-      // 新记录成就
-      if (gameResult.isNewRecord) {
+      // 新记录成就 - 只有在未解锁且在官方列表中时才添加
+      if (gameResult.isNewRecord && !isAchievementUnlocked('record_breaker') && officialAchievementIds.includes('record_breaker')) {
         achievementsToUnlock.push({ achievementId: 'record_breaker', progress: 1 });
       }
 
       // 批量解锁成就
       if (achievementsToUnlock.length > 0) {
-        console.log('尝试解锁成就:', achievementsToUnlock);
-        const response = await apiService.batchUpdateAchievements(achievementsToUnlock);
+        // 最终过滤：确保只有官方成就才会被解锁
+        const finalAchievementsToUnlock = achievementsToUnlock.filter(item => 
+          officialAchievementIds.includes(item.achievementId)
+        );
         
-        if (response.success) {
-          console.log('成就解锁成功:', response.data);
+        console.log('🔍 AuthContext成就过滤结果:', {
+          原始成就数量: achievementsToUnlock.length,
+          过滤后成就数量: finalAchievementsToUnlock.length,
+          被过滤的成就: achievementsToUnlock.filter(a => !officialAchievementIds.includes(a.achievementId)).map(a => a.achievementId),
+          保留的成就: finalAchievementsToUnlock.map(a => a.achievementId)
+        });
+        
+        if (finalAchievementsToUnlock.length > 0) {
+          console.log('尝试解锁新成就:', finalAchievementsToUnlock.map(a => a.achievementId));
+          const response = await apiService.batchUpdateAchievements(finalAchievementsToUnlock);
+          
+          if (response.success) {
+            console.log('成就解锁成功:', response.data);
+          } else {
+            console.error('成就解锁失败:', response.error);
+          }
         } else {
-          console.error('成就解锁失败:', response.error);
+          console.log('没有官方成就需要解锁');
         }
+      } else {
+        console.log('没有新成就需要解锁');
       }
     } catch (error) {
       console.error('检查成就时发生错误:', error);

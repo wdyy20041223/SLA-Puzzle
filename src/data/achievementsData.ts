@@ -174,18 +174,6 @@ export const createAchievements = (
     reward: '称号：闪电手'
   },
   {
-    id: 'speed_runner',
-    title: '速度跑者',
-    description: '在2分钟内完成任意难度拼图',
-    icon: '🏃',
-    category: 'performance',
-    progress: userAchievements.includes('speed_runner') ? 1 : 0,
-    maxProgress: 1,
-    isUnlocked: userAchievements.includes('speed_runner'),
-    rarity: 'rare',
-    reward: '称号：极速达人'
-  },
-  {
     id: 'lightning_fast',
     title: '闪电快手',
     description: '在1分钟内完成简单难度拼图',
@@ -287,18 +275,6 @@ export const createAchievements = (
   },
 
   // === 等级成就 ===
-  {
-    id: 'level_up',
-    title: '等级提升',
-    description: '升级到新等级',
-    icon: '⬆️',
-    category: 'milestone',
-    progress: userLevel,
-    maxProgress: userLevel,
-    isUnlocked: userAchievements.includes('level_up') || userLevel > 1,
-    rarity: 'common',
-    reward: '解锁新功能'
-  },
   {
     id: 'level_10',
     title: '十级达人',
