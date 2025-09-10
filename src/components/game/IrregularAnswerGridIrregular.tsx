@@ -1,10 +1,50 @@
+// 动态变换拼图块的up/down/left/right/rotation/flipX/flipY属性
+function transformPieceProps(piece: any, transform: { rotation?: number; flipX?: boolean; flipY?: boolean }) {
+  let { up, down, left, right } = piece;
+  let dirs = [up, right, down, left];
+  let rot = ((transform.rotation ?? 0) % 360 + 360) % 360;
+  let times = Math.round(rot / 90) % 4;
+  for (let i = 0; i < times; i++) {
+    dirs = [dirs[3], dirs[0], dirs[1], dirs[2]];
+  }
+  if (transform.flipX) {
+    [dirs[1], dirs[3]] = [dirs[3], dirs[1]];
+    dirs[1] = dirs[1] === 0 ? 0 : -dirs[1];
+    dirs[3] = dirs[3] === 0 ? 0 : -dirs[3];
+    dirs[0] = dirs[0] === 0 ? 0 : -dirs[0];
+    dirs[2] = dirs[2] === 0 ? 0 : -dirs[2];
+  }
+  if (transform.flipY) {
+    [dirs[0], dirs[2]] = [dirs[2], dirs[0]];
+    dirs[0] = dirs[0] === 0 ? 0 : -dirs[0];
+    dirs[2] = dirs[2] === 0 ? 0 : -dirs[2];
+    dirs[1] = dirs[1] === 0 ? 0 : -dirs[1];
+    dirs[3] = dirs[3] === 0 ? 0 : -dirs[3];
+  }
+  return {
+    ...piece,
+    up: dirs[0],
+    right: dirs[1],
+    down: dirs[2],
+    left: dirs[3],
+    rotation: transform.rotation ?? 0,
+    flipX: !!transform.flipX,
+    flipY: !!transform.flipY,
+  };
+}
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { IrregularPuzzlePiece } from '../../utils/puzzleGenerator/irregular';
+// 扩展类型，允许答题卡拼图块带有旋转/翻转属性
+type IrregularPuzzlePieceWithTransform = IrregularPuzzlePiece & {
+  rotation?: number;
+  flipX?: boolean;
+  flipY?: boolean;
+};
 import './AnswerGrid.css';
 
 interface IrregularAnswerGridIrregularProps {
   gridSize: { rows: number; cols: number };
-  answerGrid: (IrregularPuzzlePiece | null)[];
+  answerGrid: (IrregularPuzzlePieceWithTransform | null)[];
   originalImage: string;
   selectedPieceId: string | null;
   showAnswers: boolean;
@@ -21,7 +61,7 @@ interface IrregularAnswerGridIrregularProps {
 }
 
 // 让每个小块的图片显示范围扩大30%，但布局不变，允许重叠
-export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregularProps> = (props) => {
+export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregularProps & { pieceTransforms?: Record<string, { rotation: number; flipX: boolean; flipY: boolean }> }> = (props) => {
   const {
     gridSize,
     answerGrid,
@@ -38,6 +78,7 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
     onDragOver,
     onDragLeave,
     onDropToSlot,
+    pieceTransforms = {},
   } = props;
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -153,6 +194,13 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
           // 计算拼图块在网格中的位置
           const row = Math.floor(index / gridSize.cols);
           const col = index % gridSize.cols;
+          // 用pieceTransforms动态变换属性
+          const t = pieceTransforms[piece.id] || {};
+          const transformed = transformPieceProps(piece, t);
+          const rot = transformed.rotation;
+          const scaleX = transformed.flipX ? -1 : 1;
+          const scaleY = transformed.flipY ? -1 : 1;
+          const transform = `scaleX(${scaleX}) scaleY(${scaleY}) rotate(${rot}deg) scale(1.3)`;
           return (
             <div
               key={`piece-img-${index}-${piece.id}`}
@@ -178,7 +226,7 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
                 src={piece.imageData}
                 alt={`拼图块 ${piece.id}`}
                 className="piece-image"
-                style={{ ...imageStyle, clipPath: scaleAndTranslateClipPath(piece.clipPath) }}
+                style={{ ...imageStyle, clipPath: scaleAndTranslateClipPath(piece.clipPath), transform }}
                 draggable={false}
               />
             </div>

@@ -56,10 +56,32 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
   const [pieceTransforms, setPieceTransforms] = useState<Record<string, { rotation: number; flipX: boolean; flipY: boolean }>>({});
   // 处理区拼图块旋转
 
+  // 右旋（顺时针90°，视觉始终一致）
   const handleRotatePiece = useCallback((pieceId: string) => {
     setPieceTransforms(prev => {
       const prevTrans = prev[pieceId] || { rotation: 0, flipX: false, flipY: false };
-      return { ...prev, [pieceId]: { ...prevTrans, rotation: prevTrans.rotation + 90 } };
+      const isFlipped = (prevTrans.flipX ? 1 : 0) + (prevTrans.flipY ? 1 : 0);
+      const direction = isFlipped % 2 === 0 ? 1 : -1;
+      const newRotation = prevTrans.rotation + 90 * direction;
+      // 同步答题卡上已放置拼图块的rotation
+      setAnswerGrid(grid => grid.map(piece =>
+        piece && piece.id === pieceId ? { ...piece, rotation: newRotation } : piece
+      ));
+      return { ...prev, [pieceId]: { ...prevTrans, rotation: newRotation } };
+    });
+  }, []);
+
+  // 左旋（逆时针90°，视觉始终一致）
+  const handleRotatePieceLeft = useCallback((pieceId: string) => {
+    setPieceTransforms(prev => {
+      const prevTrans = prev[pieceId] || { rotation: 0, flipX: false, flipY: false };
+      const isFlipped = (prevTrans.flipX ? 1 : 0) + (prevTrans.flipY ? 1 : 0);
+      const direction = isFlipped % 2 === 0 ? 1 : -1;
+      const newRotation = prevTrans.rotation - 90 * direction;
+      setAnswerGrid(grid => grid.map(piece =>
+        piece && piece.id === pieceId ? { ...piece, rotation: newRotation } : piece
+      ));
+      return { ...prev, [pieceId]: { ...prevTrans, rotation: newRotation } };
     });
   }, []);
 
@@ -85,6 +107,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
     try {
       setIsLoading(true);
       setError(null);
+      setPieceTransforms({}); // 保证每次生成都清空旋转/翻转状态
 
       let puzzleImageData = imageData;
 
@@ -117,6 +140,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       setProgress({ correct: 0, total: puzzleConfig.pieces.length, percentage: 0 });
       setElapsedTime(0);
       setMoves(0);
+      setPieceTransforms({}); // 开始游戏时也清空旋转/翻转状态
 
       // 初始化答题网格
       const totalSlots = puzzleConfig.gridSize.rows * puzzleConfig.gridSize.cols;
@@ -148,17 +172,26 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
     console.log('异形拼图完成！');
   }, []);
 
-  // 处理键盘快捷键
+  // 处理键盘快捷键（ESC取消选择，R右旋，L左旋，F水平翻转）
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelectedPiece(null);
       }
+      if (!selectedPiece) return;
+      if (e.key === 'r' || e.key === 'R') {
+        handleRotatePiece(selectedPiece);
+      }
+      if (e.key === 'l' || e.key === 'L') {
+        handleRotatePieceLeft(selectedPiece);
+      }
+      if (e.key === 'f' || e.key === 'F') {
+        handleFlipX(selectedPiece);
+      }
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [selectedPiece, handleRotatePiece, handleRotatePieceLeft, handleFlipX]);
 
   // 重新开始游戏
   const handleRestart = useCallback(() => {
@@ -189,21 +222,57 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
     const piece = puzzleConfig.pieces.find(p => p.id === pieceId);
     if (!piece) return;
 
+    // 获取当前旋转/翻转状态
+    const transform = pieceTransforms[pieceId] || { rotation: 0, flipX: false, flipY: false };
+
+    // 动态变换属性函数，和答题卡渲染一致
+    function transformPieceProps(piece: any, transform: { rotation?: number; flipX?: boolean; flipY?: boolean }) {
+      let { up, down, left, right } = piece;
+      let dirs = [up, right, down, left];
+      let rot = ((transform.rotation ?? 0) % 360 + 360) % 360;
+      let times = Math.round(rot / 90) % 4;
+      for (let i = 0; i < times; i++) {
+        dirs = [dirs[3], dirs[0], dirs[1], dirs[2]];
+      }
+      if (transform.flipX) {
+        [dirs[1], dirs[3]] = [dirs[3], dirs[1]];
+        dirs[1] = dirs[1] === 0 ? 0 : -dirs[1];
+        dirs[3] = dirs[3] === 0 ? 0 : -dirs[3];
+        dirs[0] = dirs[0] === 0 ? 0 : -dirs[0];
+        dirs[2] = dirs[2] === 0 ? 0 : -dirs[2];
+      }
+      if (transform.flipY) {
+        [dirs[0], dirs[2]] = [dirs[2], dirs[0]];
+        dirs[0] = dirs[0] === 0 ? 0 : -dirs[0];
+        dirs[2] = dirs[2] === 0 ? 0 : -dirs[2];
+        dirs[1] = dirs[1] === 0 ? 0 : -dirs[1];
+        dirs[3] = dirs[3] === 0 ? 0 : -dirs[3];
+      }
+      return {
+        ...piece,
+        up: dirs[0],
+        right: dirs[1],
+        down: dirs[2],
+        left: dirs[3],
+        rotation: transform.rotation ?? 0,
+        flipX: !!transform.flipX,
+        flipY: !!transform.flipY,
+      };
+    }
+
     // 只对异形拼图专用判定
-    // 获取目标槽位的行列
     const rows = puzzleConfig.gridSize?.rows || puzzleConfig.gridLayout?.gridSize?.rows;
     const cols = puzzleConfig.gridSize?.cols || puzzleConfig.gridLayout?.gridSize?.cols;
     const row = Math.floor(slotIndex / cols);
     const col = slotIndex % cols;
-
-    // 定义四个方向的偏移和属性名
     const directions = [
       { dr: -1, dc: 0, self: 'up', other: 'down', edge: 'top', otherEdge: 'bottom' },
       { dr: 0, dc: 1, self: 'right', other: 'left', edge: 'right', otherEdge: 'left' },
       { dr: 1, dc: 0, self: 'down', other: 'up', edge: 'bottom', otherEdge: 'top' },
       { dr: 0, dc: -1, self: 'left', other: 'right', edge: 'left', otherEdge: 'right' },
     ];
-
+  // 应用变换后的piece（动态）
+  const transformedPiece = transformPieceProps(piece, transform);
     // 检查四个方向是否有凸对凸、凸对平，未放拼图块的小格子视为凹(-1)，边界禁止凸出
     for (const dir of directions) {
       const nRow = row + dir.dr;
@@ -218,28 +287,18 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
           neighborVal = -1; // 空格子视为凹
         }
       } else {
-        // 边界
         neighborVal = null;
       }
-      const selfVal = (piece as any)[dir.self];
-      // 1=凸，-1=凹，0=平
-      // 禁止凸对凸、凸对平、平对凸、以及凸对边界
+      const selfVal = (transformedPiece as any)[dir.self];
       if (neighborVal === null && selfVal === 1) {
         return;
       }
       if (neighborVal !== null) {
-        if (selfVal === 1 && neighborVal === 1) {
-          return;
-        }
-        if (selfVal === 1 && neighborVal === 0) {
-          return;
-        }
-        if (selfVal === 0 && neighborVal === 1) {
-          return;
-        }
+        if (selfVal === 1 && neighborVal === 1) return;
+        if (selfVal === 1 && neighborVal === 0) return;
+        if (selfVal === 0 && neighborVal === 1) return;
       }
     }
-
     // 检查槽位是否已被占用，如果被占用则移回处理区
     let newAnswerGrid = [...answerGrid];
     let existingPieceId: string | null = null;
@@ -249,31 +308,24 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
         existingPieceId = existingPiece.id;
       }
     }
-
     // 检查该拼图块是否已经在其他槽位，如果是则清空那个槽位
     const currentSlotIndex = newAnswerGrid.findIndex(slot => slot?.id === pieceId);
     if (currentSlotIndex !== -1) {
       newAnswerGrid[currentSlotIndex] = null;
     }
-
     // 一次性更新所有拼图块的状态
     const updatedPieces = puzzleConfig.pieces.map(p => {
       if (p.id === pieceId) {
-        // 当前拖拽的拼图块标记为已放置
         return { ...p, isCorrect: true };
       } else if (existingPieceId && p.id === existingPieceId) {
-        // 被覆盖的拼图块标记为未放置，回到处理区
         return { ...p, isCorrect: false };
       }
       return p;
     });
-
     setPuzzleConfig({ ...puzzleConfig, pieces: updatedPieces });
-
-    // 将拼图块放置到新槽位
-    newAnswerGrid[slotIndex] = { ...piece, isCorrect: true };
+    // 将变换后的拼图块放置到新槽位
+    newAnswerGrid[slotIndex] = { ...transformedPiece, isCorrect: true };
     setAnswerGrid(newAnswerGrid);
-
     // 更新进度
     const correctCount = newAnswerGrid.filter(slot => slot !== null).length;
     const totalCount = puzzleConfig.pieces.length;
@@ -502,24 +554,17 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
                   {processingAreaPieces.map(piece => {
                     const transformState = pieceTransforms[piece.id] || { rotation: 0, flipX: false, flipY: false };
                     // 旋转后，左右/上下翻转的视觉方向会互换，这里做修正
-                    const rot = ((transformState.rotation % 360) + 360) % 360;
-                    let scaleX = 1, scaleY = 1;
-                    if (rot % 180 === 0) {
-                      // 0/180度，正常
-                      scaleX = transformState.flipX ? -1 : 1;
-                      scaleY = transformState.flipY ? -1 : 1;
-                    } else {
-                      // 90/270度，xy互换
-                      scaleX = transformState.flipY ? -1 : 1;
-                      scaleY = transformState.flipX ? -1 : 1;
-                    }
-                    const transform = `translate(-3%, -3%) rotate(${transformState.rotation}deg) scaleX(${scaleX}) scaleY(${scaleY})`;
+                    const scaleX = transformState.flipX ? -1 : 1;
+                    const scaleY = transformState.flipY ? -1 : 1;
+                    const transform = `translate(0%, 0%) scaleX(${scaleX}) scaleY(${scaleY}) rotate(${transformState.rotation}deg)`;
                     return (
                       <div
                         key={piece.id}
                         className={`puzzle-piece-item ${selectedPiece === piece.id ? 'selected' : ''} ${draggedPiece === piece.id ? 'dragging' : ''}`}
                         draggable={true}
                         onClick={() => handlePieceSelect(selectedPiece === piece.id ? null : piece.id)}
+                        onDoubleClick={() => handleRotatePiece(piece.id)}
+                        onContextMenu={e => { e.preventDefault(); handleFlipX(piece.id); }}
                         onDragStart={(e) => {
                           e.dataTransfer.setData('text/plain', piece.id);
                           e.dataTransfer.effectAllowed = 'move';
@@ -546,35 +591,6 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
                         )}
                         {selectedPiece === piece.id && (
                           <div className="selected-indicator">✓</div>
-                        )}
-                        {/* 旋转/翻转按钮，仅在选中时显示 */}
-                        {selectedPiece === piece.id && (
-                          <div style={{ position: 'absolute', right: 2, bottom: 2, display: 'flex', gap: 2 }}>
-                            <button
-                              type="button"
-                              style={{ fontSize: 16, padding: '2px 6px', borderRadius: 4, border: '1px solid #ccc', background: '#fff', cursor: 'pointer', marginRight: 2 }}
-                              onClick={e => { e.stopPropagation(); handleRotatePiece(piece.id); }}
-                              title="旋转90°"
-                            >
-                              ⟳
-                            </button>
-                            <button
-                              type="button"
-                              style={{ fontSize: 16, padding: '2px 6px', borderRadius: 4, border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}
-                              onClick={e => { e.stopPropagation(); handleFlipX(piece.id); }}
-                              title="左右翻转"
-                            >
-                              ⇋
-                            </button>
-                            <button
-                              type="button"
-                              style={{ fontSize: 16, padding: '2px 6px', borderRadius: 4, border: '1px solid #ccc', background: '#fff', cursor: 'pointer' }}
-                              onClick={e => { e.stopPropagation(); handleFlipY(piece.id); }}
-                              title="上下翻转"
-                            >
-                              ⇅
-                            </button>
-                          </div>
                         )}
                       </div>
                     );
@@ -623,6 +639,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDropToSlot={handleDropToBoard}
+                pieceTransforms={pieceTransforms}
               />
             </div>
           </div>
