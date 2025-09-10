@@ -199,7 +199,11 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     .filter(itemId => shopPuzzleAssets[itemId])
     .map(itemId => shopPuzzleAssets[itemId]);
 
-  const allAssets = [...builtinAssets, ...customAssets, ...ownedPuzzleAssets];
+  // 合并所有资源，避免重复
+  const allAssets = [...builtinAssets, ...customAssets, ...ownedPuzzleAssets]
+    .filter((asset, index, self) => 
+      index === self.findIndex(a => a.id === asset.id)
+    );
 
   const filteredAssets = allAssets.filter(asset => {
     const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;

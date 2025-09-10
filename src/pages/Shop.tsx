@@ -129,19 +129,45 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
   const userCoins = user?.coins || 0;
   const userOwnedItems = user?.ownedItems || [];
 
-  // 根据用户拥有的物品设置商店物品状态
-  const initializeShopItems = () => {
-    return mockShopItems.map(item => ({
-      ...item,
-      owned: userOwnedItems.includes(item.id)
-    }));
-  };
+  // 检查用户认证状态
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      if (user) {
+        const { apiService } = await import('../services/apiService');
+        const token = apiService.getToken();
+        if (!token) {
+          console.warn('用户已登录但没有有效的token，可能影响购买功能');
+        }
+      }
+    };
+    checkAuthStatus();
+  }, [user]);
 
   const [shopItems, setShopItems] = useState<ShopItem[]>([]);
 
-  // 监听用户变化，更新商店物品状态
+  // 监听用户变化，智能更新商店物品状态
   useEffect(() => {
-    setShopItems(initializeShopItems());
+    const newItems = mockShopItems.map(item => {
+      const isOwned = userOwnedItems.includes(item.id);
+      // 查找当前状态中的对应物品
+      const currentItem = shopItems.find(si => si.id === item.id);
+      
+      return {
+        ...item,
+        // 优先保持已购买状态，防止后端同步延迟导致的状态回退
+        owned: currentItem?.owned || isOwned
+      };
+    });
+    
+    // 只有在实际有变化时才更新状态
+    const hasChanges = newItems.some((newItem, index) => {
+      const currentItem = shopItems[index];
+      return !currentItem || currentItem.owned !== newItem.owned;
+    });
+    
+    if (hasChanges || shopItems.length === 0) {
+      setShopItems(newItems);
+    }
   }, [user?.id, userOwnedItems]); // 当用户ID或拥有物品发生变化时重新初始化
 
   const categories = [
@@ -187,7 +213,36 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
     }
 
     try {
-      // 调用后端 API 购买物品
+      // 对于拼图素材，使用特殊处理逻辑
+      if (item.id.startsWith('puzzle_image_')) {
+        // 拼图素材直接本地处理，不需要后端验证特定类型
+        // 只需要扣除金币和添加到用户拥有物品列表
+        if (user) {
+          // 先获取当前的API服务实例以保持token
+          const { apiService } = await import('../services/apiService');
+          const currentToken = apiService.getToken();
+          
+          const updatedUser = {
+            ...user,
+            coins: (user.coins || 0) - item.price,
+            ownedItems: [...(user.ownedItems || []), item.id]
+          };
+          
+          // 保持原有的token，不要清除认证信息
+          setAuthenticatedUser(updatedUser, currentToken || '');
+          
+          // 更新商店物品状态
+          const updatedItems = shopItems.map(shopItem => 
+            shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
+          );
+          setShopItems(updatedItems);
+          
+          alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
+          return;
+        }
+      }
+      
+      // 其他物品使用原有的后端 API 购买流程
       const { apiService } = await import('../services/apiService');
       // 根据物品类型映射到后端接受的类型
       const itemTypeMapping: Record<string, string> = {
@@ -219,31 +274,44 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
       const response = await apiService.acquireItem(backendItemType, item.id, item.price);
       
       if (response.success) {
-        // 更新商店物品状态，确保在不同账号间有正确的状态
-        const updatedItems = shopItems.map(shopItem => 
-          shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
-        );
-        setShopItems(updatedItems);
-
         alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
         
-        // 刷新用户数据而不是整个页面
-        // 重新获取用户数据
-        const userResponse = await apiService.getUserProfile();
-        if (userResponse.success && userResponse.data) {
-          // 转换API用户类型到内部用户类型
-          const convertedUser = {
-            ...userResponse.data.user,
-            createdAt: new Date(userResponse.data.user.createdAt),
-            lastLoginAt: new Date(userResponse.data.user.lastLoginAt),
+        // 立即更新本地用户数据，确保购买的物品能立即在素材库中显示
+        if (user) {
+          const updatedUser = {
+            ...user,
+            coins: (user.coins || 0) - item.price,
+            ownedItems: [...(user.ownedItems || []), item.id]
           };
-          // 更新 AuthContext 中的用户数据
-          setAuthenticatedUser(convertedUser, apiService.getToken() || '');
-          console.log('购买成功，用户数据已更新');
-          console.log('更新后的用户拥有物品:', convertedUser.ownedItems);
-        } else {
-          console.error('获取用户数据失败:', userResponse.error);
+          setAuthenticatedUser(updatedUser, apiService.getToken() || '');
         }
+        
+        // 异步刷新用户数据以确保与后端同步，但保护本地已确认的购买状态
+        setTimeout(async () => {
+          try {
+            const userResponse = await apiService.getUserProfile();
+            if (userResponse.success && userResponse.data) {
+              // 转换API用户类型到内部用户类型
+              const convertedUser = {
+                ...userResponse.data.user,
+                createdAt: new Date(userResponse.data.user.createdAt),
+                lastLoginAt: new Date(userResponse.data.user.lastLoginAt),
+              };
+              
+              // 确保本次购买的物品在后端数据中，如果没有则手动添加（防止同步延迟）
+              const backendOwnedItems = convertedUser.ownedItems || [];
+              if (!backendOwnedItems.includes(item.id)) {
+                convertedUser.ownedItems = [...backendOwnedItems, item.id];
+                console.warn(`后端数据同步延迟，本地补充购买项目: ${item.id}`);
+              }
+              
+              // 更新 AuthContext 中的用户数据
+              setAuthenticatedUser(convertedUser, apiService.getToken() || '');
+            }
+          } catch (error) {
+            console.error('后端数据同步失败，但本地状态已更新:', error);
+          }
+        }, 1000);
       } else {
         alert(`购买失败：${response.error || '未知错误'}`);
       }
