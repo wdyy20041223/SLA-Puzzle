@@ -63,6 +63,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const [effectStates, setEffectStates] = useState({
     brightnessPhase: 0, // 璀璨星河特效的亮度相位
     visibleSlots: new Set<number>(), // 管中窥豹特效显示的槽位
+    unlockedSlots: new Set<number>(), // 作茧自缚特效解锁的槽位
     cornerOnlyMode: false, // 作茧自缚特效是否只能在角落放置
     hasStepError: false, // 最终防线特效是否已有错误
     actualMoves: 0, // 举步维艰特效的实际步数（显示会翻倍）
@@ -76,12 +77,37 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     return corners.includes(slotIndex);
   }, [gameState]);
 
+  // 获取相邻槽位（作茧自缚特效）
+  const getAdjacentSlots = useCallback((slotIndex: number) => {
+    if (!gameState) return [];
+    const { rows, cols } = gameState.config.gridSize;
+    const adjacent: number[] = [];
+    
+    const row = Math.floor(slotIndex / cols);
+    const col = slotIndex % cols;
+    
+    // 上
+    if (row > 0) adjacent.push(slotIndex - cols);
+    // 下
+    if (row < rows - 1) adjacent.push(slotIndex + cols);
+    // 左
+    if (col > 0) adjacent.push(slotIndex - 1);
+    // 右
+    if (col < cols - 1) adjacent.push(slotIndex + 1);
+    
+    return adjacent;
+  }, [gameState]);
+
   // 检查是否可以放置到该槽位（根据特效规则）
   const canPlaceToSlot = useCallback((slotIndex: number) => {
-    // 作茧自缚特效：只能在角落开始
-    if ((challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) && 
-        gameState && gameState.answerGrid.every(slot => slot === null)) {
-      return isCornerSlot(slotIndex);
+    // 作茧自缚特效：动态解锁机制
+    if (challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) {
+      // 如果还没有放置任何拼图块，只能放在角落
+      if (gameState && gameState.answerGrid.every(slot => slot === null)) {
+        return isCornerSlot(slotIndex);
+      }
+      // 否则检查该槽位是否已解锁
+      return effectStates.unlockedSlots.has(slotIndex);
     }
     
     // 管中窥豹特效：只能在可见槽位放置
@@ -90,7 +116,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     }
     
     return true;
-  }, [challenge.effects, gameState, isCornerSlot, effectStates.visibleSlots]);
+  }, [challenge.effects, gameState, isCornerSlot, effectStates.unlockedSlots, effectStates.visibleSlots]);
 
   // 获取特效CSS类名
   const getEffectClasses = useCallback(() => {
@@ -165,7 +191,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       'partial': '本关卡答题区最开始只展示一半的拼图块', '管中窥豹': '本关卡答题区最开始只展示一半的拼图块',
       'mirror': '本关卡正确答案与原图块成镜像关系', '镜中奇缘': '本关卡正确答案与原图块成镜像关系',
       'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
-      'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落',
+      'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位',
       'invisible': '本关卡放置后的拼图块为纯黑色不可见', '一手遮天': '本关卡放置后的拼图块为纯黑色不可见',
       'no_preview': '本关卡不允许查看原图', '一叶障目': '本关卡不允许查看原图',
       'time_limit': '本关卡限时126*(拼图块数量/9)秒', '生死时速': '本关卡限时126*(拼图块数量/9)秒',
@@ -251,6 +277,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       setEffectStates({
         brightnessPhase: 0,
         visibleSlots: new Set(),
+        unlockedSlots: new Set(),
         cornerOnlyMode: false,
         hasStepError: false,
         actualMoves: 0,
@@ -294,6 +321,14 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         newStates.visibleSlots = new Set(shuffled.slice(0, visibleCount));
       } else {
         newStates.visibleSlots = new Set();
+      }
+      
+      // 作茧自缚特效：初始化角落槽位为解锁状态
+      if (challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) {
+        const corners = [0, cols - 1, (rows - 1) * cols, rows * cols - 1];
+        newStates.unlockedSlots = new Set(corners);
+      } else {
+        newStates.unlockedSlots = new Set();
       }
       
       return newStates;
@@ -380,6 +415,24 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     // 执行正常的放置逻辑
     placePieceToSlot(pieceId, slotIndex);
     
+    // 作茧自缚特效：只有正确放置才会解锁相邻槽位
+    if (challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) {
+      // 检查拼图块是否被正确放置（位置、旋转、翻转都正确）
+      const piece = gameState?.config.pieces.find(p => p.id === pieceId);
+      if (piece && 
+          piece.correctSlot === slotIndex && 
+          piece.rotation === piece.correctRotation && 
+          piece.isFlipped === (piece.correctIsFlipped || false)) {
+        // 只有完全正确放置时才解锁相邻槽位
+        const adjacentSlots = getAdjacentSlots(slotIndex);
+        setEffectStates(prev => {
+          const newUnlockedSlots = new Set(prev.unlockedSlots);
+          adjacentSlots.forEach(slot => newUnlockedSlots.add(slot));
+          return { ...prev, unlockedSlots: newUnlockedSlots };
+        });
+      }
+    }
+    
     // 更新步数（考虑举步维艰特效）
     if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰')) {
       setEffectStates(prev => ({ ...prev, actualMoves: prev.actualMoves + 1 }));
@@ -404,7 +457,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       }
     }
     
-  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState]);
+  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState, getAdjacentSlots]);
 
   // 监听游戏完成状态（仿照普通关卡的完成检测机制）
   useEffect(() => {
@@ -740,10 +793,10 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           {/* 右侧：游戏操作 */}
           <div className="flex items-center space-x-3">
             {/* 显示当前激活的特效 */}
-            {challenge.effects && challenge.effects.length > 0 && (
+            {true && ( // 总是显示特效信息，方便测试
               <div className="text-center">
                 <div className="text-sm font-semibold text-purple-600">
-                  {challenge.effects.length}个特效
+                  {challenge.effects?.length || 0}个特效
                 </div>
                 <div className="text-xs text-gray-500">
                   {getTotalStars()}星加成
@@ -813,29 +866,39 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       {/* 游戏主体 */}
       <div className="p-6">
         {/* 特效提示信息 */}
-        {challenge.effects && challenge.effects.length > 0 && (
+        {true && ( // 总是显示特效信息，方便测试
           <div className="mb-4 bg-purple-50 rounded-lg p-4 border border-purple-200">
             <h3 className="text-lg font-semibold text-purple-800 mb-2 flex items-center">
               ✨ 当前特效
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {challenge.effects.map((effectId, index) => {
-                const effectName = getEffectName(effectId);
-                const effectDescription = getEffectDescription(effectId);
-                const effectStars = getEffectStars(effectId);
-                return (
-                  <div key={index} className="bg-white rounded-lg p-3 border border-purple-100">
-                    <div className="font-semibold text-purple-700 flex items-center justify-between">
-                      <span>{effectName}</span>
-                      <span className="text-yellow-500">{'★'.repeat(effectStars)}</span>
+              {challenge.effects && challenge.effects.length > 0 ? (
+                challenge.effects.map((effectId, index) => {
+                  const effectName = getEffectName(effectId);
+                  const effectDescription = getEffectDescription(effectId);
+                  const effectStars = getEffectStars(effectId);
+                  return (
+                    <div key={index} className="bg-white rounded-lg p-3 border border-purple-100">
+                      <div className="font-semibold text-purple-700 flex items-center justify-between">
+                        <span>{effectName}</span>
+                        <span className="text-yellow-500">{'★'.repeat(effectStars)}</span>
+                      </div>
+                      <div className="text-sm text-gray-600 mt-1">{effectDescription}</div>
                     </div>
-                    <div className="text-sm text-gray-600 mt-1">{effectDescription}</div>
+                  );
+                })
+              ) : (
+                <div className="bg-white rounded-lg p-3 border border-purple-100">
+                  <div className="font-semibold text-purple-700 flex items-center justify-between">
+                    <span>无特效</span>
+                    <span className="text-yellow-500">★</span>
                   </div>
-                );
-              })}
+                  <div className="text-sm text-gray-600 mt-1">本关卡没有任何特效</div>
+                </div>
+              )}
             </div>
             {/* 镜中奇缘特效提示 */}
-            {(challenge.effects.includes('mirror') || challenge.effects.includes('镜中奇缘')) && (
+            {(challenge.effects?.includes('mirror') || challenge.effects?.includes('镜中奇缘')) && (
               <div className="mirror-effect-hint">
                 💫 镜像模式：拼图块需要水平翻转才能正确拼接
               </div>
@@ -916,6 +979,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragOver={handleDragOver}
+              unlockedSlots={effectStates.unlockedSlots}
+              hasCornerEffect={challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')}
             />
           ) : (
             <IrregularPuzzleWorkspace

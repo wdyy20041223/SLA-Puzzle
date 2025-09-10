@@ -29,9 +29,10 @@
   );
 }
 
-/* 作茧自缚特效：非角落槽位禁用样式 */
-.corner-only-mode .answer-slot:not(.corner-slot) {
-  opacity: 0.5;
+/* 作茧自缚特效：锁定的槽位样式 */
+.locked-slot {
+  position: relative;
+  opacity: 0.6;
   pointer-events: none;
   background: repeating-linear-gradient(
     45deg,
@@ -42,15 +43,27 @@
   );
 }
 
-.corner-slot.available {
-  box-shadow: 0 0 10px #ffaa00;
-  animation: pulse-corner 1.5s infinite;
+.locked-slot::before {
+  content: "🔒";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  z-index: 10;
+  pointer-events: none;
 }
 
-@keyframes pulse-corner {
-  0% { box-shadow: 0 0 10px #ffaa00; }
-  50% { box-shadow: 0 0 20px #ff8800; }
-  100% { box-shadow: 0 0 10px #ffaa00; }
+/* 作茧自缚特效：解锁的槽位样式 */
+.unlocked-slot {
+  opacity: 1;
+  pointer-events: auto;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.unlocked-slot:hover {
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
 }
 
 /* 最终防线特效：错误提示 */

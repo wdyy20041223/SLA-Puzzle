@@ -1,5 +1,5 @@
 import React from 'react';
-import { PuzzlePiece, GameState } from '../../types';
+import { GameState } from '../../types';
 import { PuzzlePieceArea } from './PuzzlePieceArea';
 import { AnswerGrid } from './AnswerGrid';
 import './PuzzleWorkspace.css';
@@ -22,6 +22,9 @@ interface PuzzleWorkspaceProps {
   onDragLeave?: () => void;
   onDropToSlot?: (targetSlot: number) => void;
   onDropToProcessingArea?: () => void;
+  // 作茧自缚特效相关
+  unlockedSlots?: Set<number>;
+  hasCornerEffect?: boolean;
 }
 
 export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
@@ -41,6 +44,8 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   onDragLeave,
   onDropToSlot,
   onDropToProcessingArea,
+  unlockedSlots,
+  hasCornerEffect,
 }) => {
   // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
   const processingAreaPieces = gameState.config.pieces.filter(piece => piece.currentSlot === null);
@@ -92,6 +97,8 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDropToSlot={onDropToSlot}
+          unlockedSlots={unlockedSlots}
+          hasCornerEffect={hasCornerEffect}
         />
       </div>
     </div>

@@ -92,39 +92,15 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     };
   };
 
-  // 基于日期随机选择每日特效
+  // 基于日期生成每日特效（展示所有特效）
   const generateDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
-    const today = new Date().toISOString().split('T')[0];
-    const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-    
-    // 简单的伪随机函数
-    const pseudoRandom = (seed: number) => {
-      let state = seed;
-      return () => {
-        state = (state * 9301 + 49297) % 233280;
-        return state / 233280;
-      };
-    };
-
-    const random = pseudoRandom(seed);
     const allEffects = getAllEffects();
 
-    // 随机选择3个3星特效
-    const shuffled3Star = [...allEffects.star3].sort(() => random() - 0.5);
-    const selected3Star = shuffled3Star.slice(0, 3);
-
-    // 随机选择2个4星特效
-    const shuffled4Star = [...allEffects.star4].sort(() => random() - 0.5);
-    const selected4Star = shuffled4Star.slice(0, 2);
-
-    // 随机选择1个5星特效
-    const shuffled5Star = [...allEffects.star5].sort(() => random() - 0.5);
-    const selected5Star = shuffled5Star.slice(0, 1);
-
+    // 直接返回所有特效，不再进行随机选择
     return {
-      star3: selected3Star,
-      star4: selected4Star,
-      star5: selected5Star
+      star3: allEffects.star3, // 显示所有5个3星特效
+      star4: allEffects.star4, // 显示所有4个4星特效
+      star5: allEffects.star5  // 显示所有3个5星特效
     };
   };
 

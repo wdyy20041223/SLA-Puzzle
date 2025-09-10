@@ -30,6 +30,8 @@ export interface Challenge {
   attempts: number;
   puzzleType: 'square' | 'irregular';
   effects: string[]; // 叠加的特效数组
+  star: 3 | 4 | 5; // 星级
+  effect: string; // 单个特效（用于显示）
 }
 
 export interface DailyEffect {
@@ -65,6 +67,8 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const [totalCoins, setTotalCoins] = useState(0);
   const [totalExperience, setTotalExperience] = useState(0);
   const [unlockedItems, setUnlockedItems] = useState<{name: string, icon: string, date: string}[]>([]);
+  const [todayChallenges, setTodayChallenges] = useState<Challenge[]>([]);
+  const [selectedChallengeIds, setSelectedChallengeIds] = useState<string[]>([]);
 
   // 解析每日特效文本
   const parseDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
@@ -243,26 +247,42 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     return false;
   };
 
-  // 生成今日多项挑战（3个3星、2个4星、1个5星）
+  // 生成今日多项挑战（展示所有tag）
   const generateTodayChallenges = (userId: string): Challenge[] => {
     const today = getTodayDate();
     const seed = getDateSeed(today);
     const random = pseudoRandom(seed);
     
-    // 星级分布：3个3星、2个4星、1个5星
-    const starDistribution = [3, 3, 3, 4, 4, 5];
+    // 每日特效定义 - 展示所有星级的所有特效
+    const allEffects = [
+      { name: "天旋地转", star: 3 as const },
+      { name: "雾里探花", star: 3 as const },
+      { name: "管中窥豹", star: 3 as const },
+      { name: "镜中奇缘", star: 3 as const },
+      { name: "举步维艰", star: 3 as const },
+      { name: "作茧自缚", star: 4 as const },
+      { name: "一手遮天", star: 4 as const },
+      { name: "一叶障目", star: 4 as const },
+      { name: "生死时速", star: 4 as const },
+      { name: "最终防线", star: 5 as const },
+      { name: "精打细算", star: 5 as const },
+      { name: "璀璨星河", star: 5 as const }
+    ];
     
-    // 每日特效定义
-    const starEffects = {
-      3: ["天旋地转", "雾里探花", "管中窥豹", "镜中奇缘", "举步维艰"],
-      4: ["作茧自缚", "一手遮天", "一叶障目", "生死时速"],
-      5: ["最终防线", "精打细算", "璀璨星河"]
-    };
+    // 打乱特效顺序以增加多样性
+    const shuffledEffects = [...allEffects];
+    for (let i = shuffledEffects.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [shuffledEffects[i], shuffledEffects[j]] = [shuffledEffects[j], shuffledEffects[i]];
+    }
     
     const challenges: Challenge[] = [];
     
-    for (let i = 0; i < starDistribution.length; i++) {
-      const star = starDistribution[i] as 3 | 4 | 5;
+    // 为每个特效创建一个挑战，确保展示所有tag
+    for (let i = 0; i < allEffects.length; i++) {
+      const effectData = shuffledEffects[i];
+      const selectedEffect = effectData.name;
+      const star = effectData.star;
       
       // 随机选择图片
       const imageIndex = Math.floor(random() * puzzleImageLibrary.length);
@@ -280,11 +300,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
       
       // 获取难度配置
       const config = difficultyConfigs[selectedDifficulty];
-      
-      // 随机选择特效
-      const effectList = starEffects[star];
-      const effectIndex = Math.floor(random() * effectList.length);
-      const selectedEffect = effectList[effectIndex];
       
       // 从localStorage获取挑战记录
       const challengeRecordKey = `daily_challenge_${userId}_${today}_${i}`;
@@ -311,6 +326,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         bestMoves: record.bestMoves,
         attempts: Math.max(0, Math.min(3, typeof record.attempts === 'number' ? record.attempts : 0)),
         puzzleType: selectedPuzzleType,
+        effects: [selectedEffect], // 添加effects数组
         star: star,
         effect: selectedEffect
       });

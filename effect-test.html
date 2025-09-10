@@ -70,6 +70,7 @@
             <button class="test-button" onclick="testEffectCalculations()">测试特效计算</button>
             <button class="test-button" onclick="testEffectRestrictions()">测试特效限制</button>
             <button class="test-button" onclick="testEffectStyling()">测试特效样式</button>
+            <button class="test-button" onclick="testCornerEffect()">测试作茧自缚特效</button>
             
             <div id="effect-test-result" class="test-result"></div>
         </div>
@@ -91,7 +92,7 @@
                 { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 }
             ],
             star4: [
-                { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落', star: 4 },
+                { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', star: 4 },
                 { id: 'invisible', name: '一手遮天', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 },
                 { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 },
                 { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 }
@@ -239,6 +240,87 @@
             }
         }
 
+        function testCornerEffect() {
+            const result = document.getElementById('effect-test-result');
+            
+            try {
+                let testResults = '作茧自缚特效测试:\\n';
+                
+                // 模拟3x3网格
+                const gridSize = { rows: 3, cols: 3 };
+                const totalSlots = gridSize.rows * gridSize.cols;
+                
+                // 初始解锁角落
+                const initialCorners = [0, 2, 6, 8]; // 3x3网格的角落索引
+                let unlockedSlots = new Set(initialCorners);
+                
+                testResults += `初始解锁槽位: [${Array.from(unlockedSlots).join(', ')}]\\n`;
+                
+                // 模拟拼图块数据
+                const mockPieces = [
+                    { id: 'piece-0', correctSlot: 0, rotation: 0, isFlipped: false, correctRotation: 0, correctIsFlipped: false },
+                    { id: 'piece-1', correctSlot: 1, rotation: 0, isFlipped: false, correctRotation: 90, correctIsFlipped: false },
+                    { id: 'piece-2', correctSlot: 2, rotation: 0, isFlipped: false, correctRotation: 0, correctIsFlipped: false }
+                ];
+                
+                // 测试1: 正确放置到角落0
+                const placedSlot1 = 0;
+                const piece1 = mockPieces.find(p => p.correctSlot === placedSlot1);
+                if (piece1 && piece1.correctSlot === placedSlot1 && 
+                    piece1.rotation === piece1.correctRotation && 
+                    piece1.isFlipped === (piece1.correctIsFlipped || false)) {
+                    const adjacentSlots = getAdjacentSlots(placedSlot1, gridSize);
+                    adjacentSlots.forEach(slot => unlockedSlots.add(slot));
+                    testResults += `✓ 正确放置到槽位${placedSlot1}，解锁相邻槽位: [${adjacentSlots.join(', ')}]\\n`;
+                } else {
+                    testResults += `✗ 放置到槽位${placedSlot1}失败或不正确\\n`;
+                }
+                
+                testResults += `当前解锁槽位: [${Array.from(unlockedSlots).join(', ')}]\\n`;
+                
+                // 测试2: 错误放置到角落0（旋转不正确）
+                unlockedSlots = new Set(initialCorners); // 重置
+                const piece2 = mockPieces.find(p => p.correctSlot === 1);
+                if (piece2) {
+                    piece2.rotation = 0; // 设置为错误旋转
+                    const placedSlot2 = 0;
+                    if (piece2.correctSlot === placedSlot2 && 
+                        piece2.rotation === piece2.correctRotation && 
+                        piece2.isFlipped === (piece2.correctIsFlipped || false)) {
+                        const adjacentSlots = getAdjacentSlots(placedSlot2, gridSize);
+                        adjacentSlots.forEach(slot => unlockedSlots.add(slot));
+                        testResults += `✓ 错误放置也解锁了相邻槽位（这不应该发生）\\n`;
+                    } else {
+                        testResults += `✓ 错误放置到槽位${placedSlot2}，未解锁相邻槽位（正确行为）\\n`;
+                    }
+                }
+                
+                testResults += `最终解锁槽位: [${Array.from(unlockedSlots).join(', ')}]\\n`;
+                
+                result.innerHTML = `<span class="success">${testResults}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 作茧自缚测试失败: ${error.message}</span>`;
+            }
+        }
+
+        // 获取相邻槽位的辅助函数
+        function getAdjacentSlots(slotIndex, gridSize) {
+            const adjacent = [];
+            const row = Math.floor(slotIndex / gridSize.cols);
+            const col = slotIndex % gridSize.cols;
+            
+            // 上
+            if (row > 0) adjacent.push(slotIndex - gridSize.cols);
+            // 下
+            if (row < gridSize.rows - 1) adjacent.push(slotIndex + gridSize.cols);
+            // 左
+            if (col > 0) adjacent.push(slotIndex - 1);
+            // 右
+            if (col < gridSize.cols - 1) adjacent.push(slotIndex + 1);
+            
+            return adjacent;
+        }
+
         // 辅助函数
         function calculateEffectStars(effects) {
             return effects.reduce((total, effectId) => {
@@ -286,14 +368,20 @@
             const container = document.getElementById('effect-list');
             let html = '';
             
+            // 显示所有特效，方便测试
+            html += '<h4>所有特效列表</h4>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px;">';
+            
             ['star3', 'star4', 'star5'].forEach(category => {
-                html += `<h4>${category.replace('star', '')}星特效</h4>`;
-                html += '<ul>';
                 mockEffects[category].forEach(effect => {
-                    html += `<li><strong>${effect.name}</strong> (${effect.id}): ${effect.description}</li>`;
+                    html += `<div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #f9f9f9;">
+                        <strong>${effect.name}</strong> (${effect.id}) - ${effect.star}星
+                        <br><small>${effect.description}</small>
+                    </div>`;
                 });
-                html += '</ul>';
             });
+            
+            html += '</div>';
             
             container.innerHTML = html;
         }
