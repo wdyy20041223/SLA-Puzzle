@@ -121,12 +121,34 @@
   transition: transform 0.5s ease;
 }
 
-/* 镜中奇缘特效：镜像提示 */
-.mirror-effect-hint {
+/* 天旋地转特效提示 */
+.rotate-effect-hint {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 152, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* 颠倒世界特效：旋转提示 */
+.upside-down-effect-hint {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(148, 0, 211, 0.9);
+  background: rgba(33, 150, 243, 0.9);
   color: white;
   padding: 5px 10px;
   border-radius: 5px;

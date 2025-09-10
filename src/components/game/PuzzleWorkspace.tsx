@@ -25,6 +25,8 @@ interface PuzzleWorkspaceProps {
   // 作茧自缚特效相关
   unlockedSlots?: Set<number>;
   hasCornerEffect?: boolean;
+  // 颠倒世界特效相关
+  hasUpsideDownEffect?: boolean;
 }
 
 export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
@@ -46,6 +48,7 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   onDropToProcessingArea,
   unlockedSlots,
   hasCornerEffect,
+  hasUpsideDownEffect,
 }) => {
   // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
   const processingAreaPieces = gameState.config.pieces.filter(piece => piece.currentSlot === null);
@@ -73,7 +76,7 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
       </div>
 
       {/* 右侧：答题卡 */}
-      <div className="answer-area">
+      <div className={`answer-area ${hasUpsideDownEffect ? 'upside-down-area' : ''}`}>
         <div className="area-header">
           <h3>拼图答题卡</h3>
           <span className="grid-info">

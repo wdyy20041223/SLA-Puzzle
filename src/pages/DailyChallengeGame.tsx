@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { cloudStorage } from '../services/cloudStorage';
 import { LeaderboardService } from '../services/leaderboardService';
 import { Challenge } from './DailyChallenge';
+import { GameFailureModal } from '../components/game/GameFailureModal';
 import './DailyChallengeGame.css';
 
 interface DailyChallengeGameProps {
@@ -39,10 +40,13 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const [moves, setMoves] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showFailureModal, setShowFailureModal] = useState(false);
+  const [failureReason, setFailureReason] = useState('');
 
   // 检查特效限制
   const isPreviewDisabled = challenge.effects?.includes('no_preview') || challenge.effects?.includes('一叶障目');
-  const isAnswerDisabled = challenge.effects?.includes('no_mistakes') || challenge.effects?.includes('最终防线');
+  // 最终防线特效现在允许查看答案
+  const isAnswerDisabled = false; // 移除原来的限制，允许所有情况下查看答案
 
   // 使用usePuzzleGame钩子管理方形拼图状态
   const { 
@@ -153,7 +157,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     if (!challenge.effects) return 0;
     return challenge.effects.reduce((total, effectId) => {
       // 基于特效ID计算星数
-      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'mirror', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '镜中奇缘', '举步维艰'].includes(effectId)) {
+      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
         return total + 3;
       } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
         return total + 4;
@@ -170,7 +174,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       'rotate': '天旋地转', '天旋地转': '天旋地转',
       'blur': '雾里探花', '雾里探花': '雾里探花',
       'partial': '管中窥豹', '管中窥豹': '管中窥豹',
-      'mirror': '镜中奇缘', '镜中奇缘': '镜中奇缘',
+      'upside_down': '颠倒世界', '颠倒世界': '颠倒世界',
       'double_steps': '举步维艰', '举步维艰': '举步维艰',
       'corner_start': '作茧自缚', '作茧自缚': '作茧自缚',
       'invisible': '一手遮天', '一手遮天': '一手遮天',
@@ -186,10 +190,10 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   // 获取特效描述
   const getEffectDescription = useCallback((effectId: string) => {
     const descriptionMap: { [key: string]: string } = {
-      'rotate': '本关卡拼图块包含旋转与翻转', '天旋地转': '本关卡拼图块包含旋转与翻转',
+      'rotate': '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', '天旋地转': '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置',
       'blur': '本关卡拼图块在鼠标选中前模糊化', '雾里探花': '本关卡拼图块在鼠标选中前模糊化',
       'partial': '本关卡答题区最开始只展示一半的拼图块', '管中窥豹': '本关卡答题区最开始只展示一半的拼图块',
-      'mirror': '本关卡正确答案与原图块成镜像关系', '镜中奇缘': '本关卡正确答案与原图块成镜像关系',
+      'upside_down': '本关卡中正确答案旋转180°后得到原图', '颠倒世界': '本关卡中正确答案旋转180°后得到原图',
       'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
       'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位',
       'invisible': '本关卡放置后的拼图块为纯黑色不可见', '一手遮天': '本关卡放置后的拼图块为纯黑色不可见',
@@ -204,7 +208,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
 
   // 获取特效星级
   const getEffectStars = useCallback((effectId: string) => {
-    if (['rotate', 'blur', 'partial', 'mirror', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '镜中奇缘', '举步维艰'].includes(effectId)) {
+    if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
       return 3;
     } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
       return 4;
@@ -231,21 +235,34 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           imageData: puzzleImageData,
           gridSize: { rows, cols },
           pieceShape: 'square',
-          name: challenge.title
+          name: challenge.title,
+          upsideDown: challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')
         });
         
-        // 应用特效：天旋地转 - 给拼图块添加随机旋转和翻转
-        if (challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转')) {
-          config.pieces = config.pieces.map(piece => ({
-            ...piece,
-            rotation: Math.floor(Math.random() * 4) * 90, // 0, 90, 180, 270度随机旋转
-            isFlipped: Math.random() > 0.5 // 随机翻转
-          }));
+        // 应用特效：天旋地转 - 等同于启用翻转模式，拼图块会随机旋转和翻转
+        // 玩家需要通过按键旋转到正确位置才能正确放置
+        const hasRotateEffect = challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转');
+        if (hasRotateEffect) {
+          // 重新生成拼图配置，这次启用旋转模式
+          const rotatedConfig = await PuzzleGenerator.generatePuzzle({
+            imageData: puzzleImageData,
+            gridSize: { rows, cols },
+            pieceShape: 'square',
+            name: challenge.title,
+            allowRotation: true, // 启用翻转模式
+            upsideDown: challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')
+          });
+          
+          // 使用启用了旋转的配置
+          setPuzzleConfig(rotatedConfig);
+          setProgress({ correct: 0, total: rotatedConfig.pieces.length, percentage: 0 });
+          initializeGame(rotatedConfig);
+        } else {
+          // 没有天旋地转特效，使用正常配置
+          setPuzzleConfig(config);
+          setProgress({ correct: 0, total: config.pieces.length, percentage: 0 });
+          initializeGame(config);
         }
-        
-        setPuzzleConfig(config);
-        setProgress({ correct: 0, total: config.pieces.length, percentage: 0 });
-        initializeGame(config);
         
       } else {
         const config = await IrregularPuzzleGenerator.generateSimpleIrregular(
@@ -374,6 +391,58 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     return () => clearInterval(timer);
   }, [gameStartTime, isComplete, isFailed, challenge.effects, challenge.gridSize, challenge.timeLimit]);
 
+  // 键盘事件监听 - 支持天旋地转特效的按键控制
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // 防止在输入框中触发
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      switch (e.key) {
+        case 'r':
+        case 'R':
+          if (selectedPiece) {
+            rotatePiece(selectedPiece, 90); // 顺时针旋转90度
+          }
+          break;
+        case 'l':
+        case 'L':
+          if (selectedPiece) {
+            rotatePiece(selectedPiece, -90); // 逆时针旋转90度
+          }
+          break;
+        case 'f':
+        case 'F':
+          if (selectedPiece) {
+            flipPiece(selectedPiece); // 翻转
+          }
+          break;
+        case 'Escape':
+          // 取消选择
+          if (selectedPiece && handlePieceSelect) {
+            handlePieceSelect(null);
+          }
+          break;
+        case 'a':
+        case 'A':
+          if (!e.ctrlKey && !e.metaKey) {
+            setShowAnswer(!showAnswer);
+          }
+          break;
+        case 'p':
+        case 'P':
+          if (!e.ctrlKey && !e.metaKey && !isPreviewDisabled) {
+            setShowPreview(!showPreview);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [selectedPiece, rotatePiece, flipPiece, handlePieceSelect, showAnswer, setShowAnswer, showPreview, setShowPreview, isPreviewDisabled]);
+
   // 处理拼图完成
   const handlePuzzleComplete = useCallback(() => {
     setIsComplete(true);
@@ -398,18 +467,37 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
 
   // 特效增强的拼图块放置函数
   const enhancedPlacePieceToSlot = useCallback((pieceId: string, slotIndex: number) => {
-    // 检查特效限制
+    // 检查特效限制（位置限制）
     if (!canPlaceToSlot(slotIndex)) {
-      // 如果是最终防线特效，记录错误
-      if (challenge.effects?.includes('no_mistakes') || challenge.effects?.includes('最终防线')) {
-        setEffectStates(prev => ({ ...prev, hasStepError: true }));
-        setIsFailed(true);
-        if (authState.isAuthenticated && authState.user) {
-          updateChallengeRecord(false, false);
+      return; // 不能放置在该位置，直接返回
+    }
+    
+    // 最终防线特效：检查拼图块是否放置正确
+    if (challenge.effects?.includes('最终防线') || challenge.effects?.includes('no_mistakes')) {
+      const piece = gameState?.config.pieces.find(p => p.id === pieceId);
+      if (piece) {
+        // 检查是否放置在正确的位置且旋转、翻转状态正确
+        const isCorrectPlacement = piece.correctSlot === slotIndex && 
+                                   piece.rotation === piece.correctRotation && 
+                                   piece.isFlipped === (piece.correctIsFlipped || false);
+        
+        if (!isCorrectPlacement) {
+          // 错误放置，立即显示失败弹窗
+          if (challenge.effects?.includes('最终防线')) {
+            setFailureReason('您放置了一个错误的拼图块！"最终防线"特效不允许任何放置失误。');
+            setShowFailureModal(true);
+            return;
+          } else if (challenge.effects?.includes('no_mistakes')) {
+            // 其他no_mistakes特效直接失败
+            setEffectStates(prev => ({ ...prev, hasStepError: true }));
+            setIsFailed(true);
+            if (authState.isAuthenticated && authState.user) {
+              updateChallengeRecord(false, false);
+            }
+            return;
+          }
         }
-        return;
       }
-      return; // 其他特效只是阻止放置
     }
     
     // 执行正常的放置逻辑
@@ -457,7 +545,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       }
     }
     
-  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState, getAdjacentSlots]);
+  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState, getAdjacentSlots, gameState]);
 
   // 监听游戏完成状态（仿照普通关卡的完成检测机制）
   useEffect(() => {
@@ -475,6 +563,29 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       updateChallengeRecord(false, false);
     }
   }, [authState]);
+
+  // 处理失败弹窗的再试一次
+  const handleTryAgain = useCallback(() => {
+    setShowFailureModal(false);
+    setFailureReason('');
+    // 重新开始挑战
+    const canRestart = onRestartChallenge?.();
+    if (canRestart) {
+      generatePuzzle();
+    }
+  }, [onRestartChallenge, generatePuzzle]);
+
+  // 处理失败弹窗的返回菜单
+  const handleBackToMenuFromFailure = useCallback(() => {
+    setShowFailureModal(false);
+    setFailureReason('');
+    // 标记为失败并返回菜单
+    setIsFailed(true);
+    if (authState.isAuthenticated && authState.user) {
+      updateChallengeRecord(false, false);
+    }
+    onBackToMenu();
+  }, [authState, onBackToMenu]);
 
   // 处理进度变化
   const handleProgressChange = useCallback((newProgress: { correct: number; total: number; percentage: number }) => {
@@ -564,7 +675,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       // 计算挑战星数
       const challengeStars = challenge.effects?.reduce((total, effectId) => {
         // 基于特效ID计算星数
-        if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'mirror', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '镜中奇缘', '举步维艰'].includes(effectId)) {
+        if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里探花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
           return total + 3;
         } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
           return total + 4;
@@ -897,10 +1008,16 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
                 </div>
               )}
             </div>
-            {/* 镜中奇缘特效提示 */}
-            {(challenge.effects?.includes('mirror') || challenge.effects?.includes('镜中奇缘')) && (
-              <div className="mirror-effect-hint">
-                💫 镜像模式：拼图块需要水平翻转才能正确拼接
+            {/* 颠倒世界特效提示 */}
+            {(challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')) && (
+              <div className="upside-down-effect-hint">
+                🔄 颠倒世界：原图已被旋转180°，拼图区域和答题区都是颠倒的
+              </div>
+            )}
+            {/* 天旋地转特效提示 */}
+            {(challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转')) && (
+              <div className="rotate-effect-hint">
+                🎮 天旋地转：拼图块已随机旋转翻转，请使用R键旋转、F键翻转调整到正确位置！
               </div>
             )}
           </div>
@@ -981,6 +1098,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               onDragOver={handleDragOver}
               unlockedSlots={effectStates.unlockedSlots}
               hasCornerEffect={challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')}
+              hasUpsideDownEffect={challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')}
             />
           ) : (
             <IrregularPuzzleWorkspace
@@ -991,6 +1109,25 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               showDebugInfo={typeof window !== 'undefined' && window.location.hostname === 'localhost'}
             />
           )}
+        </div>
+        
+        {/* 操作提示 */}
+        <div className="game-tips-area mt-4">
+          <div className="game-tips bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+            <div className="flex items-center mb-2">
+              <span className="text-blue-600 font-semibold">💡 操作提示：</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-gray-700">
+              <div>• 点击选择拼图块，再点击答题卡槽位放置</div>
+              <div>• A键切换答案显示 | P键切换原图预览</div>
+              {(challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转')) && (
+                <>
+                  <div className="text-orange-600 font-medium">• R键顺时针旋转 | L键逆时针旋转</div>
+                  <div className="text-orange-600 font-medium">• F键翻转 | ESC键取消选择</div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1070,6 +1207,14 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           </div>
         </div>
       )}
+
+      {/* 失败弹窗 */}
+      <GameFailureModal
+        isVisible={showFailureModal}
+        onTryAgain={handleTryAgain}
+        onBackToMenu={handleBackToMenuFromFailure}
+        failureReason={failureReason}
+      />
     </div>
   );
 };

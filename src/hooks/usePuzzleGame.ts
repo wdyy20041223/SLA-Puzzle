@@ -506,50 +506,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
           // 撤销旋转：应用相反的delta值
           updatedPieces = updatedPieces.map(piece =>
             piece.id === lastMove.pieceId
-              ? { ...piece, rotation: piece.rotation - lastMove.delta }
-              : piece
-          );
-          break;
-        case 'replace':
-          // 撤销替换：将新拼图块移回原位置，恢复被替换的拼图块
-          if (lastMove.toSlot !== null && lastMove.toSlot !== undefined) {
-            const toSlot = lastMove.toSlot as number;
-            // 移除新放置的拼图块
-            newAnswerGrid[toSlot] = null;
-
-            // 如果被替换的拼图块存在，将其恢复到原位置
-            if (lastMove.replacedPieceId) {
-              const replacedPiece = updatedPieces.find(p => p.id === lastMove.replacedPieceId);
-              if (replacedPiece) {
-                newAnswerGrid[toSlot] = { ...replacedPiece, currentSlot: toSlot };
-                updatedPieces = updatedPieces.map(p =>
-                  p.id === lastMove.replacedPieceId ? { ...p, currentSlot: toSlot } : p
-                );
-              }
-            }
-
-            // 将新拼图块移回原位置
-            updatedPieces = updatedPieces.map(piece =>
-              piece.id === lastMove.pieceId
-                ? { ...piece, currentSlot: lastMove.fromSlot || null }
-                : piece
-            );
-
-            // 如果新拼图块原来在其他槽位，恢复那个槽位
-            if (lastMove.fromSlot !== null && lastMove.fromSlot !== undefined) {
-              const originalPiece = updatedPieces.find(p => p.id === lastMove.pieceId);
-              if (originalPiece) {
-                newAnswerGrid[lastMove.fromSlot] = { ...originalPiece, currentSlot: lastMove.fromSlot };
-              }
-            }
-          }
-          break;
-
-        case 'rotate':
-          // 撤销旋转（预留功能）
-          updatedPieces = updatedPieces.map(piece =>
-            piece.id === lastMove.pieceId
-              ? { ...piece, rotation: (piece.rotation - 90 + 360) % 360 }
+              ? { ...piece, rotation: piece.rotation - (lastMove.delta || 0) }
               : piece
           );
           break;
