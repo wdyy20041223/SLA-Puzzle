@@ -44,8 +44,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenSettings,
 }) => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('easy');
   const [pieceShape, setPieceShape] = useState<PieceShape>('square');
+  const [isAllowPieceRotation, setIsAllowPieceRotation] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
@@ -96,7 +97,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
         // 将 GridSize 转换为字符串格式
         const gridSizeStr = `${difficultyConfig.gridSize.rows}x${difficultyConfig.gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
-        onStartIrregularGame(imageData, gridSizeStr);
+        onStartIrregularGame(imageData, gridSizeStr, isAllowPieceRotation);
         return;
       }
       
@@ -104,6 +105,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
       
       const puzzleConfig = await PuzzleGenerator.generatePuzzle({
+          allowRotation: isAllowPieceRotation,
         imageData: imageData,
         gridSize: difficultyConfig.gridSize,
         pieceShape: pieceShape,
@@ -127,6 +129,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         gridSize: difficultyConfig.gridSize,
         pieceShape: pieceShape,
         name: selectedAsset.name,
+        allowRotation: isAllowPieceRotation,
       });
       
       onStartGame(puzzleConfig);
@@ -191,6 +194,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               isGenerating={isGenerating}
               onDifficultyChange={setDifficulty}
               onShapeChange={setPieceShape}
+              onPieceRotationChange={setIsAllowPieceRotation}
+              isAllowPieceRotation={isAllowPieceRotation}
               onStartGame={handleStartGame}
               onLoadGame={handleOpenLoadModal}
               onOpenEditor={onOpenEditor}

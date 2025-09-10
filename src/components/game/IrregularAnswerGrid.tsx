@@ -24,7 +24,7 @@ interface IrregularAnswerGridProps {
 export const IrregularAnswerGrid: React.FC<IrregularAnswerGridProps> = ({
     gridSize,
     answerGrid,
-    originalImage,
+    originalImage: _originalImage,
     selectedPieceId,
     showAnswers,
     onPlacePiece,
@@ -178,37 +178,6 @@ export const IrregularAnswerGrid: React.FC<IrregularAnswerGridProps> = ({
                 className="answer-grid"
                 style={gridStyle}
             >
-                {/* 显示答案时的原图虚影 - 严格控制在网格区域内 */}
-                {showAnswers && (
-                    <div
-                        className="grid-shadow-overlay"
-                        style={{
-                            position: 'absolute',
-                            top: 2, // 网格的padding
-                            left: 2, // 网格的padding
-                            width: `${gridSize.cols * cellSize}px`,
-                            height: `${gridSize.rows * cellSize}px`,
-                            zIndex: 1,
-                            pointerEvents: 'none',
-                            opacity: 0.3,
-                            overflow: 'hidden',
-                            borderRadius: '6px',
-                        }}
-                    >
-                        <img
-                            src={originalImage}
-                            alt="原图虚影"
-                            className="grid-shadow-image"
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                display: 'block',
-                            }}
-                        />
-                    </div>
-                )}
-
                 {answerGrid.map((piece, index) => (
                     <div
                         key={`slot-${index}-${piece?.id || 'empty'}`}
