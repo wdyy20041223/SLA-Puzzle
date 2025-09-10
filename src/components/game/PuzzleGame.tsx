@@ -384,7 +384,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
             size="small"
             className="hint-button"
           >
-            💡 提示
+            � 提示
           </Button>
 
           <Button 
