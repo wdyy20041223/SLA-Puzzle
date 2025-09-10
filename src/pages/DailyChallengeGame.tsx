@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { IrregularPuzzleConfig, IrregularPuzzleGenerator } from '../utils/puzzleGenerator/irregular';
 import { PuzzleGenerator } from '../utils/puzzleGenerator';
 import { PuzzleConfig } from '../types';
@@ -9,6 +9,7 @@ import { Timer } from '../components/common/Timer';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { cloudStorage } from '../services/cloudStorage';
+import { LeaderboardService } from '../services/leaderboardService';
 import { Challenge } from './DailyChallenge';
 
 interface DailyChallengeGameProps {
@@ -49,9 +50,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     handleDragStart,
     handleDragEnd,
     handleDragOver
-  } = usePuzzleGame({ 
-    initialConfig: puzzleType === 'square' ? (puzzleConfig as PuzzleConfig) : undefined
-  });
+  } = usePuzzleGame();
 
   // 生成拼图配置
   const generatePuzzle = useCallback(async () => {
@@ -217,6 +216,57 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         (record: any) => record.date === today
       );
       
+      // 计算每日挑战得分
+      const calculateDailyChallengeScore = (
+        completed: boolean,
+        isPerfect: boolean,
+        timeUsed: number,
+        moves: number,
+        timeLimit: number,
+        perfectMoves: number
+      ): number => {
+        if (!completed) return 0;
+
+        let score = 100; // 基础完成分数
+
+        // 时间奖励 (最多40分)
+        const timeRatio = Math.max(0, (timeLimit - timeUsed) / timeLimit);
+        score += Math.round(timeRatio * 40);
+
+        // 步数奖励 (最多30分)
+        if (moves <= perfectMoves) {
+          score += 30; // 完美步数
+        } else {
+          const movesRatio = Math.max(0, (perfectMoves * 2 - moves) / perfectMoves);
+          score += Math.round(movesRatio * 30);
+        }
+
+        // 完美奖励 (额外20分)
+        if (isPerfect) {
+          score += 20;
+        }
+
+        // 难度奖励 (最多10分)
+        const difficultyBonus = {
+          easy: 0,
+          medium: 3,
+          hard: 6,
+          expert: 10
+        };
+        score += difficultyBonus[challenge.difficulty] || 0;
+
+        return Math.max(0, score);
+      };
+
+      const score = calculateDailyChallengeScore(
+        completed,
+        isPerfect,
+        elapsedTime,
+        moves,
+        challenge.timeLimit,
+        challenge.perfectMoves
+      );
+
       // 创建或更新挑战记录
       const challengeRecord = {
         id: challenge.id,
@@ -227,13 +277,55 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         moves: moves,
         puzzleImage: challenge.puzzleImage,
         gridSize: challenge.gridSize,
-        difficulty: challenge.difficulty
+        difficulty: challenge.difficulty,
+        score: score
       };
       
       if (existingRecordIndex === -1) {
         user.challengeHistory.push(challengeRecord);
       } else {
         user.challengeHistory[existingRecordIndex] = challengeRecord;
+      }
+
+      // 更新每日挑战排行榜
+      if (completed && authState.user) {
+        // 计算连续天数（从用户历史记录中计算）
+        const completedDays = user.challengeHistory
+          .filter((record: any) => record.completed)
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        let consecutiveDays = 0;
+        const today = new Date();
+        for (let i = 0; i < completedDays.length; i++) {
+          const recordDate = new Date(completedDays[i].date);
+          const daysDiff = Math.floor((today.getTime() - recordDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysDiff === i) {
+            consecutiveDays++;
+          } else {
+            break;
+          }
+        }
+
+        // 计算总完成挑战数和平均分数
+        const totalChallengesCompleted = completedDays.length;
+        const averageScore = completedDays.length > 0 
+          ? Math.round(completedDays.reduce((sum: number, record: any) => sum + (record.score || 0), 0) / completedDays.length * 10) / 10
+          : 0;
+
+        // 添加到每日挑战排行榜
+        LeaderboardService.addDailyChallengeEntry({
+          date: today.toISOString().split('T')[0],
+          playerName: authState.user.username,
+          score: score,
+          completionTime: elapsedTime,
+          moves: moves,
+          difficulty: challenge.difficulty as any,
+          isPerfect: isPerfect,
+          consecutiveDays: consecutiveDays,
+          totalChallengesCompleted: totalChallengesCompleted,
+          averageScore: averageScore
+        });
       }
       
       // 如果完成，更新连续挑战天数
@@ -443,7 +535,6 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               onPuzzleComplete={handlePuzzleComplete}
               onProgressChange={handleProgressChange}
               scale={1}
-              showPreview={false} // 禁用预览图片功能
               showDebugInfo={typeof window !== 'undefined' && window.location.hostname === 'localhost'}
             />
           )}

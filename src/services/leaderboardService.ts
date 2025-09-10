@@ -1,7 +1,8 @@
-import { LeaderboardEntry, DifficultyLevel, PieceShape } from '../types';
+import { LeaderboardEntry, DifficultyLevel, PieceShape, DailyChallengeLeaderboardEntry, PuzzleLeaderboardEntry } from '../types';
 
 export class LeaderboardService {
   private static readonly STORAGE_KEY = 'puzzle_leaderboard';
+  private static readonly DAILY_CHALLENGE_STORAGE_KEY = 'daily_challenge_leaderboard';
 
   /**
    * 获取所有排行榜记录
@@ -23,6 +24,36 @@ export class LeaderboardService {
   }
 
   /**
+   * 获取每日挑战排行榜记录
+   */
+  static getDailyChallengeLeaderboard(): DailyChallengeLeaderboardEntry[] {
+    try {
+      const data = localStorage.getItem(this.DAILY_CHALLENGE_STORAGE_KEY);
+      if (!data) return [];
+      
+      const entries = JSON.parse(data);
+      return entries.map((entry: any) => ({
+        ...entry,
+        completedAt: new Date(entry.completedAt)
+      }));
+    } catch (error) {
+      console.error('获取每日挑战排行榜数据失败:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 保存每日挑战排行榜记录
+   */
+  private static saveDailyChallengeLeaderboard(entries: DailyChallengeLeaderboardEntry[]): void {
+    try {
+      localStorage.setItem(this.DAILY_CHALLENGE_STORAGE_KEY, JSON.stringify(entries));
+    } catch (error) {
+      console.error('保存每日挑战排行榜数据失败:', error);
+    }
+  }
+
+  /**
    * 添加新的排行榜记录
    */
   static addEntry(entry: Omit<LeaderboardEntry, 'id' | 'completedAt'>): LeaderboardEntry {
@@ -40,8 +71,380 @@ export class LeaderboardService {
   }
 
   /**
-   * 获取特定拼图的排行榜
+   * 获取合并后的单拼图排行榜（同一张地图的所有成绩合并为一个榜单）
    */
+  static getPuzzleConsolidatedLeaderboard(limit: number = 50): PuzzleLeaderboardEntry[] {
+    const entries = this.getLeaderboard();
+    const puzzleMap = new Map<string, PuzzleLeaderboardEntry>();
+
+    entries.forEach(entry => {
+      // 提取基础拼图ID（去除可能的子关卡后缀）
+      const basePuzzleId = this.extractBasePuzzleId(entry.puzzleId);
+      const key = `${basePuzzleId}_${entry.pieceShape}`;
+
+      if (!puzzleMap.has(key)) {
+        // 创建新的拼图排行榜条目
+        puzzleMap.set(key, {
+          id: `consolidated_${basePuzzleId}_${entry.pieceShape}`,
+          puzzleId: basePuzzleId,
+          puzzleName: this.extractBasePuzzleName(entry.puzzleName),
+          playerName: entry.playerName,
+          bestTime: entry.completionTime,
+          bestMoves: entry.moves,
+          totalCompletions: 1,
+          averageTime: entry.completionTime,
+          averageMoves: entry.moves,
+          difficulties: [entry.difficulty],
+          pieceShape: entry.pieceShape,
+          lastCompletedAt: entry.completedAt
+        });
+      } else {
+        const existing = puzzleMap.get(key)!;
+        
+        // 更新最佳记录
+        if (entry.completionTime < existing.bestTime || 
+            (entry.completionTime === existing.bestTime && entry.moves < existing.bestMoves)) {
+          existing.bestTime = entry.completionTime;
+          existing.bestMoves = entry.moves;
+          existing.playerName = entry.playerName; // 更新为最佳记录持有者
+        }
+
+        // 更新统计数据
+        existing.totalCompletions++;
+        existing.averageTime = Math.round((existing.averageTime * (existing.totalCompletions - 1) + entry.completionTime) / existing.totalCompletions);
+        existing.averageMoves = Math.round(((existing.averageMoves * (existing.totalCompletions - 1) + entry.moves) / existing.totalCompletions) * 10) / 10;
+        
+        // 添加难度等级（去重）
+        if (!existing.difficulties.includes(entry.difficulty)) {
+          existing.difficulties.push(entry.difficulty);
+        }
+
+        // 更新最后完成时间
+        if (entry.completedAt > existing.lastCompletedAt) {
+          existing.lastCompletedAt = entry.completedAt;
+        }
+      }
+    });
+
+    // 按最佳时间和步数排序
+    return Array.from(puzzleMap.values())
+      .sort((a, b) => {
+        if (a.bestTime !== b.bestTime) {
+          return a.bestTime - b.bestTime;
+        }
+        return a.bestMoves - b.bestMoves;
+      })
+      .slice(0, limit);
+  }
+
+  /**
+   * 获取所有可用拼图的配置
+   */
+  static getAllPuzzleConfigs(): { id: string; name: string; path: string }[] {
+    return [
+      // 图标类拼图
+      { id: 'tauri_logo', name: 'Tauri Logo', path: '/tauri.svg' },
+      { id: 'vite_logo', name: 'Vite Logo', path: '/vite.svg' },
+      { id: 'react_logo', name: 'React Logo', path: '/react.svg' },
+      
+      // 自然风光拼图
+      { id: 'landscape1', name: '山景风光', path: '/images/nature/landscape1.svg' },
+      { id: 'landscape2', name: '日落海景', path: '/images/nature/landscape2.svg' },
+      { id: 'landscape3', name: '森林风光', path: '/images/nature/landscape3.svg' },
+      
+      // 动物拼图
+      { id: 'cat', name: '可爱小猫', path: '/images/animals/cat.svg' },
+      
+      // 建筑拼图
+      { id: 'castle', name: '古典建筑', path: '/images/buildings/castle.svg' },
+      
+      // 动漫拼图
+      { id: 'character', name: '动漫角色', path: '/images/anime/character.svg' },
+      
+      // 商店自定义拼图
+      { id: 'test1', name: '森林花园', path: '/images/test1.svg' },
+      { id: 'test2', name: '黄昏日落', path: '/images/test2.svg' },
+      { id: 'test3', name: '玫瑰花园', path: '/images/test3.svg' },
+    ];
+  }
+
+  /**
+   * 获取包含所有拼图的排行榜（包含前3名），没有成绩的显示"暂无成绩"
+   */
+  static getAllPuzzleLeaderboardWithTop3(): any[] {
+    try {
+      const entries = this.getLeaderboard();
+      const allPuzzles = this.getAllPuzzleConfigs();
+      const pieceShapes: PieceShape[] = ['square', 'irregular', 'triangle'];
+      
+      const result: any[] = [];
+
+      // 为每个拼图和每种拼块形状创建排行榜条目
+      allPuzzles.forEach(puzzle => {
+        pieceShapes.forEach(shape => {
+          try {
+            // 查找该拼图和形状的所有记录
+            const puzzleEntries = entries.filter(entry => {
+              if (!entry || !entry.puzzleId || !entry.pieceShape) return false;
+              const basePuzzleId = this.extractBasePuzzleId(entry.puzzleId);
+              return basePuzzleId === puzzle.id && entry.pieceShape === shape;
+            });
+
+            if (puzzleEntries.length > 0) {
+              // 有记录，按时间和步数排序，取前3名
+              const sortedEntries = puzzleEntries
+                .map(entry => ({
+                  playerName: entry.playerName || '未知玩家',
+                  time: entry.completionTime || 0,
+                  moves: entry.moves || 0,
+                  difficulty: entry.difficulty || 'easy',
+                  completedAt: entry.completedAt || new Date()
+                }))
+                .sort((a, b) => {
+                  if (a.time !== b.time) return a.time - b.time;
+                  return a.moves - b.moves;
+                })
+                .slice(0, 3);
+
+              result.push({
+                id: `puzzle_${puzzle.id}_${shape}`,
+                puzzleId: puzzle.id,
+                puzzleName: puzzle.name,
+                pieceShape: shape,
+                topPlayers: sortedEntries,
+                hasRecords: true
+              });
+            } else {
+              // 没有记录，创建空的排行榜条目
+              result.push({
+                id: `puzzle_${puzzle.id}_${shape}`,
+                puzzleId: puzzle.id,
+                puzzleName: puzzle.name,
+                pieceShape: shape,
+                topPlayers: [],
+                hasRecords: false
+              });
+            }
+          } catch (shapeError) {
+            console.error(`处理拼图 ${puzzle.id} 形状 ${shape} 时发生错误:`, shapeError);
+            // 创建空的排行榜条目作为备选
+            result.push({
+              id: `puzzle_${puzzle.id}_${shape}`,
+              puzzleId: puzzle.id,
+              puzzleName: puzzle.name,
+              pieceShape: shape,
+              topPlayers: [],
+              hasRecords: false
+            });
+          }
+        });
+      });
+
+      return result;
+    } catch (error) {
+      console.error('获取所有拼图排行榜时发生错误:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 获取包含前3名的拼图排行榜（同一玩家可有多个成绩）- 原有方法保持兼容
+   */
+  static getPuzzleLeaderboardWithTop3(limit: number = 50): any[] {
+    const entries = this.getLeaderboard();
+    const puzzleMap = new Map<string, any>();
+
+    entries.forEach(entry => {
+      // 提取基础拼图ID（去除可能的子关卡后缀）
+      const basePuzzleId = this.extractBasePuzzleId(entry.puzzleId);
+      const key = `${basePuzzleId}_${entry.pieceShape}`;
+
+      if (!puzzleMap.has(key)) {
+        // 创建新的拼图排行榜条目
+        puzzleMap.set(key, {
+          id: `consolidated_${basePuzzleId}_${entry.pieceShape}`,
+          puzzleId: basePuzzleId,
+          puzzleName: this.extractBasePuzzleName(entry.puzzleName),
+          pieceShape: entry.pieceShape,
+          topPlayers: [{
+            playerName: entry.playerName,
+            time: entry.completionTime,
+            moves: entry.moves,
+            difficulty: entry.difficulty,
+            completedAt: entry.completedAt
+          }],
+          totalCompletions: 1,
+          averageTime: entry.completionTime,
+          averageMoves: entry.moves,
+          difficulties: [entry.difficulty],
+          lastCompletedAt: entry.completedAt
+        });
+      } else {
+        const existing = puzzleMap.get(key)!;
+        
+        // 直接添加所有记录到排行榜列表
+        const playerRecord = {
+          playerName: entry.playerName,
+          time: entry.completionTime,
+          moves: entry.moves,
+          difficulty: entry.difficulty,
+          completedAt: entry.completedAt
+        };
+
+        // 不再去重，直接添加所有成绩
+        existing.topPlayers.push(playerRecord);
+
+        // 按时间和步数排序，取前3名最快成绩
+        existing.topPlayers.sort((a: any, b: any) => {
+          if (a.time !== b.time) return a.time - b.time;
+          return a.moves - b.moves;
+        });
+        existing.topPlayers = existing.topPlayers.slice(0, 3);
+
+        // 更新统计数据
+        existing.totalCompletions++;
+        existing.averageTime = Math.round((existing.averageTime * (existing.totalCompletions - 1) + entry.completionTime) / existing.totalCompletions);
+        existing.averageMoves = Math.round(((existing.averageMoves * (existing.totalCompletions - 1) + entry.moves) / existing.totalCompletions) * 10) / 10;
+        
+        // 添加难度等级（去重）
+        if (!existing.difficulties.includes(entry.difficulty)) {
+          existing.difficulties.push(entry.difficulty);
+        }
+
+        // 更新最后完成时间
+        if (entry.completedAt > existing.lastCompletedAt) {
+          existing.lastCompletedAt = entry.completedAt;
+        }
+      }
+    });
+
+    // 按第一名的成绩排序
+    return Array.from(puzzleMap.values())
+      .sort((a, b) => {
+        const aFirstPlace = a.topPlayers[0];
+        const bFirstPlace = b.topPlayers[0];
+        if (aFirstPlace.time !== bFirstPlace.time) {
+          return aFirstPlace.time - bFirstPlace.time;
+        }
+        return aFirstPlace.moves - bFirstPlace.moves;
+      })
+      .slice(0, limit);
+  }
+
+  /**
+   * 添加或更新每日挑战记录
+   */
+  static addDailyChallengeEntry(entry: Omit<DailyChallengeLeaderboardEntry, 'id' | 'completedAt'>): DailyChallengeLeaderboardEntry {
+    const newEntry: DailyChallengeLeaderboardEntry = {
+      ...entry,
+      id: this.generateId(),
+      completedAt: new Date()
+    };
+
+    const entries = this.getDailyChallengeLeaderboard();
+    
+    // 检查是否已存在同一天同一用户的记录
+    const existingIndex = entries.findIndex(e => 
+      e.date === newEntry.date && e.playerName === newEntry.playerName
+    );
+
+    if (existingIndex >= 0) {
+      // 如果新记录更好，则更新
+      const existing = entries[existingIndex];
+      if (newEntry.score > existing.score || 
+          (newEntry.score === existing.score && newEntry.completionTime < existing.completionTime)) {
+        entries[existingIndex] = newEntry;
+      }
+    } else {
+      entries.push(newEntry);
+    }
+
+    this.saveDailyChallengeLeaderboard(entries);
+    return newEntry;
+  }
+
+  /**
+   * 获取每日挑战排行榜（按指定日期）
+   */
+  static getDailyChallengeRanking(date?: string, limit: number = 50): DailyChallengeLeaderboardEntry[] {
+    const entries = this.getDailyChallengeLeaderboard();
+    
+    let filtered = entries;
+    if (date) {
+      filtered = entries.filter(entry => entry.date === date);
+    }
+
+    // 按得分降序排序，得分相同则按时间升序
+    return filtered
+      .sort((a, b) => {
+        if (a.score !== b.score) {
+          return b.score - a.score; // 得分高的在前
+        }
+        return a.completionTime - b.completionTime; // 时间短的在前
+      })
+      .slice(0, limit);
+  }
+
+  /**
+   * 获取玩家的每日挑战统计信息
+   */
+  static getPlayerDailyChallengeStats(playerName: string): {
+    totalChallenges: number;
+    averageScore: number;
+    consecutiveDays: number;
+    bestScore: number;
+    completionRate: number;
+  } {
+    const entries = this.getDailyChallengeLeaderboard().filter(e => e.playerName === playerName);
+    
+    if (entries.length === 0) {
+      return {
+        totalChallenges: 0,
+        averageScore: 0,
+        consecutiveDays: 0,
+        bestScore: 0,
+        completionRate: 0
+      };
+    }
+
+    // 计算统计数据
+    const totalChallenges = entries.length;
+    const averageScore = entries.reduce((sum, e) => sum + e.score, 0) / totalChallenges;
+    const bestScore = Math.max(...entries.map(e => e.score));
+    
+    // 计算连续天数（简化版：取最新记录的连续天数）
+    const latestEntry = entries.sort((a, b) => b.completedAt.getTime() - a.completedAt.getTime())[0];
+    const consecutiveDays = latestEntry.consecutiveDays;
+
+    // 完成率（假设每天都有挑战机会）
+    const uniqueDates = new Set(entries.map(e => e.date)).size;
+    const completionRate = (uniqueDates / totalChallenges) * 100;
+
+    return {
+      totalChallenges,
+      averageScore: Math.round(averageScore * 10) / 10,
+      consecutiveDays,
+      bestScore,
+      completionRate: Math.round(completionRate * 10) / 10
+    };
+  }
+
+  /**
+   * 提取基础拼图ID（去除子关卡后缀）
+   */
+  private static extractBasePuzzleId(puzzleId: string): string {
+    // 移除常见的子关卡后缀，如 "_level1", "_part2", "-1", 等
+    return puzzleId.replace(/[-_](level|part|stage)?\d+$/i, '').replace(/[-_]\d+$/, '');
+  }
+
+  /**
+   * 提取基础拼图名称（去除子关卡后缀）
+   */
+  private static extractBasePuzzleName(puzzleName: string): string {
+    // 移除常见的子关卡后缀
+    return puzzleName.replace(/\s*[-_]?\s*(关卡|部分|阶段|level|part|stage)\s*\d+$/i, '')
+                    .replace(/\s*\d+$/, '');
+  }
   static getPuzzleLeaderboard(
     puzzleId: string, 
     difficulty?: DifficultyLevel,

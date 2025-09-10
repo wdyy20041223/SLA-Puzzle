@@ -11,6 +11,7 @@ import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
 import { useAuth } from '../../contexts/AuthContext';
 import { calculateGameCompletion } from '../../utils/rewardSystem';
+import { validateGameReward } from '../../utils/rewardDebugger';
 import { LeaderboardService } from '../../services/leaderboardService';
 import './PuzzleGame.css';
 
@@ -153,17 +154,29 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
             const perfectMoves = calculatePerfectMoves(puzzleConfig);
             const totalPieces = puzzleConfig.pieces.length;
 
-            // 计算游戏完成结果
+            console.log('🎮 游戏完成数据:', {
+              难度: puzzleConfig.difficulty,
+              完成时间: timer,
+              实际步数: gameState.moves,
+              理想步数: perfectMoves,
+              总拼图块: totalPieces,
+              用户当前金币: authState.user.coins,
+              用户当前经验: authState.user.experience,
+              当前游戏完成数: authState.user.gamesCompleted,
+              计算用游戏完成数: authState.user.gamesCompleted // 使用当前真实值而非+1
+            });
+
+            // 计算游戏完成结果 - 使用当前真实状态，避免状态不一致
             const result = calculateGameCompletion(
               puzzleConfig.difficulty,
               timer,
               gameState.moves,
               {
-                gamesCompleted: authState.user.gamesCompleted + 1, // 使用即将更新的值
+                gamesCompleted: authState.user.gamesCompleted, // ✅ 使用当前真实值，成就系统内部会处理+1逻辑
                 level: authState.user.level,
                 experience: authState.user.experience,
                 bestTimes: authState.user.bestTimes,
-                recentGameResults: (authState.user as any).recentGameResults || [], // 添加最近游戏结果
+                recentGameResults: (authState.user as any).recentGameResults || [],
                 difficultyStats: (authState.user as any).difficultyStats || {
                   easyCompleted: 0,
                   mediumCompleted: 0,
@@ -176,11 +189,54 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
               totalPieces
             );
 
+            console.log('🎯 前端奖励计算结果:', {
+              基础奖励: result.rewards,
+              是否新记录: result.isNewRecord,
+              新成就数量: result.rewards.achievements?.length || 0
+            });
+
+            // 使用调试工具验证计算
+            const validation = validateGameReward(
+              puzzleConfig.difficulty,
+              timer,
+              gameState.moves,
+              perfectMoves,
+              {
+                gamesCompleted: authState.user.gamesCompleted + 1,
+                level: authState.user.level,
+                experience: authState.user.experience,
+                bestTimes: authState.user.bestTimes
+              }
+            );
+
+            console.log('🔍 奖励验证结果:', validation);
+
             setCompletionResult(result);
             setShowCompletionModal(true);
 
+            // 记录用户完成前的状态，用于后续比较
+            const userBeforeCompletion = {
+              coins: authState.user.coins,
+              experience: authState.user.experience
+            };
+
+            console.log('🔄 开始处理游戏完成:', {
+              前端计算奖励: result.rewards,
+              用户完成前状态: userBeforeCompletion,
+              处理标志: { hasProcessedCompletion, isProcessingCompletion }
+            });
+
             // 更新用户数据
-            await handleGameCompletion(result);
+            const updateSuccess = await handleGameCompletion(result);
+            
+            if (updateSuccess) {
+              console.log('✅ 游戏完成处理成功');
+              
+              // 注意：不再使用 setTimeout，因为 handleGameCompletion 内部已经处理了奖励对比
+              // AuthContext 中的 handleGameCompletion 会在状态更新后立即进行对比分析
+            } else {
+              console.error('❌ 游戏完成处理失败');
+            }
 
             // 记录到排行榜（仅限方形拼图）
             if (authState.user && puzzleConfig.pieceShape === 'square') {

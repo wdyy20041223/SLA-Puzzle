@@ -86,6 +86,61 @@ export interface LeaderboardEntry {
   completedAt: Date;
 }
 
+// 每日挑战排行榜记录
+export interface DailyChallengeLeaderboardEntry {
+  id: string;
+  date: string; // 挑战日期，格式为 YYYY-MM-DD
+  playerName: string;
+  score: number; // 综合得分 (时间、步数、完成度等计算得出)
+  completionTime: number; // 完成时间（秒）
+  moves: number; // 步数
+  difficulty: DifficultyLevel;
+  isPerfect: boolean; // 是否完美完成
+  consecutiveDays: number; // 连续参与天数
+  totalChallengesCompleted: number; // 总挑战完成数
+  averageScore: number; // 平均得分
+  completedAt: Date;
+}
+
+// 单拼图排行榜记录（用于合并同一拼图不同子关卡的成绩）
+export interface PuzzleLeaderboardEntry {
+  id: string;
+  puzzleId: string; // 基础拼图ID（去除子关卡后缀）
+  puzzleName: string; // 拼图名称
+  playerName: string;
+  bestTime: number; // 最佳完成时间
+  bestMoves: number; // 最少步数
+  totalCompletions: number; // 总完成次数
+  averageTime: number; // 平均完成时间
+  averageMoves: number; // 平均步数
+  difficulties: DifficultyLevel[]; // 完成的难度等级
+  pieceShape: PieceShape;
+  lastCompletedAt: Date; // 最后完成时间
+}
+
+// 拼图前三名记录
+export interface PuzzleTopRecord {
+  playerName: string;
+  time: number;
+  moves: number;
+  difficulty: DifficultyLevel;
+  completedAt: Date;
+}
+
+// 拼图排行榜条目（包含前三名）
+export interface PuzzleLeaderboardWithTop3 {
+  id: string;
+  puzzleId: string;
+  puzzleName: string;
+  pieceShape: PieceShape;
+  topPlayers: PuzzleTopRecord[]; // 前3名玩家
+  totalCompletions: number;
+  averageTime: number;
+  averageMoves: number;
+  difficulties: DifficultyLevel[];
+  lastCompletedAt: Date;
+}
+
 // 编辑器状态
 export interface EditorState {
   currentAsset?: Asset;
