@@ -50,7 +50,7 @@ const builtinAssets: Asset[] = [
     fileSize: 5000,
     createdAt: new Date('2024-01-01'),
   },
-  
+
   // 自然风光类
   {
     id: 'landscape1',
@@ -88,7 +88,7 @@ const builtinAssets: Asset[] = [
     fileSize: 6000,
     createdAt: new Date('2024-01-01'),
   },
-  
+
   // 动物类
   {
     id: 'cat1',
@@ -102,7 +102,7 @@ const builtinAssets: Asset[] = [
     fileSize: 5500,
     createdAt: new Date('2024-01-01'),
   },
-  
+
   // 建筑类
   {
     id: 'castle1',
@@ -116,7 +116,7 @@ const builtinAssets: Asset[] = [
     fileSize: 6500,
     createdAt: new Date('2024-01-01'),
   },
-  
+
   // 动漫类
   {
     id: 'anime1',
@@ -132,12 +132,12 @@ const builtinAssets: Asset[] = [
   },
 ];
 
-// 商店拼图素材映射 - 将商店中的拼图素材ID映射为Asset对象
-const shopPuzzleAssets: Record<string, Asset> = {
-  'puzzle_image_1': {
+// 商店拼图素材 - 默认显示但需要解锁
+const shopPuzzleAssets: Asset[] = [
+  {
     id: 'puzzle_image_1',
     name: '森林花园',
-    category: '自定义',
+    category: '拼图素材',
     tags: ['拼图', '素材', '商店', '森林', '花园', '自然', '绿色'],
     filePath: '/images/test1.svg',
     thumbnail: '/images/test1.svg',
@@ -146,10 +146,10 @@ const shopPuzzleAssets: Record<string, Asset> = {
     fileSize: 8000,
     createdAt: new Date('2024-01-01'),
   },
-  'puzzle_image_2': {
+  {
     id: 'puzzle_image_2',
     name: '黄昏日落',
-    category: '自定义',
+    category: '拼图素材',
     tags: ['拼图', '素材', '商店', '日落', '黄昏', '太阳', '橙色'],
     filePath: '/images/test2.svg',
     thumbnail: '/images/test2.svg',
@@ -158,10 +158,10 @@ const shopPuzzleAssets: Record<string, Asset> = {
     fileSize: 9000,
     createdAt: new Date('2024-01-01'),
   },
-  'puzzle_image_3': {
+  {
     id: 'puzzle_image_3',
     name: '玫瑰花园',
-    category: '自定义',
+    category: '拼图素材',
     tags: ['拼图', '素材', '商店', '玫瑰', '花园', '红色', '浪漫'],
     filePath: '/images/test3.svg',
     thumbnail: '/images/test3.svg',
@@ -170,7 +170,7 @@ const shopPuzzleAssets: Record<string, Asset> = {
     fileSize: 10000,
     createdAt: new Date('2024-01-01'),
   },
-};
+];
 
 export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   onAssetSelect,
@@ -190,24 +190,55 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     { id: '动物', name: '动物' },
     { id: '建筑', name: '建筑' },
     { id: '动漫', name: '动漫' },
+    { id: '拼图素材', name: '拼图素材' },
     { id: '自定义', name: '自定义' },
   ];
 
-  // 获取用户购买的拼图素材
+  // 获取用户购买的物品列表
   const userOwnedItems = authState.user?.ownedItems || [];
-  const ownedPuzzleAssets = userOwnedItems
-    .filter(itemId => shopPuzzleAssets[itemId])
-    .map(itemId => shopPuzzleAssets[itemId]);
 
-  // 合并所有资源，避免重复
-  const allAssets = [...builtinAssets, ...customAssets, ...ownedPuzzleAssets]
-    .filter((asset, index, self) => 
+  // 检查拼图素材是否已解锁（完全参照头像框的检查机制）
+  const isPuzzleAssetUnlocked = (assetId: string): boolean => {
+    if (!authState.isAuthenticated || !authState.user) {
+      return false;
+    }
+    
+    const owned = userOwnedItems;
+    
+    // 完全参照Profile.tsx中的checkFrameOwnership函数
+    // 检查原始ID
+    if (owned.includes(assetId)) return true;
+    
+    // 检查带decoration_前缀的ID（因为商店将拼图素材映射为decoration类型）
+    if (owned.includes(`decoration_${assetId}`)) return true;
+    
+    // 检查带puzzle_前缀的ID（兼容性检查）
+    if (!assetId.startsWith('puzzle_') && owned.includes(`puzzle_${assetId}`)) return true;
+    
+    return false;
+  };
+
+  // 处理素材选择，只有解锁的素材才能被选择
+  const handleAssetClick = (asset: Asset) => {
+    // 检查是否是拼图素材且未解锁
+    if (asset.category === '拼图素材' && !isPuzzleAssetUnlocked(asset.id)) {
+      alert(`需要先在商店购买 "${asset.name}" 才能解锁使用！`);
+      return;
+    }
+
+    // 调用父组件的选择回调
+    onAssetSelect(asset);
+  };
+
+  // 合并所有资源
+  const allAssets = [...builtinAssets, ...shopPuzzleAssets, ...customAssets]
+    .filter((asset, index, self) =>
       index === self.findIndex(a => a.id === asset.id)
     );
 
   const filteredAssets = allAssets.filter(asset => {
     const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     return matchesCategory && matchesSearch;
@@ -299,17 +330,25 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
 
       {/* 素材网格 */}
       <div className="asset-grid">
-        {filteredAssets.map(asset => (
-          <AssetCard
-            key={asset.id}
-            asset={asset}
-            onSelect={onAssetSelect}
-            onDelete={asset.category === '自定义' ? (assetId) => {
-              setCustomAssets(prev => prev.filter(a => a.id !== assetId));
-            } : undefined}
-          />
-        ))}
-        
+        {filteredAssets.map(asset => {
+          // 检查拼图素材是否已解锁
+          const isPuzzleAsset = asset.category === '拼图素材';
+          const isLocked = isPuzzleAsset && !isPuzzleAssetUnlocked(asset.id);
+
+          return (
+            <AssetCard
+              key={asset.id}
+              asset={asset}
+              onSelect={handleAssetClick}
+              onDelete={asset.category === '自定义' ? (assetId) => {
+                setCustomAssets(prev => prev.filter(a => a.id !== assetId));
+              } : undefined}
+              isLocked={isLocked}
+              lockMessage={`需要先在商店购买 "${asset.name}" 才能解锁使用！`}
+            />
+          );
+        })}
+
         {filteredAssets.length === 0 && (
           <div className="no-assets">
             <p>没有找到匹配的素材</p>

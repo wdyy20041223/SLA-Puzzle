@@ -7,6 +7,11 @@ import { UserProfile } from '../components/auth/UserProfile';
 import { DataSync } from '../components/sync/DataSync';
 import { SaveLoadModal } from '../components/game/SaveLoadModal';
 import { PuzzleSaveService } from '../services/puzzleSaveService';
+import { PuzzleAssetTest } from '../components/test/PuzzleAssetTest';
+import { PuzzleAssetDebug } from '../components/test/PuzzleAssetDebug';
+import { diagnosePuzzleAssetPersistence, checkPuzzleAssetData } from '../utils/puzzleAssetPersistenceDebug';
+import { PuzzleAssetManager } from '../utils/PuzzleAssetManager';
+import { testPuzzleAssetDataFlow } from '../utils/puzzleAssetDataFlowTest';
 import { useAuth } from '../contexts/AuthContext';
 import './MainMenu.css';
 
@@ -44,6 +49,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [showLoadModal, setShowLoadModal] = useState(false);
+  const [showPuzzleTest, setShowPuzzleTest] = useState(false);
 
   const { authState } = useAuth();
 
@@ -141,6 +147,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setShowPuzzleTest(!showPuzzleTest)}
+            className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
+          >
+            🧪 测试
+          </button>
+          <button
             onClick={() => setShowSyncPanel(!showSyncPanel)}
             className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
           >
@@ -190,6 +202,84 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             />
           </div>
         </div>
+
+        {/* 测试面板 */}
+        {showPuzzleTest && (
+          <div className="mt-4">
+            <PuzzleAssetTest />
+            <PuzzleAssetDebug />
+            
+            {/* 拼图素材持久化调试按钮 */}
+            <div style={{ 
+              margin: '10px 0', 
+              padding: '10px', 
+              backgroundColor: '#fff3cd', 
+              borderRadius: '8px',
+              border: '1px solid #ffeaa7' 
+            }}>
+              <h4>🔧 拼图素材持久化调试</h4>
+              <button
+                onClick={() => checkPuzzleAssetData()}
+                style={{
+                  padding: '8px 16px',
+                  marginRight: '10px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                检查数据
+              </button>
+              <button
+                onClick={() => diagnosePuzzleAssetPersistence()}
+                style={{
+                  padding: '8px 16px',
+                  marginRight: '10px',
+                  backgroundColor: '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                完整诊断
+              </button>
+              <button
+                onClick={async () => {
+                  const result = await PuzzleAssetManager.syncPuzzleAssets();
+                  alert(result.message);
+                  console.log('🔄 同步结果:', result);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  marginRight: '10px',
+                  backgroundColor: '#ffc107',
+                  color: 'black',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                修复持久化
+              </button>
+              <button
+                onClick={() => testPuzzleAssetDataFlow()}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                数据流测试
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 加载游戏模态框 */}

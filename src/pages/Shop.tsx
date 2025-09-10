@@ -213,69 +213,60 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
     }
 
     try {
-      // 对于拼图素材，使用特殊处理逻辑
-      if (item.id.startsWith('puzzle_image_')) {
-        // 拼图素材直接本地处理，不需要后端验证特定类型
-        // 只需要扣除金币和添加到用户拥有物品列表
-        if (user) {
-          // 先获取当前的API服务实例以保持token
-          const { apiService } = await import('../services/apiService');
-          const currentToken = apiService.getToken();
-          
-          const updatedUser = {
-            ...user,
-            coins: (user.coins || 0) - item.price,
-            ownedItems: [...(user.ownedItems || []), item.id]
-          };
-          
-          // 保持原有的token，不要清除认证信息
-          setAuthenticatedUser(updatedUser, currentToken || '');
-          
-          // 更新商店物品状态
-          const updatedItems = shopItems.map(shopItem => 
-            shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
-          );
-          setShopItems(updatedItems);
-          
-          alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
-          return;
-        }
-      }
-      
-      // 其他物品使用原有的后端 API 购买流程
+      // 获取API服务实例
       const { apiService } = await import('../services/apiService');
+
+      // 所有物品都使用统一的API购买流程，包括拼图素材
       // 根据物品类型映射到后端接受的类型
       const itemTypeMapping: Record<string, string> = {
+        // 头像类
         'avatar_cat': 'avatar',
-        'avatar_robot': 'avatar', 
+        'avatar_robot': 'avatar',
         'avatar_wizard': 'avatar',
         'avatar_knight': 'avatar',
         'avatar_princess': 'avatar',
         'avatar_ninja': 'avatar',
+        'avatar_unicorn': 'avatar',
+
+        // 拼图素材类 - 使用后端支持的decoration类型
+        'puzzle_image_1': 'decoration',
+        'puzzle_image_2': 'decoration',
+        'puzzle_image_3': 'decoration',
+
+        // 头像框类
         'frame_gold': 'avatar_frame',
         'frame_silver': 'avatar_frame',
         'frame_diamond': 'avatar_frame',
         'frame_rainbow': 'avatar_frame',
         'frame_fire': 'avatar_frame',
         'frame_ice': 'avatar_frame',
+
+        // 装饰类
         'decoration_star': 'decoration',
         'decoration_crown': 'decoration',
         'decoration_wing': 'decoration',
         'decoration_halo': 'decoration',
         'decoration_gem': 'decoration',
+        'decoration_frame': 'decoration',
+
+        // 主题类
         'theme_classic': 'theme',
         'theme_modern': 'theme',
         'theme_fantasy': 'theme',
         'theme_space': 'theme',
         'theme_ocean': 'theme'
       };
-      
+
       const backendItemType = itemTypeMapping[item.id] || 'decoration';
+      console.log(`购买物品: ${item.name} (ID: ${item.id})`);
+      console.log(`后端商品类型: ${backendItemType}, 价格: ${item.price}`);
+
       const response = await apiService.acquireItem(backendItemType, item.id, item.price);
-      
+
       if (response.success) {
+        console.log('✅ 后端购买成功:', response.data);
         alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
-        
+
         // 立即更新本地用户数据，确保购买的物品能立即在素材库中显示
         if (user) {
           const updatedUser = {
@@ -283,37 +274,64 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
             coins: (user.coins || 0) - item.price,
             ownedItems: [...(user.ownedItems || []), item.id]
           };
+          console.log(`🔄 本地更新用户数据 - 添加物品: ${item.id}`);
+          console.log('📦 更新后的拥有物品:', updatedUser.ownedItems);
           setAuthenticatedUser(updatedUser, apiService.getToken() || '');
         }
-        
-        // 异步刷新用户数据以确保与后端同步，但保护本地已确认的购买状态
-        setTimeout(async () => {
-          try {
-            const userResponse = await apiService.getUserProfile();
-            if (userResponse.success && userResponse.data) {
-              // 转换API用户类型到内部用户类型
-              const convertedUser = {
-                ...userResponse.data.user,
-                createdAt: new Date(userResponse.data.user.createdAt),
-                lastLoginAt: new Date(userResponse.data.user.lastLoginAt),
-              };
-              
-              // 确保本次购买的物品在后端数据中，如果没有则手动添加（防止同步延迟）
-              const backendOwnedItems = convertedUser.ownedItems || [];
-              if (!backendOwnedItems.includes(item.id)) {
+
+        // 更新商店物品状态，确保在不同账号间有正确的状态
+        const updatedItems = shopItems.map(shopItem =>
+          shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
+        );
+        setShopItems(updatedItems);
+
+        // 立即同步后端数据，确保购买记录正确保存
+        try {
+          console.log('🔄 开始同步后端数据...');
+          const userResponse = await apiService.getUserProfile();
+
+          if (userResponse.success && userResponse.data) {
+            // 转换API用户类型到内部用户类型
+            const convertedUser = {
+              ...userResponse.data.user,
+              createdAt: new Date(userResponse.data.user.createdAt),
+              lastLoginAt: new Date(userResponse.data.user.lastLoginAt),
+            };
+
+            // 确保本次购买的物品在后端数据中
+            const backendOwnedItems = convertedUser.ownedItems || [];
+            if (!backendOwnedItems.includes(item.id)) {
+              console.warn(`⚠️ 后端数据同步延迟，手动添加购买项目: ${item.id}`);
+              // 强制更新后端数据
+              const updateResponse = await apiService.updateUserProfile({
+                ownedItems: [...backendOwnedItems, item.id]
+              });
+
+              if (updateResponse.success) {
+                console.log('✅ 后端数据同步成功');
                 convertedUser.ownedItems = [...backendOwnedItems, item.id];
-                console.warn(`后端数据同步延迟，本地补充购买项目: ${item.id}`);
+              } else {
+                console.error('❌ 后端数据同步失败:', updateResponse.error);
+                // 即使同步失败，也要在本地保留购买状态
+                alert('购买成功！数据正在同步到服务器，请稍后刷新页面确认。');
               }
-              
-              // 更新 AuthContext 中的用户数据
-              setAuthenticatedUser(convertedUser, apiService.getToken() || '');
+            } else {
+              console.log('✅ 后端数据已正确同步');
             }
-          } catch (error) {
-            console.error('后端数据同步失败，但本地状态已更新:', error);
+
+            // 更新 AuthContext 中的用户数据
+            setAuthenticatedUser(convertedUser, apiService.getToken() || '');
+          } else {
+            console.error('❌ 获取用户数据失败:', userResponse.error);
+            alert('购买成功！但数据同步可能延迟，请稍后刷新页面。');
           }
-        }, 1000);
+        } catch (error) {
+          console.error('后端数据同步失败，但本地状态已更新:', error);
+          alert('购买成功！但数据同步遇到问题，请稍后刷新页面确认购买状态。');
+        }
       } else {
-        alert(`购买失败：${response.error || '未知错误'}`);
+        console.error('❌ 后端购买失败:', response.error);
+        alert(`购买失败: ${response.error || '未知错误'}`);
       }
     } catch (error) {
       console.error('购买物品时发生错误:', error);

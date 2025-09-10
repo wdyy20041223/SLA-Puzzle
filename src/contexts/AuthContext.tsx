@@ -72,6 +72,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (response.success && response.data) {
             let user = convertApiUserToUser(response.data.user);
             
+            // 调试信息：输出用户数据
+            console.log('🔄 AuthContext 初始化用户数据:');
+            console.log('用户ID:', user.id);
+            console.log('用户拥有的物品:', user.ownedItems);
+            console.log('拼图素材相关物品:', user.ownedItems?.filter(item => item.includes('puzzle_image')));
+            
             // 整合组员的头像显示修复：清理可能不属于当前用户的头像/头像框（防止不同账号互相污染）
             const owned = user.ownedItems || [];
             
