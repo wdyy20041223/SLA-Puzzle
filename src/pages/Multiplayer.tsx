@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../components/common/Button';
 import { apiService, MultiplayerRoom, PuzzleConfigData } from '../services/apiService';
-import { puzzleAssets, getRandomPuzzle, difficultyLabels, categoryLabels } from '../data/puzzleAssets';
+import { puzzleAssets, difficultyLabels, categoryLabels } from '../data/puzzleAssets';
 import { useAuth } from '../contexts/AuthContext';
 import './Multiplayer.css';
 
@@ -27,7 +27,7 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
 
   // 当前房间状态
   const [currentRoom, setCurrentRoom] = useState<MultiplayerRoom | null>(null);
-  const [roomPollingInterval, setRoomPollingInterval] = useState<NodeJS.Timeout | null>(null);
+  const [roomPollingInterval, setRoomPollingInterval] = useState<number | null>(null);
 
   // 清理定时器
   useEffect(() => {
@@ -448,7 +448,7 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
     }
 
     const currentUserStatus = getCurrentUserStatus();
-    const isHost = isCurrentUserHost();
+    // const isHost = isCurrentUserHost();  // 暂时注释掉未使用的变量
 
     return (
       <div className="current-room-section">
@@ -502,11 +502,13 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
               {currentRoom.players?.map((player) => (
                 <div key={player.userId} className="player-item">
                   <div className="player-info">
-                    <span className="player-name">
-                      {player.username}
-                      {player.isHost && <span className="host-badge">👑</span>}
-                      {player.userId === authState.user?.id && <span className="you-badge">(你)</span>}
-                    </span>
+                    <div className="player-name">
+                      <span className="player-name-text">{player.username}</span>
+                      <div className="player-badges">
+                        {player.isHost && <span className="host-badge">👑</span>}
+                        {player.userId === authState.user?.id && <span className="you-badge">你</span>}
+                      </div>
+                    </div>
                     <span 
                       className="player-status"
                       style={{ color: getStatusColor(player.status) }}

@@ -46,7 +46,7 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
       <div className="grid grid-cols-2 gap-2">
         <Button
           onClick={onOpenAchievements}
-          variant="secondary"
+          variant="primary"
           size="medium"
           className="w-full py-3 text-sm font-medium"
         >
@@ -55,7 +55,7 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
         
         <Button
           onClick={onOpenDailyChallenge}
-          variant="secondary"
+          variant="primary"
           size="medium"
           className="w-full py-3 text-sm font-medium"
         >
@@ -64,7 +64,7 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
         
         <Button
           onClick={onOpenLeaderboard}
-          variant="secondary"
+          variant="success"
           size="medium"
           className="w-full py-3 text-sm font-medium col-span-2"
         >

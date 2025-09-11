@@ -13,7 +13,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { calculateGameCompletion } from '../../utils/rewardSystem';
 import { validateGameReward } from '../../utils/rewardDebugger';
 import { HybridLeaderboardService } from '../../services/hybridLeaderboardService';
-import { musicManager } from '../../services/musicService';
+// import { musicManager } from '../../services/musicService';  // 暂时注释掉未使用的导入
+import { themeManager, ThemeState } from '../../services/themeService';
 import './PuzzleGame.css';
 import './PuzzleWorkspace.css';
 import './GameNavbarFix.css';
@@ -34,11 +35,14 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   isMultiplayer = false,
 }) => {
   const [showAnswers, setShowAnswers] = useState(false);
-const [showOriginalImage, setShowOriginalImage] = useState(false);
+  const [showOriginalImage, setShowOriginalImage] = useState(false);
   const [completionResult, setCompletionResult] = useState<GameCompletionResult | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isProcessingCompletion, setIsProcessingCompletion] = useState(false); // 防重复处理
   const [hasProcessedCompletion, setHasProcessedCompletion] = useState(false); // 标记是否已处理
+  
+  // 主题状态
+  const [themeState, setThemeState] = useState<ThemeState>(themeManager.getThemeState());
 
   // 保存/加载相关状态
   const [showSaveLoadModal, setShowSaveLoadModal] = useState(false);
@@ -157,15 +161,17 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
             // 根据拼图配置计算理想步数
             const calculatePerfectMoves = (config: PuzzleConfig): number => {
               const baseSize = config.pieces.length;
-              const difficultyMultiplier = {
+              const difficultyMultiplier: Record<string, number> = {
                 'easy': 0.8,
                 'medium': 1.0,
                 'hard': 1.3,
-                'expert': 1.6
+                'expert': 1.6,
+                'custom': 1.0  // 添加自定义难度支持
               };
 
               // 基础公式：拼图块数 * 难度系数 * 1.2
-              return Math.round(baseSize * difficultyMultiplier[config.difficulty] * 1.2);
+              const multiplier = difficultyMultiplier[config.difficulty] || 1.0;
+              return Math.round(baseSize * multiplier * 1.2);
             };
 
             const perfectMoves = calculatePerfectMoves(puzzleConfig);
@@ -357,9 +363,24 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [selectedPiece, rotatePiece, flipPiece, undo, setSelectedPiece, canSaveGame, handleSaveGame, showAnswers, setShowAnswers, showSaveLoadModal]);
 
+  // 订阅主题变化
+  useEffect(() => {
+    const unsubscribe = themeManager.subscribe((newThemeState) => {
+      setThemeState(newThemeState);
+    });
+    
+    return unsubscribe;
+  }, []);
+
   if (!isGameStarted) {
     return (
-      <div className="puzzle-game-start">
+      <div 
+        className={`puzzle-game-start ${themeState.currentTheme === 'night' ? 'night-mode' : ''}`}
+        style={{
+          backgroundImage: `url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmIj48L3JlY3Q+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNmZmQ2ZTAiPjwvcmVjdD4KPC9zdmc+'), url(${themeState.backgroundImage})`
+        }}
+      >
+        <div className="puzzle-game-overlay"></div>
         <div className="start-content">
           <h2>{puzzleConfig.name}</h2>
           <div className="puzzle-info">
@@ -382,7 +403,12 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
   }
 
   return (
-    <div className="puzzle-game">
+    <div 
+      className={`puzzle-game ${themeState.currentTheme === 'night' ? 'night-mode' : ''}`}
+      style={{
+        backgroundImage: `url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmIj48L3JlY3Q+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNmZmQ2ZTAiPjwvcmVjdD4KPC9zdmc+'), url(${themeState.backgroundImage})`
+      }}
+    >
       {/* 游戏头部 */}
       <div className="game-header">
         <div className="game-info">

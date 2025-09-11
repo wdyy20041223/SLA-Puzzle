@@ -4,7 +4,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 192, 203, 0.2);
+  background: rgba(248, 165, 194, 0.3);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,14 +13,14 @@
 }
 
 .leaderboard-modal {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--card-background);
   border-radius: 16px;
   width: 90%;
   max-width: 800px;
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(255, 192, 203, 0.2);
-  border: 1px solid rgba(255, 192, 203, 0.3);
+  box-shadow: 0 20px 60px rgba(248, 165, 194, 0.3);
+  border: 2px solid var(--primary-pink);
   animation: modal-appear 0.3s ease-out;
 }
 
@@ -52,10 +53,11 @@
 }
 
 .close-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  font-size: 24px;
+  background: rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--button-text);
+  color: var(--button-text);
+  font-size: 20px;
+  font-weight: bold;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -63,11 +65,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--button-text);
+  color: var(--primary-pink);
+  transform: scale(1.05);
 }
 
 .modal-content {
@@ -89,21 +93,22 @@
   border: none;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  color: #666;
+  font-weight: 600;
+  color: var(--text-secondary);
   border-bottom: 2px solid transparent;
   transition: all 0.2s;
 }
 
 .tab:hover {
-  color: #333;
-  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-primary);
+  background: var(--light-pink-2);
 }
 
 .tab.active {
   color: var(--text-primary);
   border-bottom-color: var(--primary-pink);
-  background: rgba(248, 181, 215, 0.1);
+  background: var(--light-pink);
+  font-weight: 700;
 }
 
 .difficulty-selector {
@@ -115,23 +120,29 @@
 
 .difficulty-btn {
   padding: 8px 16px;
-  border: 1px solid #ddd;
-  background: white;
+  border: 2px solid var(--border-color);
+  background: var(--card-background);
   cursor: pointer;
   border-radius: 6px;
   font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
   transition: all 0.2s;
 }
 
 .difficulty-btn:hover {
   border-color: var(--primary-pink);
+  background: var(--light-pink-2);
   color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .difficulty-btn.active {
   background: var(--primary-pink);
-  color: white;
+  color: var(--button-text);
   border-color: var(--primary-pink);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .puzzle-info {

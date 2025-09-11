@@ -7,30 +7,32 @@
   line-height: 1.6;
   font-weight: 400;
 
-  /* 马卡龙色系调色板 - 和谐柔和的色彩搭配 */
-  --primary-pink: #FFD6E0;           /* 马卡龙粉：主色调 - 更柔和的粉色 */
-  --secondary-pink: #FFEEE6;         /* 马卡龙浅粉：辅助色1 */
-  --accent-pink: #FFECD2;            /* 马卡龙橘粉：辅助色2 */
+  /* 马卡龙色系调色板 - 优化对比度的和谐色彩搭配 */
+  --primary-pink: #F8A5C2;           /* 马卡龙粉：主色调 - 增强对比度 */
+  --secondary-pink: #F4CBA4;         /* 马卡龙浅粉：辅助色1 - 增强饱和度 */
+  --accent-pink: #F0B27A;            /* 马卡龙橘粉：辅助色2 - 增强可见度 */
   --light-pink: #FFF8F5;             /* 接近白色：中性色 */
   --light-pink-1: #FFF8F5;           /* 接近白色：中性色 - 与light-pink一致 */
-  --light-pink-2: #FFEEE6;           /* 浅粉色：与secondary-pink一致 */
-  --mint-green: #D6F5E2;             /* 马卡龙薄荷绿：点缀色1 */
-  --soft-blue: #DDEBF7;              /* 马卡龙蓝：点缀色2 */
-  --lavender: #E4D9FF;               /* 马卡龙薰衣草紫：点缀色3 */
-  --cream-yellow: #FFF2D8;           /* 马卡龙奶油黄：点缀色4 */
-  --text-primary: #5D5B6A;           /* 深灰紫色：主要文字色 - 提高可读性 */
-  --text-secondary: #8D8A97;         /* 中灰紫色：次要文字色 */
-  --text-light: #B5B0BD;             /* 浅灰紫色：提示文字色 */
-  --text-color: #5D5B6A;             /* 文字颜色 - 与text-primary一致 */
+  --light-pink-2: #F9E6D8;           /* 浅粉色：增强对比度 */
+  --mint-green: #A8E6CF;             /* 马卡龙薄荷绿：点缀色1 - 增强饱和度 */
+  --soft-blue: #AED6F1;              /* 马卡龙蓝：点缀色2 - 增强可见度 */
+  --lavender: #C8A8E9;               /* 马卡龙薰衣草紫：点缀色3 - 增强对比度 */
+  --cream-yellow: #F7DC6F;           /* 马卡龙奶油黄：点缀色4 - 增强饱和度 */
+  --text-primary: #4A4458;           /* 深灰紫色：主要文字色 - 进一步增强对比度 */
+  --text-secondary: #6B5B73;         /* 中灰紫色：次要文字色 - 增强可读性 */
+  --text-light: #8B7E8F;             /* 浅灰紫色：提示文字色 - 保持可读性 */
+  --text-color: #4A4458;             /* 文字颜色 - 与text-primary一致 */
   --background-main: #FFFDFA;        /* 极浅粉色：页面背景 */
   --background-secondary: #FFEEE6;   /* 浅粉色：次级背景 */
   --card-background: #FFFFFF;        /* 白色：卡片背景 */
   --neutral-color: #FFFFFF;          /* 中性色 - 与card-background一致 */
   --shadow-pink: rgba(255, 214, 224, 0.2); /* 粉色阴影 */
   --border-color: rgba(255, 214, 224, 0.3);  /* 边框颜色 */
-  --accent-green: #D6F5E2;           /* 马卡龙薄荷绿：替代原来的绿色 */
-  --accent-yellow: #FFF2D8;          /* 马卡龙奶油黄：替代原来的黄色 */
-  --rarity-color: #E4D9FF;           /* 马卡龙薰衣草紫：用于稀有物品边框 */
+  --accent-green: #A8E6CF;           /* 马卡龙薄荷绿：替代原来的绿色 - 增强饱和度 */
+  --accent-yellow: #F7DC6F;          /* 马卡龙奶油黄：替代原来的黄色 - 增强可见度 */
+  --rarity-color: #C8A8E9;           /* 马卡龙薰衣草紫：用于稀有物品边框 - 增强对比度 */
+  --button-text: #FFFFFF;            /* 按钮文字颜色：纯白色确保可读性 */
+  --button-text-dark: #4A4458;      /* 深色按钮文字：深色背景使用 */
   
   color: var(--text-primary);
   background-color: var(--background-main);

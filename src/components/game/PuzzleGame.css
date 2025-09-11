@@ -2,7 +2,52 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f5f5f5;
+  position: relative;
+  background: var(--background-main);
+  background-size: 20px 20px, cover;  /* 第一个是纹理，第二个是背景图 */
+  background-position: 0 0, center center;
+  background-repeat: repeat, no-repeat;
+  background-attachment: scroll, fixed;  /* 背景图固定 */
+}
+
+/* 游戏主界面背景遮罩层 */
+.puzzle-game::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg, 
+    rgba(248, 165, 194, 0.15) 0%,   /* 更轻微的遮罩 */
+    rgba(244, 203, 164, 0.1) 25%,
+    rgba(249, 230, 216, 0.05) 50%,
+    rgba(244, 203, 164, 0.1) 75%,
+    rgba(248, 165, 194, 0.15) 100%
+  );
+  backdrop-filter: blur(0.2px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 游戏内容在背景之上 */
+.puzzle-game > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 夜间模式 */
+.puzzle-game.night-mode::before {
+  background: linear-gradient(
+    135deg, 
+    rgba(138, 108, 156, 0.2) 0%,
+    rgba(108, 134, 156, 0.15) 25%,
+    rgba(88, 88, 124, 0.1) 50%,
+    rgba(108, 134, 156, 0.15) 75%,
+    rgba(138, 108, 156, 0.2) 100%
+  );
+  backdrop-filter: blur(0.3px);
 }
 
 /* 游戏开始界面 */
@@ -11,19 +56,66 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
+  position: relative;
   background: var(--background-main);
-  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmIj48L3JlY3Q+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNmZmQ2ZTAiPjwvcmVjdD4KPC9zdmc+');
+  background-size: 20px 20px, cover;  /* 第一个是纹理，第二个是背景图 */
+  background-position: 0 0, center center;
+  background-repeat: repeat, no-repeat;
+  background-attachment: scroll, fixed;  /* 背景图固定 */
+}
+
+/* 游戏页面背景遮罩层 */
+.puzzle-game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg, 
+    rgba(248, 165, 194, 0.2) 0%,    /* 主色调 - 轻微遮罩 */
+    rgba(244, 203, 164, 0.15) 25%,  /* 辅助色1 */
+    rgba(249, 230, 216, 0.1) 50%,   /* 辅助色2 */
+    rgba(244, 203, 164, 0.15) 75%,  /* 辅助色1 */
+    rgba(248, 165, 194, 0.2) 100%   /* 主色调 */
+  );
+  backdrop-filter: blur(0.3px);  /* 极微模糊，保持背景清晰 */
+  pointer-events: none;  /* 不影响鼠标事件 */
+  z-index: 0;
+}
+
+/* 日夜切换效果 */
+.puzzle-game-start.night-mode .puzzle-game-overlay {
+  background: linear-gradient(
+    135deg, 
+    rgba(138, 108, 156, 0.3) 0%,    /* 夜间模式 - 深紫色 */
+    rgba(108, 134, 156, 0.25) 25%,  /* 深蓝灰色 */
+    rgba(88, 88, 124, 0.2) 50%,     /* 深灰色 */
+    rgba(108, 134, 156, 0.25) 75%,  /* 深蓝灰色 */
+    rgba(138, 108, 156, 0.3) 100%   /* 深紫色 */
+  );
+  backdrop-filter: blur(0.5px);
 }
 
 .start-content {
-  background: var(--card-background);
+  background: rgba(255, 255, 255, 0.9);  /* 降低不透明度，让背景更可见 */
   padding: 40px;
   border-radius: 16px;
   text-align: center;
-  box-shadow: 0 8px 24px var(--shadow-pink);
+  box-shadow: 0 20px 60px rgba(248, 165, 194, 0.3);
   max-width: 400px;
   width: 100%;
-  border: 1px solid var(--border-color);
+  border: 3px solid var(--primary-pink);
+  backdrop-filter: blur(4px);  /* 轻微模糊，保持背景可见 */
+  position: relative;
+  z-index: 1;  /* 确保在遮罩层之上 */
+}
+
+/* 夜间模式下的内容区域 */
+.puzzle-game-start.night-mode .start-content {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(138, 108, 156, 0.8);
+  box-shadow: 0 20px 60px rgba(138, 108, 156, 0.3);
 }
 
 .start-content h2 {
@@ -39,7 +131,8 @@
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 32px;
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--primary-pink);
+  box-shadow: 0 4px 12px rgba(248, 165, 194, 0.2);
 }
 
 .puzzle-info p {

@@ -17,17 +17,17 @@
   bottom: 0;
   background: linear-gradient(
     135deg, 
-    var(--primary-pink) 0%,    /* 主色调 */
-    var(--secondary-pink) 25%,   /* 辅助色1 */
-    var(--light-pink) 50%,   /* 辅助色2 */
-    var(--secondary-pink) 75%,   /* 辅助色1 */
-    var(--primary-pink) 100%   /* 主色调 */
+    rgba(248, 165, 194, 0.3) 0%,    /* 主色调 - 降低不透明度 */
+    rgba(244, 203, 164, 0.2) 25%,   /* 辅助色1 - 降低不透明度 */
+    rgba(249, 230, 216, 0.1) 50%,   /* 辅助色2 - 降低不透明度 */
+    rgba(244, 203, 164, 0.2) 75%,   /* 辅助色1 - 降低不透明度 */
+    rgba(248, 165, 194, 0.3) 100%   /* 主色调 - 降低不透明度 */
   );
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(1px);
-  opacity: 0.7;
+  backdrop-filter: blur(0.5px);  /* 大幅减少模糊 */
+  opacity: 1;  /* 移除额外的透明度 */
 }
 
 /* 用户头像区域 */
@@ -43,11 +43,11 @@
   width: 90%;
   text-align: center;
   padding: 2rem;
-  background: var(--light-pink);
+  background: rgba(255, 255, 255, 0.9);  /* 降低背景不透明度，让背景图更可见 */
   border-radius: 24px;
-  backdrop-filter: blur(8px);
-  border: 2px solid var(--primary-pink);
-  box-shadow: 0 12px 40px var(--shadow-pink);
+  backdrop-filter: blur(4px);  /* 减少模糊效果 */
+  border: 3px solid var(--primary-pink);
+  box-shadow: 0 20px 60px rgba(248, 165, 194, 0.4);
 }
 
 /* 标题区域 */
@@ -96,8 +96,8 @@
 }
 
 .menu-item {
-  background: var(--secondary-pink);
-  border: 2px solid var(--primary-pink);
+  background: rgba(255, 255, 255, 0.85);  /* 降低背景不透明度 */
+  border: 3px solid var(--primary-pink);
   border-radius: 16px;
   padding: 2rem;
   cursor: pointer;
@@ -107,11 +107,11 @@
   gap: 1.5rem;
   text-align: left;
   min-height: 120px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(3px);  /* 减少模糊效果 */
   position: relative;
   overflow: hidden;
   opacity: 1;
-  box-shadow: 0 8px 20px var(--shadow-pink);
+  box-shadow: 0 12px 30px rgba(248, 165, 194, 0.3);
 }
 
 .menu-item::before {
@@ -135,10 +135,10 @@
 }
 
 .menu-item:hover {
-  transform: translateY(-4px) scale(1.02);
-  border-color: var(--primary-pink);
-  background: var(--primary-pink);
-  box-shadow: 0 12px 24px rgba(255, 214, 224, 0.4);
+  transform: translateY(-6px) scale(1.03);
+  border-color: var(--accent-pink);
+  background: var(--light-pink);
+  box-shadow: 0 20px 40px rgba(248, 165, 194, 0.5);
 }
 
 .menu-item:active {
@@ -160,18 +160,19 @@
   font-size: 1.4rem;
   color: var(--text-primary);
   margin: 0 0 0.5rem 0;
-  font-weight: 600;
+  font-weight: 700;
   opacity: 1;
   font-family: 'Nunito', 'Quicksand', sans-serif;
+  text-shadow: 0 1px 3px rgba(248, 165, 194, 0.2);
 }
 
 .menu-text p {
   font-size: 0.95rem;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   margin: 0;
   opacity: 1;
   line-height: 1.4;
-  font-weight: 500;
+  font-weight: 600;
   font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 

@@ -13,18 +13,24 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.9);  /* 增强背景不透明度 */
+  border: 2px solid var(--primary-pink);  /* 使用主题色边框 */
   border-radius: 50px;
   padding: 0.5rem 1rem;
-  color: white;
+  color: var(--text-primary);  /* 使用主题文字色 */
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   font-size: 0.9rem;
+  font-weight: 600;  /* 增强文字重量 */
+  box-shadow: 0 4px 12px rgba(248, 165, 194, 0.3);  /* 添加主题色阴影 */
+  backdrop-filter: blur(8px);  /* 添加模糊效果 */
 }
 
 .user-profile-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink);  /* 悬停时使用主题浅色 */
+  border-color: var(--accent-pink);  /* 悬停时边框颜色加深 */
+  transform: translateY(-1px);  /* 轻微上移效果 */
+  box-shadow: 0 6px 20px rgba(248, 165, 194, 0.4);  /* 增强阴影 */
 }
 
 .user-avatar {
@@ -33,19 +39,24 @@
   height: 32px;
   border-radius: 50%;
   background: var(--primary-pink);
+  border: 2px solid var(--accent-pink);  /* 添加边框增强对比 */
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  font-weight: bold;
-  color: white;
+  font-weight: 700;  /* 增强文字重量 */
+  color: var(--button-text);  /* 使用按钮文字色确保可见 */
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(248, 165, 194, 0.3);  /* 添加阴影 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);  /* 添加文字阴影 */
 }
 
 .user-avatar:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);  /* 轻微增大缩放效果 */
+  border-color: var(--secondary-pink);
+  box-shadow: 0 4px 15px rgba(248, 165, 194, 0.5);  /* 增强悬停阴影 */
 }
 
 .user-avatar.with-frame {
@@ -75,16 +86,19 @@
 }
 
 .user-name {
-  font-weight: 500;
+  font-weight: 600;  /* 增强文字重量 */
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--text-primary);  /* 确保使用主题文字色 */
 }
 
 .dropdown-arrow {
   font-size: 0.7rem;
   transition: transform 0.2s ease;
+  color: var(--text-primary);  /* 确保箭头颜色可见 */
+  font-weight: 700;
 }
 
 .user-profile-button[aria-expanded="true"] .dropdown-arrow {
@@ -96,13 +110,14 @@
   top: 100%;
   right: 0;
   margin-top: 0.5rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.98);  /* 轻微透明的背景 */
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(248, 165, 194, 0.4);  /* 使用主题色阴影 */
   min-width: 220px;
   z-index: 1000;
   animation: dropdownSlideIn 0.2s ease-out;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--primary-pink);  /* 使用主题色边框 */
+  backdrop-filter: blur(10px);  /* 添加模糊效果 */
 }
 
 @keyframes dropdownSlideIn {
@@ -132,13 +147,14 @@
 }
 
 .user-info .label {
-  color: #666;
+  color: var(--text-secondary);  /* 使用主题次要文字色 */
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .user-info .value {
-  color: #333;
-  font-weight: 500;
+  color: var(--text-primary);  /* 使用主题主要文字色 */
+  font-weight: 600;  /* 增强文字重量 */
   font-size: 0.9rem;
 }
 
@@ -210,12 +226,15 @@
   text-align: left;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.2s ease;
+  font-weight: 500;
+  color: var(--text-primary);  /* 使用主题文字色 */
+  transition: all 0.2s ease;
   border-radius: 0 0 12px 12px;
 }
 
 .dropdown-item:hover {
-  background: #f8f9fa;
+  background: var(--light-pink-2);  /* 使用主题浅色背景 */
+  color: var(--text-primary);
 }
 
 .logout-button {
@@ -235,6 +254,30 @@
   z-index: 999;
 }
 
+/* 针对不同页面背景的额外优化 */
+.puzzle-game .user-profile-button,
+.main-menu .user-profile-button,
+.settings-page .user-profile-button {
+  background: rgba(255, 255, 255, 0.95);  /* 在游戏页面增强背景不透明度 */
+  border: 2px solid var(--primary-pink);
+  box-shadow: 0 6px 20px rgba(248, 165, 194, 0.4);  /* 增强阴影效果 */
+}
+
+.puzzle-game .user-profile-button:hover,
+.main-menu .user-profile-button:hover,
+.settings-page .user-profile-button:hover {
+  background: var(--light-pink);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(248, 165, 194, 0.5);
+}
+
+/* 确保在夜间模式下也清晰可见 */
+.night-mode .user-profile-button {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--accent-pink);
+  box-shadow: 0 6px 20px rgba(200, 168, 233, 0.4);
+}
+
 @media (max-width: 768px) {
   .user-name {
     display: none;
@@ -242,6 +285,10 @@
   
   .user-dropdown {
     right: -10px;
+  }
+  
+  .user-profile-button {
+    padding: 0.4rem 0.8rem;  /* 移动设备上稍微减小内边距 */
   }
 }
 
