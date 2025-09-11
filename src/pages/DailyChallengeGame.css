@@ -1,0 +1,290 @@
+/* 每日挑战特效样式 */
+
+/* 雾里看花特效：未选中的拼图块模糊 */
+.effect-blur-unselected .puzzle-piece-item:not(.selected) {
+  filter: blur(8px);
+  transition: filter 0.3s ease;
+}
+
+.effect-blur-unselected .puzzle-piece-item.selected {
+  filter: none;
+}
+
+/* 一手遮天特效：放置后的拼图块变黑 */
+.effect-invisible-placed .placed-piece {
+  background: #000000 !important;
+}
+
+.effect-invisible-placed .placed-piece .piece-image {
+  filter: brightness(0) !important;
+  opacity: 1 !important;
+}
+
+.effect-invisible-placed .placed-piece .piece-info,
+.effect-invisible-placed .placed-piece .correctness-indicator {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* 管中窥豹特效：隐藏的槽位样式 */
+.grid-slot.hidden-slot {
+  opacity: 0.3;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #f0f0f0,
+    #f0f0f0 10px,
+    #e0e0e0 10px,
+    #e0e0e0 20px
+  );
+}
+
+.grid-slot.hidden-slot::before {
+  content: "🔍";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  z-index: 10;
+  pointer-events: none;
+  color: #999;
+}
+
+/* 作茧自缚特效：锁定的槽位样式 */
+.locked-slot {
+  position: relative;
+  opacity: 0.6;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #ffcccc,
+    #ffcccc 10px,
+    #ffaaaa 10px,
+    #ffaaaa 20px
+  );
+}
+
+.locked-slot::before {
+  content: "🔒";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 作茧自缚特效：解锁的槽位样式 */
+.unlocked-slot {
+  opacity: 1;
+  pointer-events: auto;
+  background: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.unlocked-slot:hover {
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+/* 最终防线特效：错误提示 */
+.effect-error-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 0, 0, 0.2);
+  z-index: 1000;
+  pointer-events: none;
+  animation: error-flash 0.5s ease-out;
+}
+
+@keyframes error-flash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* 精打细算特效：步数警告 */
+.step-limit-warning {
+  background: linear-gradient(45deg, #ff9800, #ff5722);
+  color: white;
+  font-weight: bold;
+  animation: warning-pulse 1s infinite;
+}
+
+@keyframes warning-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+/* 举步维艰特效：步数显示样式 */
+.double-steps-indicator {
+  position: relative;
+}
+
+.double-steps-indicator::after {
+  content: "×2";
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: #ff5722;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-weight: bold;
+}
+
+/* 天旋地转特效：拼图块旋转动画 */
+.effect-rotate-pieces .puzzle-piece {
+  transition: transform 0.5s ease;
+}
+
+/* 天旋地转特效提示 */
+.rotate-effect-hint {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 152, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
+}
+
+@keyframes hint-pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}
+
+/* 管中窥豹特效提示 */
+.partial-effect-hint {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background: rgba(156, 39, 176, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
+}
+
+/* 深渊漫步特效提示 */
+.invisible-effect-hint {
+  position: absolute;
+  top: 90px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
+}
+
+/* 颠倒世界特效：旋转提示 */
+.upside-down-effect-hint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(33, 150, 243, 0.9);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+}
+
+/* 生死时速特效：时间紧急提示 */
+.time-critical {
+  animation: time-urgent 1s infinite;
+}
+
+@keyframes time-urgent {
+  0% { color: #ff0000; }
+  50% { color: #ff6600; }
+  100% { color: #ff0000; }
+}
+
+/* 亦步亦趋特效：限制放置位置的槽位样式 */
+.step-follow-restricted {
+  position: relative;
+  opacity: 0.5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #f0f0f0,
+    #f0f0f0 8px,
+    #e0e0e0 8px,
+    #e0e0e0 16px
+  );
+}
+
+.step-follow-restricted::before {
+  content: "🚫";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  z-index: 10;
+  pointer-events: none;
+  color: #999;
+}
+
+/* 亦步亦趋特效：可放置的槽位样式 */
+.step-follow-available {
+  opacity: 1;
+  pointer-events: auto;
+  background: #ffffff;
+  border: 2px solid #4caf50;
+  transition: all 0.3s ease;
+}
+
+.step-follow-available:hover {
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+  border-color: #66bb6a;
+}
+
+/* 亦步亦趋特效提示 */
+.step-follow-effect-hint {
+  position: absolute;
+  top: 130px;
+  right: 10px;
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
+}
+
+/* 璀璨星河特效：亮度变化容器 */
+.brightness-effect {
+  transition: filter 0.1s ease;
+}

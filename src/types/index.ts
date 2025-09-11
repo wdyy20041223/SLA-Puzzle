@@ -13,10 +13,23 @@ export interface PuzzlePiece {
   height: number;
   shape: PieceShape;
   triangleType?: 'upper' | 'lower'; // 三角形类型，仅当shape为triangle时有效
+
+  // 俄罗斯方块相关属性
+  tetrisShape?: TetrisShape; // 俄罗斯方块形状类型
+  occupiedPositions?: [number, number][]; // 在4x4网格中占据的相对位置坐标 [row, col]
+  correctSlots?: number[]; // 正确的槽位编号数组（多个格子对应多个槽位）
+  cellImages?: { [key: string]: string }; // 每个单元格的图片数据，格式为 "row-col": imageData
 }
 
 // 拼图形状类型
-export type PieceShape = 'square' | 'triangle' | 'irregular';
+export type PieceShape = 'square' | 'triangle' | 'irregular' | 'tetris';
+
+// 俄罗斯方块形状类型
+export type TetrisShape =
+  | 'I' | 'O' | 'T' | 'L' | 'J' | 'S' | 'Z'  // 经典7种4格形状
+  | 'I3' | 'L3'  // 3格形状：I型和L型
+  | 'I2'        // 2格形状：I型
+  | 'O1';       // 1格形状：方形
 
 // 拼图配置
 export interface PuzzleConfig {
@@ -84,6 +97,62 @@ export interface LeaderboardEntry {
   pieceShape: PieceShape; // 拼图形状
   gridSize: string; // 网格大小，如"3x3"
   completedAt: Date;
+}
+
+// 每日挑战排行榜记录
+export interface DailyChallengeLeaderboardEntry {
+  id: string;
+  date: string; // 挑战日期，格式为 YYYY-MM-DD
+  playerName: string;
+  score: number; // 综合得分 (时间、步数、完成度等计算得出)
+  completionTime: number; // 完成时间（秒）
+  moves: number; // 步数
+  difficulty: DifficultyLevel;
+  isPerfect: boolean; // 是否完美完成
+  consecutiveDays: number; // 连续参与天数
+  totalChallengesCompleted: number; // 总挑战完成数
+  averageScore: number; // 平均得分
+  totalStars: number; // 选择的挑战总星数
+  completedAt: Date;
+}
+
+// 单拼图排行榜记录（用于合并同一拼图不同子关卡的成绩）
+export interface PuzzleLeaderboardEntry {
+  id: string;
+  puzzleId: string; // 基础拼图ID（去除子关卡后缀）
+  puzzleName: string; // 拼图名称
+  playerName: string;
+  bestTime: number; // 最佳完成时间
+  bestMoves: number; // 最少步数
+  totalCompletions: number; // 总完成次数
+  averageTime: number; // 平均完成时间
+  averageMoves: number; // 平均步数
+  difficulties: DifficultyLevel[]; // 完成的难度等级
+  pieceShape: PieceShape;
+  lastCompletedAt: Date; // 最后完成时间
+}
+
+// 拼图前三名记录
+export interface PuzzleTopRecord {
+  playerName: string;
+  time: number;
+  moves: number;
+  difficulty: DifficultyLevel;
+  completedAt: Date;
+}
+
+// 拼图排行榜条目（包含前三名）
+export interface PuzzleLeaderboardWithTop3 {
+  id: string;
+  puzzleId: string;
+  puzzleName: string;
+  pieceShape: PieceShape;
+  topPlayers: PuzzleTopRecord[]; // 前3名玩家
+  totalCompletions: number;
+  averageTime: number;
+  averageMoves: number;
+  difficulties: DifficultyLevel[];
+  lastCompletedAt: Date;
 }
 
 // 编辑器状态
