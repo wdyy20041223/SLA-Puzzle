@@ -29,6 +29,14 @@ export interface Challenge {
   bestMoves?: number;
   attempts: number;
   puzzleType: 'square' | 'irregular';
+  effects: string[]; // 叠加的特效数组
+}
+
+export interface DailyEffect {
+  id: string;
+  name: string;
+  description: string;
+  star: 3 | 4 | 5;
 }
 
 interface ChallengeHistory {
@@ -43,13 +51,45 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const { authState } = useAuth();
   const [activeTab, setActiveTab] = useState<'today' | 'history' | 'rewards'>('today');
   const [todayChallenge, setTodayChallenge] = useState<Challenge | null>(null);
+  const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
+  const [dailyEffects, setDailyEffects] = useState<{
+    star3: DailyEffect[];
+    star4: DailyEffect[];
+    star5: DailyEffect[];
+  }>({ star3: [], star4: [], star5: [] });
   const [challengeHistory, setChallengeHistory] = useState<ChallengeHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentChallengeIndex, setCurrentChallengeIndex] = useState(0);
   const [dailyStreak, setDailyStreak] = useState(0);
   const [totalCoins, setTotalCoins] = useState(0);
   const [totalExperience, setTotalExperience] = useState(0);
   const [unlockedItems, setUnlockedItems] = useState<{name: string, icon: string, date: string}[]>([]);
+
+  // 解析每日特效文本
+  const parseDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
+    const effects = {
+      star3: [
+        { id: 'rotate', name: '天旋地转', description: '本关卡拼图块包含旋转与翻转', star: 3 as const },
+        { id: 'blur', name: '雾里探花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
+        { id: 'partial', name: '管中窥豹', description: '本关卡答题区最开始只展示一半的拼图块', star: 3 as const },
+        { id: 'mirror', name: '镜中奇缘', description: '本关卡正确答案与原图块成镜像关系', star: 3 as const },
+        { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 as const }
+      ],
+      star4: [
+        { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落', star: 4 as const },
+        { id: 'invisible', name: '一手遮天', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
+        { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 as const },
+        { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 as const }
+      ],
+      star5: [
+        { id: 'no_mistakes', name: '最终防线', description: '本关卡不允许任何一次放置失误', star: 5 as const },
+        { id: 'step_limit', name: '精打细算', description: '本关卡必须在1.5*拼图块数量次步数内完成', star: 5 as const },
+        { id: 'brightness', name: '璀璨星河', description: '答题区拼图块亮度随时间呈正弦变化', star: 5 as const }
+      ]
+    };
+    return effects;
+  };
 
   // 拼图图片库
   const puzzleImageLibrary = [
@@ -142,15 +182,17 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
           setChallengeHistory(history);
         }
 
-        // 生成今日挑战
-        const challenge = generateTodayChallenge(userId);
-        setTodayChallenge(challenge);
+        // 生成今日多项挑战
+        const challenges = generateTodayChallenges(userId);
+        setTodayChallenges(challenges);
+        setSelectedChallengeIds([]);
+        setCurrentChallengeIndex(0);
 
       } catch (error) {
         console.error('初始化挑战数据失败:', error);
         // 生成默认挑战
-        const defaultChallenge = generateTodayChallenge("1");
-        setTodayChallenge(defaultChallenge);
+        const defaultChallenges = generateTodayChallenges("1");
+        setTodayChallenges(defaultChallenges);
       } finally {
         setIsLoading(false);
       }
@@ -201,135 +243,149 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     return false;
   };
 
-  // 生成今日挑战（基于日期的固定挑战）
-  const generateTodayChallenge = (userId: string): Challenge => {
+  // 生成今日多项挑战（3个3星、2个4星、1个5星）
+  const generateTodayChallenges = (userId: string): Challenge[] => {
     const today = getTodayDate();
     const seed = getDateSeed(today);
     const random = pseudoRandom(seed);
-
-    // 基于种子选择图片（确保所有用户同一天选择相同图片）
-    const imageIndex = Math.floor(random() * puzzleImageLibrary.length);
-    const selectedImage = puzzleImageLibrary[imageIndex];
-
-    // 基于种子选择难度（确保所有用户同一天难度相同）
-    const difficulties = ['easy', 'medium', 'hard', 'expert'] as const;
-    const difficultyIndex = Math.floor(random() * difficulties.length);
-    const selectedDifficulty = difficulties[difficultyIndex];
-
-    // 随机选择拼图类型（方形普通或异形）
-    const puzzleTypes = ['square', 'irregular'] as const;
     
-    const puzzleTypeIndex = Math.floor(random()*puzzleTypes.length);
-    const selectedPuzzleType = puzzleTypes[puzzleTypeIndex];
+    // 星级分布：3个3星、2个4星、1个5星
+    const starDistribution = [3, 3, 3, 4, 4, 5];
     
-    // 为测试方形拼图，暂时固定选择方形
-    //const selectedPuzzleType = puzzleTypes[0]; // 0对应'square'
-
-    const config = difficultyConfigs[selectedDifficulty];
-
-    // 从localStorage获取今日挑战记录
-    const challengeRecordKey = `daily_challenge_${userId}_${today}`;
-    const savedRecord = localStorage.getItem(challengeRecordKey);
-    const record = savedRecord ? JSON.parse(savedRecord) : {};
-
-    // 确保attempts在合理范围内，默认为0（新用户有3次挑战机会）
-    const attempts = Math.max(0, Math.min(3, typeof record.attempts === 'number' ? record.attempts : 0));
-
-    return {
-      id: `daily-${today}`,
-      date: today,
-      title: selectedImage.title,
-      description: selectedImage.description,
-      difficulty: selectedDifficulty,
-      puzzleImage: selectedImage.path,
-      gridSize: config.gridSize,
-      timeLimit: config.timeLimit,
-      perfectMoves: config.perfectMoves,
-      rewards: {
-        completion: config.completionReward,
-        perfect: '特殊称号：完美主义者',
-        speed: config.speedReward
-      },
-      isCompleted: record.isCompleted || false,
-      bestTime: record.bestTime,
-      bestMoves: record.bestMoves,
-      attempts: attempts,
-      puzzleType: selectedPuzzleType
+    // 每日特效定义
+    const starEffects = {
+      3: ["天旋地转", "雾里探花", "管中窥豹", "镜中奇缘", "举步维艰"],
+      4: ["作茧自缚", "一手遮天", "一叶障目", "生死时速"],
+      5: ["最终防线", "精打细算", "璀璨星河"]
     };
+    
+    const challenges: Challenge[] = [];
+    
+    for (let i = 0; i < starDistribution.length; i++) {
+      const star = starDistribution[i] as 3 | 4 | 5;
+      
+      // 随机选择图片
+      const imageIndex = Math.floor(random() * puzzleImageLibrary.length);
+      const selectedImage = puzzleImageLibrary[imageIndex];
+      
+      // 随机选择难度
+      const difficulties = ['easy', 'medium', 'hard', 'expert'] as const;
+      const difficultyIndex = Math.floor(random() * difficulties.length);
+      const selectedDifficulty = difficulties[difficultyIndex];
+      
+      // 随机选择拼图类型
+      const puzzleTypes = ['square', 'irregular'] as const;
+      const puzzleTypeIndex = Math.floor(random() * puzzleTypes.length);
+      const selectedPuzzleType = puzzleTypes[puzzleTypeIndex];
+      
+      // 获取难度配置
+      const config = difficultyConfigs[selectedDifficulty];
+      
+      // 随机选择特效
+      const effectList = starEffects[star];
+      const effectIndex = Math.floor(random() * effectList.length);
+      const selectedEffect = effectList[effectIndex];
+      
+      // 从localStorage获取挑战记录
+      const challengeRecordKey = `daily_challenge_${userId}_${today}_${i}`;
+      const savedRecord = localStorage.getItem(challengeRecordKey);
+      const record = savedRecord ? JSON.parse(savedRecord) : {};
+      
+      challenges.push({
+        id: `daily-${today}-${i}`,
+        date: today,
+        title: `${selectedImage.title} (${star}星)`,
+        description: selectedImage.description,
+        difficulty: selectedDifficulty,
+        puzzleImage: selectedImage.path,
+        gridSize: config.gridSize,
+        timeLimit: config.timeLimit,
+        perfectMoves: config.perfectMoves,
+        rewards: {
+          completion: config.completionReward,
+          perfect: '特殊称号：完美主义者',
+          speed: config.speedReward
+        },
+        isCompleted: record.isCompleted || false,
+        bestTime: record.bestTime,
+        bestMoves: record.bestMoves,
+        attempts: Math.max(0, Math.min(3, typeof record.attempts === 'number' ? record.attempts : 0)),
+        puzzleType: selectedPuzzleType,
+        star: star,
+        effect: selectedEffect
+      });
+    }
+    
+    return challenges;
   };
 
   // 初始化时检查是否需要午夜重置
 
-  // 开始挑战
-  const handleStartChallenge = () => { const userId = authState.user?.id || 'default';
-  if (!todayChallenge) return;
-  
-  // 检查是否已经达到每日挑战次数限制
-  if (todayChallenge.attempts >= 3) {
-    alert('您今天已经挑战了3次，明天再来吧！');
-    return;
-  }
-  
-  // 更新挑战次数，确保不超过3次
-  const updatedAttempts = Math.min(todayChallenge.attempts + 1, 3);
-  const updatedChallenge = {
-    ...todayChallenge,
-    attempts: updatedAttempts
+  // 开始多项挑战
+  const handleStartChallenges = () => {
+    if (selectedChallengeIds.length === 0) {
+      alert('请至少选择一个挑战项目！');
+      return;
+    }
+    setCurrentChallengeIndex(0);
+    setIsPlaying(true);
   };
-  setTodayChallenge(updatedChallenge);
-  
-  // 保存挑战次数到本地存储
-  localStorage.setItem(`daily_challenge_${userId}_${getTodayDate()}`, JSON.stringify({
-    attempts: updatedAttempts,
-    isCompleted: updatedChallenge.isCompleted,
-    bestTime: updatedChallenge.bestTime,
-    bestMoves: updatedChallenge.bestMoves
-  }));
-  
-  setIsPlaying(true);
-};
 
-const handleRestartChallenge = (): boolean => {
-  const userId = authState.user?.id || 'default';
-  if (!todayChallenge) return false;
-  
-  // 检查是否已经达到每日挑战次数限制
-  if (todayChallenge.attempts >= 3) {
-    alert('您今天已经挑战了3次，无法重新开始！');
-    return false;
-  }
-  
-  // 更新挑战次数，确保不超过3次
-  const updatedAttempts = Math.min(todayChallenge.attempts + 1, 3);
-  const updatedChallenge = {
-    ...todayChallenge,
-    attempts: updatedAttempts
+  // 选择/取消选择挑战
+  const toggleChallengeSelection = (challengeId: string) => {
+    setSelectedChallengeIds(prev => {
+      if (prev.includes(challengeId)) {
+        return prev.filter(id => id !== challengeId);
+      } else {
+        return [...prev, challengeId];
+      }
+    });
   };
-  setTodayChallenge(updatedChallenge);
-  
-  // 保存挑战次数到本地存储
-  localStorage.setItem(`daily_challenge_${userId}_${getTodayDate()}`, JSON.stringify({
-    attempts: updatedAttempts,
-    isCompleted: updatedChallenge.isCompleted,
-    bestTime: updatedChallenge.bestTime,
-    bestMoves: updatedChallenge.bestMoves
-  }));
-  
-  return true;
-};
+
+  // 重试当前挑战
+  const handleRestartChallenge = (): boolean => {
+    const userId = authState.user?.id || 'default';
+    if (selectedChallengeIds.length === 0) return false;
+    
+    const currentChallengeId = selectedChallengeIds[currentChallengeIndex];
+    const challenge = todayChallenges.find(c => c.id === currentChallengeId);
+    
+    if (!challenge) return false;
+    if (challenge.attempts >= 3) {
+      alert('每日挑战机会已用完，请明天再来！');
+      return false;
+    }
+
+    // 增加尝试次数
+    const updatedChallenges = todayChallenges.map(c => 
+      c.id === currentChallengeId 
+        ? { ...c, attempts: Math.min(c.attempts + 1, 3) }
+        : c
+    );
+    setTodayChallenges(updatedChallenges);
+    
+    // 保存到localStorage
+    const challengeRecordKey = `daily_challenge_${userId}_${getTodayDate()}_${currentChallengeIndex}`;
+    const updatedChallenge = updatedChallenges.find(c => c.id === currentChallengeId);
+    if (updatedChallenge) {
+      localStorage.setItem(challengeRecordKey, JSON.stringify({
+        attempts: updatedChallenge.attempts,
+        isCompleted: updatedChallenge.isCompleted,
+        bestTime: updatedChallenge.bestTime,
+        bestMoves: updatedChallenge.bestMoves
+      }));
+    }
+    
+    return true;
+  };
 
   // 挑战完成后返回
   const handleChallengeReturn = () => {
     setIsPlaying(false);
     // 重新加载挑战数据
-    initializeChallenge();
-  };
-
-  // 辅助函数：初始化挑战数据
-  const initializeChallenge = () => {
-    const userId = authState.user?.id || 'guest';
-    const challenge = generateTodayChallenge(userId);
-    setTodayChallenge(challenge);
+    const userId = authState.user?.id || 'default';
+    const challenges = generateTodayChallenges(userId);
+    setTodayChallenges(challenges);
   };
 
   const getDifficultyColor = (difficulty: Challenge['difficulty']) => {
@@ -359,7 +415,7 @@ const handleRestartChallenge = (): boolean => {
   };
 
   const renderTodayTab = () => {
-    if (isLoading || !todayChallenge) {
+    if (isLoading || todayChallenges.length === 0) {
       return (
         <div className="loading-container">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
@@ -367,6 +423,10 @@ const handleRestartChallenge = (): boolean => {
         </div>
       );
     }
+
+    // 计算选中挑战的总星数
+    const selectedChallenges = todayChallenges.filter(c => selectedChallengeIds.includes(c.id));
+    const totalStars = selectedChallenges.reduce((sum, c) => sum + c.star, 0);
 
     return (
       <div className="today-challenge">
@@ -376,7 +436,8 @@ const handleRestartChallenge = (): boolean => {
             <span className="date-value">{new Date().toLocaleDateString('zh-CN', {
               year: 'numeric',
               month: 'long',
-              day: 'numeric'
+              day: 'numeric',
+              weekday: 'long'
             })}</span>
           </div>
           <div className="challenge-streak">
@@ -385,77 +446,88 @@ const handleRestartChallenge = (): boolean => {
           </div>
         </div>
 
-        <div className="challenge-card">
-          <div className="challenge-image">
-            <img src={todayChallenge.puzzleImage} alt={todayChallenge.title} className="preview-image" />
-            <div 
-              className="difficulty-badge"
-              style={{ backgroundColor: getDifficultyColor(todayChallenge.difficulty) }}
-            >
-              {getDifficultyLabel(todayChallenge.difficulty)}
-            </div>
-          </div>
-
-          <div className="challenge-info">
-            <h2 className="challenge-title">{todayChallenge.title}</h2>
-            <p className="challenge-description">{todayChallenge.description}</p>
-
-            <div className="challenge-stats">
-              <div className="stat-item">
-                <span className="stat-icon">🧩</span>
-                <span className="stat-label">网格</span>
-                <span className="stat-value">{todayChallenge.gridSize}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-icon">⏱️</span>
-                <span className="stat-label">时限</span>
-                <span className="stat-value">{formatTime(todayChallenge.timeLimit)}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-icon">🎯</span>
-                <span className="stat-label">完美步数</span>
-                <span className="stat-value">{todayChallenge.perfectMoves}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-icon">📊</span>
-                <span className="stat-label">今日剩余挑战次数</span>
-                <span className="stat-value">{3 - todayChallenge.attempts}/3</span>
-              </div>
-            </div>
-
-            <div className="challenge-rewards">
-              <h4>🎁 奖励内容</h4>
-              <div className="rewards-grid">
-                <div className="reward-item">
-                  <span className="reward-icon">✅</span>
-                  <span className="reward-label">完成奖励</span>
-                  <span className="reward-value">{todayChallenge.rewards.completion}</span>
-                </div>
-                <div className="reward-item">
-                  <span className="reward-icon">⭐</span>
-                  <span className="reward-label">完美奖励</span>
-                  <span className="reward-value">{todayChallenge.rewards.perfect}</span>
-                </div>
-                <div className="reward-item">
-                  <span className="reward-icon">⚡</span>
-                  <span className="reward-label">速度奖励</span>
-                  <span className="reward-value">{todayChallenge.rewards.speed}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="challenge-actions">
-              <Button
-                onClick={handleStartChallenge}
-                variant="primary"
-                size="large"
-                className="start-challenge-btn"
-                disabled={todayChallenge.attempts >= 3}
+        <div className="challenge-selection">
+          <h3>请选择你要挑战的项目（可多选）：</h3>
+          <div className="challenge-grid">
+            {todayChallenges.map((challenge) => (
+              <div 
+                key={challenge.id} 
+                className={`challenge-card ${selectedChallengeIds.includes(challenge.id) ? 'selected' : ''}`}
+                onClick={() => toggleChallengeSelection(challenge.id)}
               >
-                🎮 开始挑战
-              </Button>
-            </div>
+                <div className="challenge-header">
+                  <div className="challenge-stars">
+                    {'★'.repeat(challenge.star)}
+                  </div>
+                  <div className="challenge-effect">{challenge.effect}</div>
+                </div>
+                
+                <div className="challenge-image">
+                  <img src={challenge.puzzleImage} alt={challenge.title} className="preview-image" />
+                  <div 
+                    className="difficulty-badge" 
+                    style={{ backgroundColor: getDifficultyColor(challenge.difficulty) }}
+                  >
+                    {getDifficultyLabel(challenge.difficulty)}
+                  </div>
+                </div>
+
+                <div className="challenge-info">
+                  <h4 className="challenge-title">{challenge.title}</h4>
+                  <p className="challenge-description">{challenge.description}</p>
+                  
+                  <div className="challenge-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">网格</span>
+                      <span className="stat-value">{challenge.gridSize}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">时限</span>
+                      <span className="stat-value">{formatTime(challenge.timeLimit)}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">完美步数</span>
+                      <span className="stat-value">{challenge.perfectMoves}</span>
+                    </div>
+                    <div className="stat-item">
+                      <span className="stat-label">剩余机会</span>
+                      <span className="stat-value">{3 - challenge.attempts}/3</span>
+                    </div>
+                  </div>
+
+                  <div className="challenge-rewards">
+                    <div className="reward-item">
+                      <span className="reward-label">完成奖励:</span>
+                      <span className="reward-value">{challenge.rewards.completion}</span>
+                    </div>
+                    <div className="reward-item">
+                      <span className="reward-label">完美奖励:</span>
+                      <span className="reward-value">{challenge.rewards.perfect}</span>
+                    </div>
+                    <div className="reward-item">
+                      <span className="reward-label">速度奖励:</span>
+                      <span className="reward-value">{challenge.rewards.speed}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+
+        <div className="selection-summary">
+          <div className="summary-info">
+            <span>已选择 {selectedChallengeIds.length} 个挑战</span>
+            <span>总星数: {totalStars} ★</span>
+          </div>
+          <Button
+            onClick={handleStartChallenges}
+            variant="primary"
+            size="large"
+            disabled={selectedChallengeIds.length === 0}
+          >
+            开始挑战 ({selectedChallengeIds.length})
+          </Button>
         </div>
 
         <div className="challenge-tips">
@@ -472,6 +544,10 @@ const handleRestartChallenge = (): boolean => {
             <div className="tip-item">
               <span className="tip-icon">🔥</span>
               <span className="tip-text">连续完成挑战可获得连击奖励</span>
+            </div>
+            <div className="tip-item">
+              <span className="tip-icon">⭐</span>
+              <span className="tip-text">最终得分 = (0.1×星星总数+1)×(60/用时)×(1.2×拼图块数/步数)×100</span>
             </div>
           </div>
         </div>
@@ -610,14 +686,21 @@ const handleRestartChallenge = (): boolean => {
   );
 
   // 如果正在进行挑战，显示挑战游戏页面
-  if (isPlaying && todayChallenge) {
+  if (isPlaying && selectedChallengeIds.length > 0 && currentChallengeIndex < selectedChallengeIds.length) {
+    const currentChallengeId = selectedChallengeIds[currentChallengeIndex];
+    const currentChallenge = todayChallenges.find(c => c.id === currentChallengeId);
+    
+    if (!currentChallenge) {
+      return <div>挑战数据异常</div>;
+    }
+
     return (
       <DailyChallengeGame
-    onBackToMenu={handleChallengeReturn}
-    challenge={todayChallenge}
-    puzzleType={todayChallenge.puzzleType}
-    onRestartChallenge={handleRestartChallenge}
-  />
+        onBackToMenu={handleChallengeReturn}
+        challenge={currentChallenge}
+        puzzleType={currentChallenge.puzzleType}
+        onRestartChallenge={handleRestartChallenge}
+      />
     );
   }
 

@@ -77,8 +77,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
     const loadData = () => {
       switch (viewMode) {
         case 'current':
-          if (puzzleId) {
-            const data = LeaderboardService.getPuzzleLeaderboard(puzzleId, selectedDifficulty, pieceShape);
+          if (puzzleId && pieceShape) {
+            const data = LeaderboardService.getSinglePuzzleLeaderboard(puzzleId, selectedDifficulty, pieceShape);
             setLeaderboardData(data);
           }
           break;
@@ -90,7 +90,9 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
         
         case 'player':
           if (authState.user) {
-            const playerData = LeaderboardService.getPlayerBestRecords(authState.user.username);
+            // 获取用户的最佳记录，这里需要实现一个简化的版本
+            const allData = LeaderboardService.getDifficultyLeaderboard(selectedDifficulty, pieceShape || 'square', 1000);
+            const playerData = allData.filter(entry => entry.playerName === authState.user!.username);
             setPlayerStats(playerData);
           }
           break;
@@ -219,9 +221,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
               ) : (
                 <div className="records-list">
                   {playerStats.map((entry) => {
-                    const rank = puzzleId === entry.puzzleId ? 
-                      LeaderboardService.getPlayerRank(entry.puzzleId, entry.difficulty, entry.pieceShape, entry.playerName) : 
-                      null;
+                    // 简化排名显示，不计算实时排名
+                    const rank = null;
                     
                     return (
                       <div key={entry.id} className="record-card">

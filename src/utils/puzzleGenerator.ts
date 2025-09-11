@@ -5,12 +5,16 @@ interface GeneratePuzzleParams {
   gridSize: { rows: number; cols: number };
   pieceShape: PieceShape;
   name: string;
+
   targetSize?: number;
+
+  allowRotation?: boolean;
+
 }
 
 export class PuzzleGenerator {
   static async generatePuzzle(params: GeneratePuzzleParams): Promise<PuzzleConfig> {
-    const { imageData, gridSize, pieceShape, name } = params;
+    const { imageData, gridSize, pieceShape, name, allowRotation = false } = params;
 
     // 确保图片是正方形，统一处理尺寸
     const targetSize = 400; // 统一的目标尺寸
@@ -81,8 +85,8 @@ export class PuzzleGenerator {
       }
     }
 
-    // 打乱拼图块顺序
-    const shuffledPieces = this.shufflePieces(pieces);
+    // 打乱拼图块顺序，根据allowRotation参数决定是否随机旋转和翻转
+    const shuffledPieces = this.shufflePieces(pieces, allowRotation);
 
     const difficulty = this.calculateDifficulty(gridSize, pieceShape);
 
@@ -261,29 +265,34 @@ export class PuzzleGenerator {
     };
   }
 
-  // 打乱拼图块顺序，并随机旋转和翻转
-  private static shufflePieces(pieces: PuzzlePiece[]): PuzzlePiece[] {
+  // 打乱拼图块顺序，并根据需要随机旋转和翻转
+  private static shufflePieces(pieces: PuzzlePiece[], allowRotation: boolean): PuzzlePiece[] {
     const shuffled = [...pieces];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    // 为每个拼图块随机应用旋转和翻转
-    return shuffled.map(piece => {
-      // 随机旋转：0°, 90°, 180°, 270°
-      const rotations = [0, 90, 180, 270];
-      const randomRotation = rotations[Math.floor(Math.random() * rotations.length)];
+    // 如果允许旋转和翻转，则为每个拼图块随机应用
+    if (allowRotation) {
+      return shuffled.map(piece => {
+        // 随机旋转：0°, 90°, 180°, 270°
+        const rotations = [0, 90, 180, 270];
+        const randomRotation = rotations[Math.floor(Math.random() * rotations.length)];
 
-      // 50% 概率翻转
-      const shouldFlip = Math.random() > 0.5;
+        // 50% 概率翻转
+        const shouldFlip = Math.random() > 0.5;
 
-      return {
-        ...piece,
-        rotation: randomRotation,
-        isFlipped: shouldFlip
-      };
-    });
+        return {
+          ...piece,
+          rotation: randomRotation,
+          isFlipped: shouldFlip
+        };
+      });
+    }else{
+      // 不允许旋转和翻转，保持原始状态
+      return shuffled;
+    }
   }
 
   private static calculateDifficulty(

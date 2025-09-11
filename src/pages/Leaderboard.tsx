@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LeaderboardEntry, DifficultyLevel, PieceShape } from '../types';
+import { DailyChallengeLeaderboardEntry, LeaderboardEntry, DifficultyLevel, PieceShape } from '../types';
 import { LeaderboardService } from '../services/leaderboardService';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,113 +9,155 @@ interface LeaderboardProps {
   onBackToMenu: () => void;
 }
 
-type ViewMode = 'all' | 'player' | 'puzzle';
+type ViewMode = 'all' | 'puzzle' | 'daily';
 
 export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
+  console.log('排行榜组件开始渲染...');
+  
   const { authState } = useAuth();
   const [viewMode, setViewMode] = useState<ViewMode>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('easy');
   const [selectedShape, setSelectedShape] = useState<PieceShape>('square');
-  const [selectedPuzzle, setSelectedPuzzle] = useState<string>('');
-  const [availablePuzzles, setAvailablePuzzles] = useState<Array<{id: string, name: string, pieceShape: PieceShape}>>([]);
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  
+  // 数据状态
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-  const [puzzleLeaderboardData, setPuzzleLeaderboardData] = useState<Record<DifficultyLevel, LeaderboardEntry[]>>({} as any);
-  const [playerStats, setPlayerStats] = useState<LeaderboardEntry[]>([]);
+  const [puzzleLeaderboardData, setPuzzleLeaderboardData] = useState<any[]>([]);
+  const [dailyChallengeData, setDailyChallengeData] = useState<DailyChallengeLeaderboardEntry[]>([]);
+  const [playerDailyStats, setPlayerDailyStats] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // 格式化时间显示
-  const formatTime = (seconds: number): string => {
+  // 格式化时间显示（秒）
+  const formatTimeMs = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    
+    if (minutes > 0) {
+      return `${minutes}分${remainingSeconds}秒`;
+    } else {
+      return `${remainingSeconds}秒`;
+    }
   };
 
-  // 获取排名显示
-  const getRankDisplay = (index: number): string => {
-    const rank = index + 1;
-    if (rank === 1) return '🥇';
-    if (rank === 2) return '🥈';
-    if (rank === 3) return '🥉';
-    return rank.toString();
-  };
-
-  // 获取难度显示
+  // 获取难度显示文本
   const getDifficultyDisplay = (difficulty: DifficultyLevel): string => {
     const difficultyMap = {
-      easy: '简单',
-      medium: '中等',
-      hard: '困难',
-      expert: '专家'
+      'easy': '简单',
+      'medium': '中等',
+      'hard': '困难',
+      'expert': '专家'
     };
     return difficultyMap[difficulty];
   };
 
-  // 获取形状显示
+  // 获取形状显示文本
   const getShapeDisplay = (shape: PieceShape): string => {
     const shapeMap = {
-      square: '方形',
-      triangle: '三角形',
-      irregular: '异形'
+      'square': '方形',
+      'triangle': '三角形',
+      'irregular': '不规则形'
     };
     return shapeMap[shape];
   };
 
-  // 加载可用拼图列表
-  useEffect(() => {
-    const puzzles = LeaderboardService.getUniquePuzzles();
-    setAvailablePuzzles(puzzles);
-    
-    // 设置默认选中的拼图
-    if (puzzles.length > 0 && !selectedPuzzle) {
-      setSelectedPuzzle(puzzles[0].id);
+  // 获取可用日期列表（最近7天）
+  const getAvailableDates = (): string[] => {
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      dates.push(date.toISOString().split('T')[0]);
     }
-  }, []);
+    return dates;
+  };
 
   // 加载数据
   useEffect(() => {
     const loadData = () => {
-      switch (viewMode) {
-        case 'all':
-          const allData = LeaderboardService.getDifficultyLeaderboard(selectedDifficulty, selectedShape, 50);
-          setLeaderboardData(allData);
-          break;
-        
-        case 'puzzle':
-          if (selectedPuzzle) {
-            const selectedPuzzleInfo = availablePuzzles.find(p => p.id === selectedPuzzle);
-            if (selectedPuzzleInfo) {
-              const puzzleData = LeaderboardService.getPuzzleAllDifficultiesLeaderboard(
-                selectedPuzzle, 
-                selectedPuzzleInfo.pieceShape
-              );
-              setPuzzleLeaderboardData(puzzleData);
+      console.log('开始加载数据，viewMode:', viewMode);
+      setLoading(true);
+      setError(null);
+      
+      try {
+        switch (viewMode) {
+          case 'all':
+            console.log('加载全部排行榜...');
+            const allData = LeaderboardService.getDifficultyLeaderboard(selectedDifficulty, selectedShape, 50);
+            console.log('全部排行榜数据:', allData);
+            setLeaderboardData(allData);
+            
+            const statsData = LeaderboardService.getStats();
+            console.log('统计数据:', statsData);
+            setStats(statsData);
+            break;
+          
+          case 'puzzle':
+            console.log('加载拼图排行榜...');
+            try {
+              const allPuzzleData = LeaderboardService.getAllPuzzleFilteredLeaderboards(selectedDifficulty, selectedShape);
+              console.log('拼图排行榜数据:', allPuzzleData);
+              setPuzzleLeaderboardData(allPuzzleData);
+            } catch (error) {
+              console.error('加载拼图排行榜失败:', error);
+              setPuzzleLeaderboardData([]);
             }
-          }
-          break;
-        
-        case 'player':
-          if (authState.user) {
-            const playerData = LeaderboardService.getPlayerBestRecords(authState.user.username);
-            setPlayerStats(playerData);
-          }
-          break;
+            break;
+          
+          case 'daily':
+            console.log('加载每日挑战排行榜...');
+            const dailyData = LeaderboardService.getDailyChallengeRanking(selectedDate, 50);
+            console.log('每日挑战数据:', dailyData);
+            setDailyChallengeData(dailyData);
+            
+            if (authState.user) {
+              const playerStats = LeaderboardService.getPlayerDailyChallengeStats(authState.user.username);
+              console.log('玩家每日统计:', playerStats);
+              setPlayerDailyStats(playerStats);
+            }
+            break;
+        }
+      } catch (error) {
+        console.error('加载排行榜数据失败:', error);
+        setError(`加载数据失败: ${error}`);
+      } finally {
+        console.log('数据加载完成');
+        setLoading(false);
       }
     };
 
     loadData();
+  }, [viewMode, selectedDifficulty, selectedShape, selectedDate, authState.user]);
 
-    // 加载统计数据
-    if (viewMode === 'all') {
-      const statsData = LeaderboardService.getStats();
-      setStats(statsData);
-    }
-    }, [viewMode, selectedDifficulty, selectedShape, selectedPuzzle, availablePuzzles, authState.user]);
+  console.log('渲染开始，当前状态:', { viewMode, loading, error });
+
+  // 如果有错误，显示错误页面
+  if (error) {
+    return (
+      <div className="leaderboard-page" style={{ padding: '20px' }}>
+        <div style={{ color: 'red', textAlign: 'center' }}>
+          <h1>❌ 页面加载错误</h1>
+          <p>{error}</p>
+          <button onClick={onBackToMenu} style={{ padding: '10px 20px', marginTop: '20px' }}>
+            返回主菜单
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="leaderboard-page">
       <div className="page-header">
         <h1>🏆 全球排行榜</h1>
-        <p>按拼图形状、难度等级分类统计玩家成绩</p>
+        <p>查看各类排行榜和统计数据</p>
+        
+        {/* 调试信息 */}
+        <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', margin: '10px 0', borderRadius: '5px' }}>
+          <p>Debug: viewMode = {viewMode}, loading = {loading.toString()}</p>
+          <p>数据状态: leaderboard({leaderboardData.length}), puzzle({puzzleLeaderboardData.length}), daily({dailyChallengeData.length})</p>
+        </div>
       </div>
 
       <div className="leaderboard-content">
@@ -131,163 +173,100 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
             className={`tab ${viewMode === 'puzzle' ? 'active' : ''}`}
             onClick={() => setViewMode('puzzle')}
           >
-            分拼图排行
+            单拼图排行
           </button>
-          {authState.user && (
-            <button
-              className={`tab ${viewMode === 'player' ? 'active' : ''}`}
-              onClick={() => setViewMode('player')}
-            >
-              我的记录
-            </button>
-          )}
+          <button
+            className={`tab ${viewMode === 'daily' ? 'active' : ''}`}
+            onClick={() => setViewMode('daily')}
+          >
+            每日挑战排行
+          </button>
         </div>
 
-        {/* 拼图选择 */}
-        {viewMode === 'puzzle' && (
-          <div className="puzzle-selector">
-            <h3>选择拼图</h3>
-            <select
-              value={selectedPuzzle}
-              onChange={(e) => setSelectedPuzzle(e.target.value)}
-              className="puzzle-select"
-            >
-              {availablePuzzles.map((puzzle) => (
-                <option key={puzzle.id} value={puzzle.id}>
-                  {puzzle.name} ({getShapeDisplay(puzzle.pieceShape)})
-                </option>
-              ))}
-            </select>
+        {/* 加载状态 */}
+        {loading && (
+          <div className="loading-indicator" style={{ textAlign: 'center', padding: '20px' }}>
+            <span>🔄 加载中...</span>
           </div>
         )}
 
-        {/* 难度和形状选择 */}
-        {viewMode === 'all' && (
-          <>
-            <div className="shape-selector">
-              <h3>拼图形状</h3>
-              <div className="selector-buttons">
-                {(['square', 'triangle', 'irregular'] as PieceShape[]).map((shape) => (
-                  <button
-                    key={shape}
-                    className={`shape-btn ${selectedShape === shape ? 'active' : ''}`}
-                    onClick={() => setSelectedShape(shape)}
-                  >
-                    {getShapeDisplay(shape)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="difficulty-selector">
-              <h3>难度等级</h3>
-              <div className="selector-buttons">
-                {(['easy', 'medium', 'hard', 'expert'] as DifficultyLevel[]).map((diff) => (
-                  <button
-                    key={diff}
-                    className={`difficulty-btn ${selectedDifficulty === diff ? 'active' : ''}`}
-                    onClick={() => setSelectedDifficulty(diff)}
-                  >
-                    {getDifficultyDisplay(diff)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* 分拼图排行榜 */}
-        {viewMode === 'puzzle' && selectedPuzzle && (
-          <div className="puzzle-leaderboard-section">
-            {availablePuzzles.find(p => p.id === selectedPuzzle) && (
-              <h2>
-                {availablePuzzles.find(p => p.id === selectedPuzzle)?.name} 
-                ({getShapeDisplay(availablePuzzles.find(p => p.id === selectedPuzzle)?.pieceShape || 'square')}) 
-                排行榜
-              </h2>
-            )}
-            
-            <div className="difficulty-sections">
-              {(['easy', 'medium', 'hard', 'expert'] as DifficultyLevel[]).map((difficulty) => (
-                <div key={difficulty} className="difficulty-section">
-                  <h3>{getDifficultyDisplay(difficulty)} 难度</h3>
-                  {puzzleLeaderboardData[difficulty]?.length === 0 ? (
-                    <div className="empty-state">
-                      <p>暂无{getDifficultyDisplay(difficulty)}难度记录</p>
-                    </div>
-                  ) : (
-                    <div className="leaderboard-table">
-                      <div className="table-header">
-                        <div className="rank-col">排名</div>
-                        <div className="player-col">玩家</div>
-                        <div className="moves-col">步数</div>
-                        <div className="time-col">用时</div>
-                        <div className="date-col">完成时间</div>
-                      </div>
-                      
-                      {puzzleLeaderboardData[difficulty]?.map((entry, index) => (
-                        <div 
-                          key={entry.id} 
-                          className={`table-row ${entry.playerName === authState.user?.username ? 'current-player' : ''}`}
-                        >
-                          <div className="rank-col">{getRankDisplay(index)}</div>
-                          <div className="player-col">
-                            {entry.playerName}
-                            {entry.playerName === authState.user?.username && (
-                              <span className="you-badge">你</span>
-                            )}
-                          </div>
-                          <div className="moves-col">{entry.moves}</div>
-                          <div className="time-col">{formatTime(entry.completionTime)}</div>
-                          <div className="date-col">
-                            {entry.completedAt.toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 排行榜列表 */}
-        {viewMode === 'all' && (
+        {/* 全部排行榜 */}
+        {viewMode === 'all' && !loading && (
           <div className="leaderboard-section">
             <h2>{getShapeDisplay(selectedShape)} - {getDifficultyDisplay(selectedDifficulty)} 难度排行榜</h2>
+            
+            {/* 筛选器 */}
+            <div className="filters">
+              <div className="shape-selector">
+                <h3>拼图形状</h3>
+                <div className="selector-buttons">
+                  {(['square', 'triangle', 'irregular'] as PieceShape[]).map((shape) => (
+                    <button
+                      key={shape}
+                      className={`shape-btn ${selectedShape === shape ? 'active' : ''}`}
+                      onClick={() => setSelectedShape(shape)}
+                    >
+                      {getShapeDisplay(shape)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="difficulty-selector">
+                <h3>难度等级</h3>
+                <div className="selector-buttons">
+                  {(['easy', 'medium', 'hard', 'expert'] as DifficultyLevel[]).map((difficulty) => (
+                    <button
+                      key={difficulty}
+                      className={`difficulty-btn ${selectedDifficulty === difficulty ? 'active' : ''}`}
+                      onClick={() => setSelectedDifficulty(difficulty)}
+                    >
+                      {getDifficultyDisplay(difficulty)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {leaderboardData.length === 0 ? (
-              <div className="empty-state">
-                <p>暂无{getShapeDisplay(selectedShape)}-{getDifficultyDisplay(selectedDifficulty)}难度记录</p>
-                <p>开始游戏来创建第一个记录吧！</p>
+              <div className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                <p>🎯 暂无排行榜数据</p>
+                <p>完成一些拼图游戏来创建排行榜记录吧！</p>
               </div>
             ) : (
               <div className="leaderboard-table">
                 <div className="table-header">
-                  <div className="rank-col">排名</div>
-                  <div className="player-col">玩家</div>
-                  <div className="moves-col">步数</div>
-                  <div className="time-col">用时</div>
-                  <div className="date-col">完成时间</div>
+                  <span className="rank">排名</span>
+                  <span className="player">玩家</span>
+                  <span className="puzzle">拼图</span>
+                  <span className="time">用时</span>
+                  <span className="moves">步数</span>
+                  <span className="date">完成时间</span>
                 </div>
                 
                 {leaderboardData.map((entry, index) => (
-                  <div 
-                    key={entry.id} 
-                    className={`table-row ${entry.playerName === authState.user?.username ? 'current-player' : ''}`}
-                  >
-                    <div className="rank-col">{getRankDisplay(index)}</div>
-                    <div className="player-col">
-                      {entry.playerName}
-                      {entry.playerName === authState.user?.username && (
-                        <span className="you-badge">你</span>
+                  <div key={entry.id} className="table-row">
+                    <span className="rank">
+                      {index + 1 <= 3 ? (
+                        <span className={`medal medal-${index + 1}`}>
+                          {index + 1 === 1 ? '🥇' : index + 1 === 2 ? '🥈' : '🥉'}
+                        </span>
+                      ) : (
+                        index + 1
                       )}
-                    </div>
-                    <div className="moves-col">{entry.moves}</div>
-                    <div className="time-col">{formatTime(entry.completionTime)}</div>
-                    <div className="date-col">
-                      {entry.completedAt.toLocaleDateString()}
-                    </div>
+                    </span>
+                    <span className="player">{entry.playerName}</span>
+                    <span className="puzzle" title={entry.puzzleName}>
+                      {entry.puzzleName.length > 15 
+                        ? entry.puzzleName.substring(0, 15) + '...' 
+                        : entry.puzzleName
+                      }
+                    </span>
+                    <span className="time">{formatTimeMs(entry.completionTime)}</span>
+                    <span className="moves">{entry.moves}</span>
+                    <span className="date">
+                      {new Date(entry.completedAt).toLocaleDateString('zh-CN')}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -295,97 +274,161 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
           </div>
         )}
 
-        {/* 玩家记录 */}
-        {viewMode === 'player' && (
-          <div className="player-records">
-            <h2>我的记录</h2>
-            {playerStats.length === 0 ? (
-              <div className="empty-state">
-                <p>暂无个人记录</p>
-                <p>开始游戏来创建你的第一个记录吧！</p>
+        {/* 单拼图排行榜 */}
+        {viewMode === 'puzzle' && !loading && (
+          <div className="puzzle-leaderboard-section">
+            <h2>🧩 单拼图排行榜 - {getShapeDisplay(selectedShape)} {getDifficultyDisplay(selectedDifficulty)}</h2>
+            
+            <div className="filters">
+              <div className="shape-selector">
+                <h4>拼图形状</h4>
+                <div className="selector-buttons">
+                  {(['square', 'triangle', 'irregular'] as PieceShape[]).map((shape) => (
+                    <button
+                      key={shape}
+                      className={`shape-btn ${selectedShape === shape ? 'active' : ''}`}
+                      onClick={() => setSelectedShape(shape)}
+                    >
+                      {getShapeDisplay(shape)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="difficulty-selector">
+                <h4>难度等级</h4>
+                <div className="selector-buttons">
+                  {(['easy', 'medium', 'hard', 'expert'] as DifficultyLevel[]).map((difficulty) => (
+                    <button
+                      key={difficulty}
+                      className={`difficulty-btn ${selectedDifficulty === difficulty ? 'active' : ''}`}
+                      onClick={() => setSelectedDifficulty(difficulty)}
+                    >
+                      {getDifficultyDisplay(difficulty)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {puzzleLeaderboardData.length === 0 ? (
+              <div className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                <p>🎯 暂无单拼图排行榜数据</p>
+                <p>选择其他难度或形状查看排行榜！</p>
               </div>
             ) : (
-              <div className="records-grid">
-                  {playerStats.map((entry) => {
-                    const rank = LeaderboardService.getPlayerRank(entry.puzzleId, entry.difficulty, entry.pieceShape, entry.playerName);
-                  
-                  return (
-                    <div key={entry.id} className="record-card">
-                      <div className="record-header">
-                        <div className="record-badges">
-                          <span className="shape-badge">{getShapeDisplay(entry.pieceShape)}</span>
-                          <span className="difficulty-badge">{getDifficultyDisplay(entry.difficulty)}</span>
-                        </div>
-                        {rank && <span className="rank-badge">第 {rank} 名</span>}
-                      </div>
-                      <div className="record-title">
-                        <h4>{entry.puzzleName || '未知拼图'}</h4>
-                        <span className="grid-size">{entry.gridSize}</span>
-                      </div>
-                      <div className="record-stats">
-                        <div className="stat">
-                          <span className="label">步数:</span>
-                          <span className="value">{entry.moves}</span>
-                        </div>
-                        <div className="stat">
-                          <span className="label">用时:</span>
-                          <span className="value">{formatTime(entry.completionTime)}</span>
-                        </div>
-                        <div className="stat">
-                          <span className="label">完成:</span>
-                          <span className="value">{entry.completedAt.toLocaleDateString()}</span>
-                        </div>
+              <div className="puzzle-grid">
+                {puzzleLeaderboardData.map((puzzleData) => (
+                  <div key={puzzleData.puzzleId} className="puzzle-card">
+                    <div className="puzzle-header">
+                      <h4>{puzzleData.puzzleName}</h4>
+                      <div className="puzzle-meta">
+                        <span>👥 {puzzleData.totalPlayers}人参与</span>
+                        <span>✅ {puzzleData.totalCompletions}次完成</span>
                       </div>
                     </div>
-                  );
-                })}
+
+                    {puzzleData.hasRecords ? (
+                      <div className="records">
+                        <div className="best-records">
+                          <div>⚡ 最快: {formatTimeMs(puzzleData.bestTime)}</div>
+                          <div>🎯 最少步数: {puzzleData.bestMoves}步</div>
+                        </div>
+
+                        <div className="top3-leaderboard">
+                          <h5>🏆 前3名</h5>
+                          {puzzleData.leaderboard.slice(0, 3).map((entry: LeaderboardEntry, index: number) => (
+                            <div key={entry.id} className="top3-entry">
+                              <span>{index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</span>
+                              <span>{entry.playerName}</span>
+                              <span>{formatTimeMs(entry.completionTime)}</span>
+                              <span>{entry.moves}步</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="no-records">
+                        <p>暂无记录</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
         )}
 
-        {/* 统计信息 */}
-        {viewMode === 'all' && stats && (
-          <div className="stats-section">
-            <h2>📊 统计信息</h2>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-value">{stats.uniquePlayers}</div>
-                <div className="stat-label">玩家总数</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">{stats.totalGames}</div>
-                <div className="stat-label">游戏总数</div>
-              </div>
-              {stats.difficultyStats.map((diffStat: any) => (
-                <div key={diffStat.difficulty} className="stat-card">
-                  <div className="stat-value">{diffStat.count}</div>
-                  <div className="stat-label">{getDifficultyDisplay(diffStat.difficulty)}</div>
-                </div>
-              ))}
-            </div>
+        {/* 每日挑战排行榜 */}
+        {viewMode === 'daily' && !loading && (
+          <div className="daily-challenge-section">
+            <h2>📅 每日挑战排行榜</h2>
             
-            <div className="difficulty-details">
-              <h3>各难度详情</h3>
-              <div className="difficulty-stats">
-                {stats.difficultyStats.map((diffStat: any) => (
-                  <div key={diffStat.difficulty} className="difficulty-stat">
-                    <h4>{getDifficultyDisplay(diffStat.difficulty)}</h4>
-                    <p>游戏数: {diffStat.count}</p>
-                    <p>平均用时: {formatTime(diffStat.averageTime)}</p>
-                    <p>平均步数: {diffStat.averageMoves}</p>
+            <div className="date-selector">
+              <h3>选择日期</h3>
+              <select
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="date-select"
+              >
+                {getAvailableDates().map((date) => (
+                  <option key={date} value={date}>
+                    {new Date(date).toLocaleDateString('zh-CN', {
+                      month: 'long',
+                      day: 'numeric',
+                      weekday: 'short'
+                    })}
+                    {date === new Date().toISOString().split('T')[0] && ' (今天)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {dailyChallengeData.length === 0 ? (
+              <div className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
+                <p>🎯 该日期暂无挑战记录</p>
+                <p>选择其他日期或参与每日挑战来创建记录！</p>
+              </div>
+            ) : (
+              <div className="daily-leaderboard-table">
+                <div className="table-header">
+                  <span className="rank">排名</span>
+                  <span className="player">玩家</span>
+                  <span className="stars">星数</span>
+                  <span className="score">分数</span>
+                  <span className="time">用时</span>
+                  <span className="moves">步数</span>
+                  <span className="perfect">完美</span>
+                </div>
+                
+                {dailyChallengeData.map((entry, index) => (
+                  <div key={entry.id} className="table-row">
+                    <span className="rank">
+                      {index + 1 <= 3 ? (
+                        <span>{index + 1 === 1 ? '🥇' : index + 1 === 2 ? '🥈' : '🥉'}</span>
+                      ) : (
+                        index + 1
+                      )}
+                    </span>
+                    <span className="player">{entry.playerName}</span>
+                    <span className="stars">{entry.totalStars || '-'}</span>
+                    <span className="score">{entry.score}</span>
+                    <span className="time">{formatTimeMs(entry.completionTime)}</span>
+                    <span className="moves">{entry.moves}</span>
+                    <span className="perfect">{entry.isPerfect ? '✨' : '-'}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         )}
-      </div>
 
-      <div className="page-footer">
-        <Button onClick={onBackToMenu} variant="primary">
-          返回主菜单
-        </Button>
+        {/* 返回主菜单按钮 */}
+        <div style={{ textAlign: 'center', marginTop: '30px' }}>
+          <Button onClick={onBackToMenu} variant="primary">
+            返回主菜单
+          </Button>
+        </div>
       </div>
     </div>
   );
