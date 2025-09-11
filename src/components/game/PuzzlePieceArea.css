@@ -436,3 +436,45 @@
 .triangle-piece:hover::before {
   opacity: 0.3;
 }
+
+/* 鱼目混珠特效：伪造拼图块样式 */
+.fake-piece {
+  position: relative;
+  border: 2px dashed #ef4444 !important;
+  background: repeating-linear-gradient(
+    45deg,
+    #fee2e2,
+    #fee2e2 10px,
+    #fecaca 10px,
+    #fecaca 20px
+  ) !important;
+}
+
+.fake-piece::after {
+  content: "🐟";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 16px;
+  z-index: 3;
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.fake-piece:hover {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+.fake-piece .piece-number::after {
+  content: " (伪造)";
+  color: #ef4444;
+  font-weight: bold;
+}
