@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import LZString from 'lz-string';
 import SavedPuzzlesPage from '../../pages/SavedPuzzles';
@@ -12,10 +13,11 @@ import { PuzzleConfig } from '../../types';
 
 interface PuzzleEditorProps {
   onBackToMenu: () => void;
+  onBackToHome?: () => void;
   onStartGame?: (config: PuzzleConfig) => void;
   initialStep?: 'upload' | 'crop' | 'settings' | 'preview';
   /** 新增：异形拼图启动 */
-  onStartIrregularGame?: (imageData: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
+  onStartIrregularGame?: (imageData: string, gridSize: { rows: number; cols: number }) => void;
 }
 
 type EditorStep = 'upload' | 'crop' | 'settings' | 'preview';
@@ -32,7 +34,19 @@ interface CustomPuzzleConfig {
   customCols?: number;
 }
 
-export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStartGame, initialStep, onStartIrregularGame }) => {
+export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onBackToHome, onStartGame, initialStep, onStartIrregularGame }) => {
+  // 分享代码生成为文件
+  const handleSaveShareCodeFile = () => {
+    const blob = new Blob([shareCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'puzzle-share-code.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
   const [currentStep, setCurrentStep] = useState<EditorStep>(initialStep || 'upload');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>('1:1');
@@ -50,8 +64,10 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
   const [tempCustomRows, setTempCustomRows] = useState<number>(3);
   const [tempCustomCols, setTempCustomCols] = useState<number>(3);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // 新增：保存后跳转到存档页面
+  // 新增：保存后跳转到存档页面，并支持回填配置
   const [showSavedPage, setShowSavedPage] = useState(false);
+  // 用于回填配置
+  const [pendingConfig, setPendingConfig] = useState<any>(null);
 
   // 导入分享代码弹窗相关状态
 
@@ -237,7 +253,7 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     };
     puzzles.push(newPuzzle);
     localStorage.setItem('savedPuzzles', JSON.stringify(puzzles));
-    setShowSavedPage(true);
+  setShowSavedPage({ highlightId: id });
   }, [customPuzzleConfig]);
 
   // 分享弹窗相关状态
@@ -252,8 +268,10 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     }
     // 计算块数
     let gridSize;
-    if (customPuzzleConfig.difficulty === 'custom' && customPuzzleConfig.customRows && customPuzzleConfig.customCols) {
-      gridSize = { rows: customPuzzleConfig.customRows, cols: customPuzzleConfig.customCols };
+    if (customPuzzleConfig.difficulty === 'custom') {
+      const rows = customPuzzleConfig.customRows || tempCustomRows;
+      const cols = customPuzzleConfig.customCols || tempCustomCols;
+      gridSize = { rows, cols };
     } else {
       if (customPuzzleConfig.difficulty === 'easy') gridSize = { rows: 3, cols: 3 };
       else if (customPuzzleConfig.difficulty === 'medium') gridSize = { rows: 4, cols: 4 };
@@ -270,11 +288,11 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
       aspectRatio: customPuzzleConfig.aspectRatio
     };
     // 编码为 base64
-  const json = JSON.stringify(shareData);
-  const encoded = LZString.compressToBase64(json);
-  setShareCode(encoded);
+    const json = JSON.stringify(shareData);
+    const encoded = LZString.compressToBase64(json);
+    setShareCode(encoded);
     setShareDialogOpen(true);
-  }, [customPuzzleConfig]);
+  }, [customPuzzleConfig, tempCustomRows, tempCustomCols]);
   // 复制分享代码到剪贴板
   const handleCopyShareCode = () => {
     if (navigator.clipboard) {
@@ -321,16 +339,9 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     }
     try {
       if (pieceShape === 'irregular') {
-        // 只允许 3x3/4x4/5x5/6x6，custom 非这几种时提示
-        const allowed = [3, 4, 5, 6];
-        if (gridSize && allowed.includes(gridSize.rows) && allowed.includes(gridSize.cols) && gridSize.rows === gridSize.cols) {
-          if (typeof onStartIrregularGame === 'function') {
-            const gridStr = `${gridSize.rows}x${gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
-            onStartIrregularGame(customPuzzleConfig.croppedImageData, gridStr);
-            return;
-          }
-        } else {
-          alert('异形拼图仅支持 3x3、4x4、5x5、6x6 的正方形网格');
+        // 允许任意 m×n
+        if (gridSize && typeof onStartIrregularGame === 'function') {
+          onStartIrregularGame(customPuzzleConfig.croppedImageData, gridSize);
           return;
         }
       }
@@ -366,8 +377,26 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     }
   }, []);
 
+  // 处理从本地配置页面回填配置
+  const handleOpenEditorWithConfig = (config: any) => {
+    if (config && config.data) {
+      setCustomPuzzleConfig(config.data);
+      setUploadedImage(config.data.image || null);
+      setTempDifficulty(config.data.difficulty || 'medium');
+      setTempPieceShape(config.data.pieceShape || 'square');
+      setTempCustomRows(config.data.customRows || 3);
+      setTempCustomCols(config.data.customCols || 3);
+      setShowSavedPage(false);
+      setCurrentStep('settings');
+    }
+  };
+
   const renderUploadStep = () => (
-    <div className="editor-step">
+    <div className="editor-step" style={{ position: 'relative' }}>
+      {/* 左上角返回首页按钮，调用 onBackToHome */}
+      <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 10 }}>
+        <Button onClick={onBackToHome} variant="secondary" size="medium">← 返回首页</Button>
+      </div>
       <div className="step-header">
         <h2>📸 上传图片</h2>
         <p>选择您想要制作成拼图的图片，或导入分享代码</p>
@@ -395,6 +424,15 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
                 className="import-btn same-size-btn"
               >
                 🔽 导入分享代码
+              </Button>
+              <Button
+                onClick={() => setShowSavedPage(true)}
+                variant="success"
+                size="large"
+                className="load-config-btn same-size-btn"
+                style={{ background: '#22c55e', color: '#fff', border: 'none' }}
+              >
+                ⚙️ 加载编辑器配置
               </Button>
             </div>
             <input
@@ -447,7 +485,32 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
               </div>
             )}
             {importError && <div style={{ color: 'red', fontSize: 13, marginBottom: 8 }}>{importError}</div>}
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
+              <input
+                type="file"
+                accept=".txt"
+                style={{ display: 'none' }}
+                id="import-code-file-input"
+                onChange={e => {
+                  const file = e.target.files && e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const text = ev.target?.result as string;
+                      handleImportCodeChange(text || '');
+                    };
+                    reader.readAsText(file);
+                  }
+                  e.target.value = '';
+                }}
+              />
+              <button
+                style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}
+                onClick={() => {
+                  const input = document.getElementById('import-code-file-input') as HTMLInputElement;
+                  if (input) input.click();
+                }}
+              >从文件导入</button>
               <button onClick={handleImportShareCode} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>导入</button>
               <button onClick={() => { setImportDialogOpen(false); setImportError(''); setImportCode(''); setImportPreviewImage(null); }} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>取消</button>
             </div>
@@ -522,8 +585,10 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
           selectedShape={tempPieceShape}
           onDifficultyChange={handleTempDifficultyChange}
           onShapeChange={handleTempPieceShapeChange}
-          // 新增：自定义行列同步
-          onCustomGridChange={handleTempCustomGrid}
+          // 新增：自定义行列同步（已移除无用 prop）
+          // 新增：重新剪裁功能
+          onRecrop={() => setCurrentStep('crop')}
+          hasUploadedImage={!!uploadedImage}
         />
       </div>
     </div>
@@ -535,7 +600,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
         <h2>🎯 拼图预览</h2>
         <p>您的自定义拼图已准备就绪！</p>
       </div>
-      
       <div className="preview-step">
         <div className="preview-main">
           <div className="puzzle-summary">
@@ -548,7 +612,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
                 />
               )}
             </div>
-            
             <div className="summary-details">
               <h3>📋 拼图信息</h3>
               <div className="detail-item">
@@ -562,10 +625,13 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
               <div className="detail-item">
                 <span className="detail-label">难度等级:</span>
                 <span className="detail-value">
-                  {customPuzzleConfig.difficulty === 'easy' && '简单 (3×3)'}
-                  {customPuzzleConfig.difficulty === 'medium' && '中等 (4×4)'}
-                  {customPuzzleConfig.difficulty === 'hard' && '困难 (5×5)'}
-                  {customPuzzleConfig.difficulty === 'expert' && '专家 (6×6)'}
+                  {customPuzzleConfig.difficulty === 'custom'
+                    ? `自定义 (${customPuzzleConfig.customRows || tempCustomRows}×${customPuzzleConfig.customCols || tempCustomCols})`
+                    : customPuzzleConfig.difficulty === 'easy' ? '简单 (3×3)'
+                    : customPuzzleConfig.difficulty === 'medium' ? '中等 (4×4)'
+                    : customPuzzleConfig.difficulty === 'hard' ? '困难 (5×5)'
+                    : customPuzzleConfig.difficulty === 'expert' ? '专家 (6×6)'
+                    : ''}
                 </span>
               </div>
               <div className="detail-item">
@@ -577,9 +643,23 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
                   {customPuzzleConfig.pieceShape === 'tetris' && '🟦 俄罗斯方块'}
                 </span>
               </div>
+              <div className="detail-item">
+                <span className="detail-label">拼块总数:</span>
+                <span className="detail-value">
+                  {customPuzzleConfig.difficulty === 'custom'
+                    ? ((customPuzzleConfig.customRows || tempCustomRows) * (customPuzzleConfig.customCols || tempCustomCols))
+                      * (customPuzzleConfig.pieceShape === 'triangle' ? 2 : 1) + '块'
+                    : customPuzzleConfig.pieceShape === 'triangle'
+                      ? (customPuzzleConfig.difficulty === 'easy' ? 18 : customPuzzleConfig.difficulty === 'medium' ? 32 : customPuzzleConfig.difficulty === 'hard' ? 50 : 72) + '块'
+                      : customPuzzleConfig.difficulty === 'easy' ? '9块'
+                      : customPuzzleConfig.difficulty === 'medium' ? '16块'
+                      : customPuzzleConfig.difficulty === 'hard' ? '25块'
+                      : customPuzzleConfig.difficulty === 'expert' ? '36块'
+                      : ''}
+                </span>
+              </div>
             </div>
           </div>
-          
           <div className="preview-actions">
             <div className="navigation-group">
               <Button
@@ -589,7 +669,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
               >
                 ← 返回设置
               </Button>
-              
               <Button
                 onClick={handleRestart}
                 variant="secondary"
@@ -600,7 +679,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
             </div>
           </div>
         </div>
-        
         <div className="preview-sidebar">
           <div className="action-group">
             <Button
@@ -609,20 +687,17 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
               size="large"
               className="start-game-btn"
               disabled={!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name}
-              title={!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name ? "请先完成拼图设置并裁剪图片" : "开始游戏"}
             >
               🎮 开始游戏
             </Button>
-            
             <Button
               onClick={handleSavePuzzle}
               variant="secondary"
               size="large"
               className="save-btn"
             >
-              💾 保存拼图
+              💾 保存配置
             </Button>
-            
             <Button
               onClick={handleSharePuzzle}
               variant="secondary"
@@ -643,7 +718,15 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
   };
 
   if (showSavedPage) {
-    return <SavedPuzzlesPage />;
+    // 仅上传图片页进入时允许应用配置，设置 showApplyButton 标志
+    const showApplyButton = currentStep === 'upload';
+    // highlightId 只在保存后传递
+    const highlightId = typeof showSavedPage === 'object' && showSavedPage.highlightId;
+    return <SavedPuzzlesPage 
+      onOpenEditor={showApplyButton ? handleOpenEditorWithConfig : undefined}
+      onBackToMenu={() => setShowSavedPage(false)}
+      highlightId={highlightId}
+    />;
   }
   return (
     <div className="puzzle-editor">
@@ -697,6 +780,7 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
               />
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
                 <button onClick={handleCopyShareCode} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>复制</button>
+                <button onClick={handleSaveShareCodeFile} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>生成为文件</button>
                 <button onClick={() => setShareDialogOpen(false)} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>关闭</button>
               </div>
               <div style={{ fontSize: 12, color: '#888', marginTop: 8 }}>

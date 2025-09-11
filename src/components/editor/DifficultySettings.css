@@ -1,3 +1,25 @@
+/* 重新剪裁图片按钮样式 */
+.recrop-btn {
+  background: #f3f4f6;
+  color: #222 !important;
+  border: 1.5px solid #8b5cf6;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  margin-top: 4px;
+  margin-bottom: 0;
+  margin-right: 0;
+  padding: 6px 16px;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+.recrop-btn > * {
+  color: #222 !important;
+}
+.recrop-btn:hover {
+  background: #fafaff;
+  color: #6d28d9;
+  border-color: #6d28d9;
+}
 /* 让上传和导入按钮大小一致 */
 .same-size-btn {
   min-width: 160px;

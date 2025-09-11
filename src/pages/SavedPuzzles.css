@@ -1,0 +1,10 @@
+@keyframes flash-border {
+  0% {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 0 #22c55e44;
+  }
+  100% {
+    border-color: #fbbf24;
+    box-shadow: 0 0 0 4px #fbbf2444;
+  }
+}
