@@ -20,7 +20,10 @@ pub fn run() {
             save_game,
             load_game,
             get_leaderboard,
-            get_puzzles
+            get_puzzles,
+            submit_daily_challenge,
+            get_daily_challenge_leaderboard,
+            get_daily_challenge_stats
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

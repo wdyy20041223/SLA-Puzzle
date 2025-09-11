@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时每日挑战排行榜测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+
+        .header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #2196f3;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1976d2;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-warning {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #f57c00;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        .leaderboard-container {
+            margin-top: 20px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2196f3;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .realtime-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .realtime-indicator.active {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .realtime-indicator.inactive {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 实时每日挑战排行榜测试</h1>
+            <p>测试实时排行榜功能，包括数据提交、实时更新和用户统计</p>
+        </div>
+
+        <div class="content">
+            <!-- 状态显示 -->
+            <div id="status" class="status info">
+                <span class="realtime-indicator inactive"></span>
+                准备就绪 - 点击"开始测试"开始演示
+            </div>
+
+            <!-- 控制按钮 -->
+            <div class="test-section">
+                <h3>🎮 测试控制</h3>
+                <div class="button-group">
+                    <button id="startTest" class="btn btn-primary">开始测试</button>
+                    <button id="submitChallenge" class="btn btn-success" disabled>提交挑战记录</button>
+                    <button id="refreshLeaderboard" class="btn btn-warning" disabled>刷新排行榜</button>
+                    <button id="startRealtime" class="btn btn-success" disabled>启动实时更新</button>
+                    <button id="stopRealtime" class="btn btn-danger" disabled>停止实时更新</button>
+                    <button id="clearLog" class="btn btn-warning">清空日志</button>
+                </div>
+            </div>
+
+            <!-- 用户统计 -->
+            <div class="test-section">
+                <h3>📊 用户统计</h3>
+                <div class="stats-grid" id="userStats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalChallenges">0</div>
+                        <div class="stat-label">总挑战数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="averageScore">0</div>
+                        <div class="stat-label">平均分数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card">
+                            <div class="stat-value" id="bestScore">0</div>
+                            <div class="stat-label">最佳分数</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="consecutiveDays">0</div>
+                        <div class="stat-label">连续天数</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 排行榜显示 -->
+            <div class="test-section">
+                <h3>🏆 实时排行榜</h3>
+                <div id="leaderboardContainer" class="leaderboard-container">
+                    <p>排行榜将在这里显示...</p>
+                </div>
+            </div>
+
+            <!-- 日志显示 -->
+            <div class="test-section">
+                <h3>📝 操作日志</h3>
+                <div id="log" class="log">等待操作...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 模拟实时每日挑战服务
+        class MockRealtimeDailyChallengeService {
+            constructor() {
+                this.leaderboard = [];
+                this.userStats = {
+                    totalChallenges: 0,
+                    averageScore: 0,
+                    bestScore: 0,
+                    consecutiveDays: 0,
+                    completionRate: 0
+                };
+                this.realtimeInterval = null;
+                this.isRealtimeActive = false;
+            }
+
+            async submitDailyChallengeCompletion(challengeData) {
+                this.log(`🚀 提交每日挑战完成记录:`, challengeData);
+                
+                // 模拟API延迟
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 生成模拟数据
+                const newEntry = {
+                    id: `mock_${Date.now()}`,
+                    playerName: challengeData.playerName || '测试玩家',
+                    date: challengeData.date,
+                    puzzleName: challengeData.puzzleName,
+                    difficulty: challengeData.difficulty,
+                    pieceShape: challengeData.pieceShape,
+                    gridSize: challengeData.gridSize,
+                    completionTime: challengeData.completionTime,
+                    moves: challengeData.moves,
+                    score: challengeData.score,
+                    isPerfect: challengeData.isPerfect,
+                    totalStars: challengeData.totalStars,
+                    consecutiveDays: challengeData.consecutiveDays,
+                    completedAt: new Date(),
+                    rank: this.leaderboard.length + 1
+                };
+
+                // 添加到排行榜
+                this.leaderboard.push(newEntry);
+                
+                // 重新排序
+                this.leaderboard.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return a.completionTime - b.completionTime;
+                });
+
+                // 更新排名
+                this.leaderboard.forEach((entry, index) => {
+                    entry.rank = index + 1;
+                });
+
+                // 更新用户统计
+                this.updateUserStats();
+
+                this.log(`✅ 挑战记录提交成功，当前排名: #${newEntry.rank}`);
+                
+                return {
+                    gameId: newEntry.id,
+                    score: challengeData.score,
+                    rewards: {
+                        coins: challengeData.isPerfect ? 100 : 50,
+                        experience: challengeData.isPerfect ? 50 : 25
+                    },
+                    isNewRecord: true,
+                    rank: newEntry.rank,
+                    leaderboardUpdated: true
+                };
+            }
+
+            async getRealtimeDailyChallengeLeaderboard(date, limit = 50, forceRefresh = false) {
+                this.log(`🌐 获取实时排行榜数据 (强制刷新: ${forceRefresh})`);
+                
+                // 模拟API延迟
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const filteredLeaderboard = this.leaderboard
+                    .filter(entry => !date || entry.date === date)
+                    .slice(0, limit);
+
+                return {
+                    leaderboard: filteredLeaderboard,
+                    userRank: this.getUserRank(),
+                    lastUpdated: new Date().toISOString(),
+                    isRealtime: this.isRealtimeActive
+                };
+            }
+
+            async getUserDailyChallengeStats() {
+                this.log(`📊 获取用户统计信息`);
+                return { ...this.userStats };
+            }
+
+            startRealtimeUpdates(callback, interval = 10000, date, limit) {
+                this.log(`🔄 启动实时更新，间隔: ${interval}ms`);
+                this.isRealtimeActive = true;
+                
+                this.realtimeInterval = setInterval(async () => {
+                    try {
+                        const data = await this.getRealtimeDailyChallengeLeaderboard(date, limit, true);
+                        callback(data);
+                        this.log(`🔄 实时更新完成，数据条数: ${data.leaderboard.length}`);
+                    } catch (error) {
+                        this.log(`❌ 实时更新失败: ${error.message}`);
+                    }
+                }, interval);
+
+                return () => {
+                    this.log(`⏹️ 停止实时更新`);
+                    this.isRealtimeActive = false;
+                    if (this.realtimeInterval) {
+                        clearInterval(this.realtimeInterval);
+                        this.realtimeInterval = null;
+                    }
+                };
+            }
+
+            updateUserStats() {
+                if (this.leaderboard.length === 0) return;
+
+                const scores = this.leaderboard.map(entry => entry.score);
+                this.userStats.totalChallenges = this.leaderboard.length;
+                this.userStats.averageScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+                this.userStats.bestScore = Math.max(...scores);
+                this.userStats.consecutiveDays = this.calculateConsecutiveDays();
+                this.userStats.completionRate = 100;
+            }
+
+            calculateConsecutiveDays() {
+                const dates = [...new Set(this.leaderboard.map(entry => entry.date))].sort();
+                let consecutive = 1;
+                
+                for (let i = 1; i < dates.length; i++) {
+                    const prevDate = new Date(dates[i - 1]);
+                    const currDate = new Date(dates[i]);
+                    const diffDays = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDays === 1) {
+                        consecutive++;
+                    } else {
+                        break;
+                    }
+                }
+                
+                return consecutive;
+            }
+
+            getUserRank() {
+                // 模拟用户排名计算
+                return this.leaderboard.length > 0 ? Math.floor(Math.random() * this.leaderboard.length) + 1 : null;
+            }
+
+            log(message, data = null) {
+                const timestamp = new Date().toLocaleTimeString();
+                const logElement = document.getElementById('log');
+                const logMessage = `[${timestamp}] ${message}${data ? '\n' + JSON.stringify(data, null, 2) : ''}`;
+                logElement.textContent += logMessage + '\n';
+                logElement.scrollTop = logElement.scrollHeight;
+            }
+        }
+
+        // 初始化服务
+        const service = new MockRealtimeDailyChallengeService();
+        let stopRealtimeUpdates = null;
+
+        // DOM元素
+        const statusElement = document.getElementById('status');
+        const userStatsElements = {
+            totalChallenges: document.getElementById('totalChallenges'),
+            averageScore: document.getElementById('averageScore'),
+            bestScore: document.getElementById('bestScore'),
+            consecutiveDays: document.getElementById('consecutiveDays')
+        };
+        const leaderboardContainer = document.getElementById('leaderboardContainer');
+
+        // 更新状态显示
+        function updateStatus(message, type = 'info') {
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        // 更新用户统计显示
+        function updateUserStatsDisplay(stats) {
+            userStatsElements.totalChallenges.textContent = stats.totalChallenges;
+            userStatsElements.averageScore.textContent = stats.averageScore;
+            userStatsElements.bestScore.textContent = stats.bestScore;
+            userStatsElements.consecutiveDays.textContent = stats.consecutiveDays;
+        }
+
+        // 更新排行榜显示
+        function updateLeaderboardDisplay(leaderboard) {
+            if (leaderboard.length === 0) {
+                leaderboardContainer.innerHTML = '<p>📭 暂无排行榜数据</p>';
+                return;
+            }
+
+            const html = `
+                <div style="max-height: 400px; overflow-y: auto;">
+                    ${leaderboard.map((entry, index) => `
+                        <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: ${index % 2 === 0 ? '#f9f9f9' : 'white'};">
+                            <div style="width: 50px; text-align: center; font-weight: bold; color: ${entry.rank <= 3 ? '#ff9800' : '#666'};">
+                                #${entry.rank}
+                            </div>
+                            <div style="flex: 1; margin-left: 15px;">
+                                <div style="font-weight: 600;">${entry.playerName}</div>
+                                <div style="font-size: 0.9em; color: #666;">${entry.puzzleName} • ${entry.difficulty}</div>
+                            </div>
+                            <div style="width: 80px; text-align: center;">
+                                <div style="font-weight: bold; color: #2196f3;">${entry.score}</div>
+                                <div style="font-size: 0.8em; color: #666;">分数</div>
+                            </div>
+                            <div style="width: 80px; text-align: center;">
+                                <div style="font-weight: bold;">${Math.floor(entry.completionTime / 60)}:${(entry.completionTime % 60).toString().padStart(2, '0')}</div>
+                                <div style="font-size: 0.8em; color: #666;">时间</div>
+                            </div>
+                            <div style="width: 60px; text-align: center;">
+                                <div style="font-weight: bold;">${entry.moves}</div>
+                                <div style="font-size: 0.8em; color: #666;">步数</div>
+                            </div>
+                            <div style="width: 100px; text-align: right;">
+                                ${entry.isPerfect ? '<span style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.8em;">⭐ 完美</span>' : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // 生成模拟挑战数据
+        function generateMockChallengeData() {
+            const difficulties = ['简单', '中等', '困难'];
+            const pieceShapes = ['正方形', '三角形', '六边形'];
+            const puzzleNames = ['每日挑战-拼图大师', '每日挑战-速度挑战', '每日挑战-完美主义'];
+            
+            return {
+                date: new Date().toISOString().split('T')[0],
+                challengeId: `challenge_${Date.now()}`,
+                puzzleName: puzzleNames[Math.floor(Math.random() * puzzleNames.length)],
+                difficulty: difficulties[Math.floor(Math.random() * difficulties.length)],
+                pieceShape: pieceShapes[Math.floor(Math.random() * pieceShapes.length)],
+                gridSize: '8x8',
+                totalPieces: 64,
+                completionTime: Math.floor(Math.random() * 300) + 60, // 1-6分钟
+                moves: Math.floor(Math.random() * 50) + 20, // 20-70步
+                score: Math.floor(Math.random() * 500) + 500, // 500-1000分
+                isPerfect: Math.random() > 0.7, // 30%概率完美
+                totalStars: Math.floor(Math.random() * 5) + 1,
+                consecutiveDays: Math.floor(Math.random() * 10) + 1,
+                playerName: `玩家${Math.floor(Math.random() * 1000)}`
+            };
+        }
+
+        // 事件监听器
+        document.getElementById('startTest').addEventListener('click', async () => {
+            updateStatus('🔄 开始测试...', 'info');
+            
+            // 启用按钮
+            document.getElementById('submitChallenge').disabled = false;
+            document.getElementById('refreshLeaderboard').disabled = false;
+            document.getElementById('startRealtime').disabled = false;
+            
+            // 加载初始数据
+            try {
+                const leaderboardData = await service.getRealtimeDailyChallengeLeaderboard();
+                updateLeaderboardDisplay(leaderboardData.leaderboard);
+                
+                const userStats = await service.getUserDailyChallengeStats();
+                updateUserStatsDisplay(userStats);
+                
+                updateStatus('✅ 测试环境准备就绪', 'success');
+            } catch (error) {
+                updateStatus(`❌ 初始化失败: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('submitChallenge').addEventListener('click', async () => {
+            updateStatus('🚀 提交挑战记录...', 'info');
+            
+            try {
+                const challengeData = generateMockChallengeData();
+                const result = await service.submitDailyChallengeCompletion(challengeData);
+                
+                // 更新显示
+                const leaderboardData = await service.getRealtimeDailyChallengeLeaderboard();
+                updateLeaderboardDisplay(leaderboardData.leaderboard);
+                
+                const userStats = await service.getUserDailyChallengeStats();
+                updateUserStatsDisplay(userStats);
+                
+                updateStatus(`✅ 挑战记录提交成功！排名: #${result.rank}`, 'success');
+            } catch (error) {
+                updateStatus(`❌ 提交失败: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('refreshLeaderboard').addEventListener('click', async () => {
+            updateStatus('🔄 刷新排行榜...', 'info');
+            
+            try {
+                const leaderboardData = await service.getRealtimeDailyChallengeLeaderboard(null, 50, true);
+                updateLeaderboardDisplay(leaderboardData.leaderboard);
+                
+                updateStatus(`✅ 排行榜已刷新，共 ${leaderboardData.leaderboard.length} 条记录`, 'success');
+            } catch (error) {
+                updateStatus(`❌ 刷新失败: ${error.message}`, 'error');
+            }
+        });
+
+        document.getElementById('startRealtime').addEventListener('click', () => {
+            updateStatus('🔄 启动实时更新...', 'info');
+            
+            stopRealtimeUpdates = service.startRealtimeUpdates((data) => {
+                updateLeaderboardDisplay(data.leaderboard);
+                updateStatus(`🟢 实时更新中... 数据条数: ${data.leaderboard.length}`, 'success');
+            }, 3000); // 3秒更新一次
+            
+            document.getElementById('startRealtime').disabled = true;
+            document.getElementById('stopRealtime').disabled = false;
+        });
+
+        document.getElementById('stopRealtime').addEventListener('click', () => {
+            if (stopRealtimeUpdates) {
+                stopRealtimeUpdates();
+                stopRealtimeUpdates = null;
+            }
+            
+            updateStatus('⏹️ 实时更新已停止', 'info');
+            document.getElementById('startRealtime').disabled = false;
+            document.getElementById('stopRealtime').disabled = true;
+        });
+
+        document.getElementById('clearLog').addEventListener('click', () => {
+            document.getElementById('log').textContent = '日志已清空...\n';
+        });
+
+        // 初始化
+        updateStatus('准备就绪 - 点击"开始测试"开始演示', 'info');
+    </script>
+</body>
+</html>
