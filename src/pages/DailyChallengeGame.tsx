@@ -1097,10 +1097,6 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               </div>
               <div className="text-xs text-gray-500">剩余时间</div>
             </div>
-            <div className="text-center">
-              <div className="text-lg font-semibold text-gray-700">{progress.correct}/{progress.total}</div>
-              <div className="text-xs text-gray-500">正确块数</div>
-            </div>
             <div className={`text-center ${challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? 'double-steps-indicator' : ''}`}>
               <div className="text-lg font-semibold text-gray-700">{moves}</div>
               <div className="text-xs text-gray-500">
