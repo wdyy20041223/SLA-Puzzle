@@ -45,7 +45,7 @@ export interface PuzzleConfig {
 }
 
 // 难度等级
-export type DifficultyLevel = 'easy' | 'medium' | 'hard' | 'expert';
+export type DifficultyLevel = 'easy' | 'medium' | 'hard' | 'expert' | 'custom';
 
 // 游戏状态
 export interface GameState {

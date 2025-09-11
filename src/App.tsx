@@ -24,7 +24,7 @@ import './App.css';
 
 
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'dailyChallengeHistory' | 'settings';
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings' | 'home' | 'singlePlayer' | 'multiplayer-game' | 'dailyChallengeHistory';
 
 
 
@@ -216,7 +216,7 @@ const AppContent: React.FC = () => {
 
       case 'editor':
         return (
-          <PuzzleEditor onBackToMenu={handleBackToMenu} />
+          <PuzzleEditor onBackToMenu={handleBackToMenu} onStartGame={handleStartGame} onStartIrregularGame={handleStartIrregularGame} />
         );
 
       case 'irregular-game':
