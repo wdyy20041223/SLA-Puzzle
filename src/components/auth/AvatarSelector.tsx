@@ -49,15 +49,30 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose 
   const user = authState.user;
   const userOwnedItems = user.ownedItems || [];
 
-  // 过滤用户拥有的物品
+  // 过滤用户拥有的物品 - 考虑后端存储时添加的前缀
+  const checkItemOwnership = (itemId: string, itemType: 'avatar' | 'frame') => {
+    // 检查原始ID
+    if (userOwnedItems.includes(itemId)) return true;
+    
+    // 检查带前缀的ID
+    if (itemType === 'avatar') {
+      return userOwnedItems.includes(`avatar_${itemId}`);
+    } else if (itemType === 'frame') {
+      return userOwnedItems.includes(`avatar_frame_${itemId}`) || 
+             userOwnedItems.includes(`decoration_${itemId}`);
+    }
+    
+    return false;
+  };
+
   const availableAvatars = [
     ...defaultAvatars,
-    ...purchasedAvatars.filter(item => userOwnedItems.includes(item.id))
+    ...purchasedAvatars.filter(item => checkItemOwnership(item.id, 'avatar'))
   ];
 
   const availableFrames = [
     ...defaultFrames,
-    ...purchasedFrames.filter(item => userOwnedItems.includes(item.id))
+    ...purchasedFrames.filter(item => checkItemOwnership(item.id, 'frame'))
   ];
 
   const handleAvatarSelect = (avatarId: string) => {
@@ -70,6 +85,24 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose 
 
   const handleSave = async () => {
     try {
+      // 验证所选头像是否可用
+      const isAvatarValid = defaultAvatars.some(avatar => avatar.id === selectedAvatar) || 
+                           (purchasedAvatars.some(avatar => avatar.id === selectedAvatar) && checkItemOwnership(selectedAvatar, 'avatar'));
+      
+      // 验证所选边框是否可用
+      const isFrameValid = defaultFrames.some(frame => frame.id === selectedFrame) || 
+                          (purchasedFrames.some(frame => frame.id === selectedFrame) && checkItemOwnership(selectedFrame, 'frame'));
+
+      if (!isAvatarValid) {
+        alert('您没有权限使用此头像，请先购买！');
+        return;
+      }
+
+      if (!isFrameValid) {
+        alert('您没有权限使用此边框，请先购买！');
+        return;
+      }
+
       // 使用AuthContext的更新函数
       const success = await updateUserProfile({
         avatar: selectedAvatar,
@@ -134,13 +167,13 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose 
                   </button>
                 ))}
                 
-                {purchasedAvatars.filter(item => !userOwnedItems.includes(item.id)).length > 0 && (
+                {purchasedAvatars.filter(item => !checkItemOwnership(item.id, 'avatar')).length > 0 && (
                   <>
                     <div className="section-divider">
                       <span>未拥有的头像</span>
                     </div>
                     {purchasedAvatars
-                      .filter(item => !userOwnedItems.includes(item.id))
+                      .filter(item => !checkItemOwnership(item.id, 'avatar'))
                       .map((avatar) => (
                         <div key={avatar.id} className="item-card locked">
                           <div className="item-icon">🔒</div>
@@ -169,13 +202,13 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({ isOpen, onClose 
                   </button>
                 ))}
                 
-                {purchasedFrames.filter(item => !userOwnedItems.includes(item.id)).length > 0 && (
+                {purchasedFrames.filter(item => !checkItemOwnership(item.id, 'frame')).length > 0 && (
                   <>
                     <div className="section-divider">
                       <span>未拥有的边框</span>
                     </div>
                     {purchasedFrames
-                      .filter(item => !userOwnedItems.includes(item.id))
+                      .filter(item => !checkItemOwnership(item.id, 'frame'))
                       .map((frame) => (
                         <div key={frame.id} className="item-card locked">
                           <div className="item-icon">🔒</div>

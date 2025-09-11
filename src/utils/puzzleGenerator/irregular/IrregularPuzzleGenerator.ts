@@ -1,8 +1,8 @@
-import { 
-  IrregularPuzzleConfig, 
-  IrregularPuzzlePiece, 
-  GridSize, 
-  Size, 
+import {
+  IrregularPuzzleConfig,
+  IrregularPuzzlePiece,
+  GridSize,
+  Size,
   Position,
   GridLayout,
   GenerateIrregularPuzzleParams,
@@ -12,13 +12,15 @@ import {
 import { EdgePatternGenerator } from './EdgePatternGenerator';
 import { ClipPathGenerator } from './ClipPathGenerator';
 import { ImageSlicer } from './ImageSlicer';
+import { applySvgMaskToImage } from './svgMaskUtil';
 
 /**
  * 异形拼图生成器
  * 整合所有模块，生成完整的异形拼图配置
  */
 export class IrregularPuzzleGenerator {
-  
+
+
   /**
    * 生成完整的异形拼图
    * @param params 生成参数
@@ -27,152 +29,197 @@ export class IrregularPuzzleGenerator {
   static async generateIrregularPuzzle(
     params: GenerateIrregularPuzzleParams
   ): Promise<IrregularPuzzleConfig> {
-    const {
-      imageData,
-      gridSize,
-      name,
-      expansionRatio = 0.4
-    } = params;
-    
+    const { imageData, gridSize, name } = params;
     // 1. 验证参数
     this.validateParams(params);
-    
-    // 2. 加载并验证图像
-    const imageElement = await ImageSlicer.loadImage(imageData);
-    const validation = ImageSlicer.validateImageForSlicing(
-      imageElement.width,
-      imageElement.height,
-      gridSize
-    );
-    
-    if (!validation.valid) {
-      throw new Error(`图像验证失败: ${validation.message}`);
+
+    // 2. 加载图片
+    const targetSize = 400;
+    const imageUrl = imageData;
+    const totalPieces = gridSize.rows * gridSize.cols;
+    const pieceSize = targetSize / gridSize.rows;
+
+    // 生成四边矩阵，保证边缘为0，内部随机-1/1，且相邻互补
+    function generateEdgeMatrix(m: number, n: number): number[][][] {
+      const matrix = Array.from({ length: m }, () => Array.from({ length: n }, () => [0, 0, 0, 0]));
+      for (let i = 0; i < m; i++) {
+        for (let j = 0; j < n; j++) {
+          // 上边
+          let up = i === 0 ? 0 : -matrix[i - 1][j][1];
+          // 左边
+          let left = j === 0 ? 0 : -matrix[i][j - 1][3];
+          // 下边
+          let down = i === m - 1 ? 0 : (Math.random() < 0.5 ? -1 : 1);
+          // 右边
+          let right = j === n - 1 ? 0 : (Math.random() < 0.5 ? -1 : 1);
+          matrix[i][j] = [up, down, left, right];
+        }
+      }
+      return matrix;
     }
-    
-    // 3. 生成边缘图案
-    const edgePatternMap = EdgePatternGenerator.generatePuzzleEdges(
-      gridSize,
-      0.5 // 基础强度
-    );
-    
-    // 4. 切割图像
-    const targetSize = 800; // 目标图像尺寸
-    const sliceResult = await ImageSlicer.sliceImageForIrregular(
-      imageElement,
-      gridSize,
-      targetSize,
-      expansionRatio
-    );
-    
-    // 5. 计算固定块位置
-    const fixedPieceIndex = calculateCenterIndex(gridSize);
-    const fixedPosition = this.calculateFixedPosition(
-      fixedPieceIndex,
-      gridSize,
-      sliceResult.baseSize
-    );
-    
-    // 6. 创建网格布局信息
-    const gridLayout: GridLayout = {
-      gridSize,
-      baseSize: sliceResult.baseSize,
-      expansionRatio,
-      fixedPieceIndex,
-      fixedPosition
-    };
-    
-    // 7. 生成所有拼图块
+
+    const edgeMatrix = generateEdgeMatrix(gridSize.rows, gridSize.cols);
+
+    // 加载图片
+    const img = new Image();
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = imageUrl.startsWith('/') ? imageUrl : imageUrl;
+      img.crossOrigin = 'anonymous';
+    });
+    const sourceSize = Math.min(img.width, img.height);
+    const offsetX = (img.width - sourceSize) / 2;
+    const offsetY = (img.height - sourceSize) / 2;
+
+    // 采集范围扩大比例
+    const expandRatio = 0.3;
     const pieces: IrregularPuzzlePiece[] = [];
-    
-    for (let i = 0; i < sliceResult.pieces.length; i++) {
+    for (let i = 0; i < totalPieces; i++) {
       const row = Math.floor(i / gridSize.cols);
       const col = i % gridSize.cols;
-      
-      // 提取该块的边缘图案
-      const edges = EdgePatternGenerator.extractPieceEdges(i, edgePatternMap);
-      
-      // 生成clip-path
-      const clipPath = ClipPathGenerator.generateClipPath(
-        edges,
-        sliceResult.expandedSizes[i],
-        sliceResult.baseSize
-      );
-      
-      // 先创建基础的snap targets（简化版）
-      const snapTargets = [{
-        position: sliceResult.basePositions[i],
-        tolerance: 20
-      }];
-      
-      // 创建拼图块
+      // 获取本块四边
+      const [up, down, left, right] = edgeMatrix[row][col];
+      // 采集区域宽高扩大1.3倍
+      const srcW = (sourceSize / gridSize.cols);
+      const srcH = (sourceSize / gridSize.rows);
+      const expandW = srcW * (1 + expandRatio);
+      const expandH = srcH * (1 + expandRatio);
+      // 采集区域中心不变，起点需左上移
+      let srcX = offsetX + col * srcW - (expandW - srcW) / 2;
+      let srcY = offsetY + row * srcH - (expandH - srcH) / 2;
+
+      // 计算实际可采集的图片区域
+      let imgCropX = srcX;
+      let imgCropY = srcY;
+      let imgCropW = expandW;
+      let imgCropH = expandH;
+      let destX = 0;
+      let destY = 0;
+      // 左边超出
+      if (imgCropX < 0) {
+        destX = Math.round(-imgCropX * (pieceSize / expandW));
+        imgCropW += imgCropX; // 实际采集宽度减少
+        imgCropX = 0;
+      }
+      // 上边超出
+      if (imgCropY < 0) {
+        destY = Math.round(-imgCropY * (pieceSize / expandH));
+        imgCropH += imgCropY;
+        imgCropY = 0;
+      }
+      // 右边超出
+      if (imgCropX + imgCropW > img.width) {
+        imgCropW = img.width - imgCropX;
+      }
+      // 下边超出
+      if (imgCropY + imgCropH > img.height) {
+        imgCropH = img.height - imgCropY;
+      }
+      // 创建canvas裁剪图片
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('无法获取canvas上下文');
+      canvas.width = pieceSize;
+      canvas.height = pieceSize;
+      // 先填充透明
+      ctx.clearRect(0, 0, pieceSize, pieceSize);
+      // 只有采集区域在图片内才绘制
+      if (imgCropW > 0 && imgCropH > 0) {
+        ctx.drawImage(
+          img,
+          imgCropX,
+          imgCropY,
+          imgCropW,
+          imgCropH,
+          destX,
+          destY,
+          pieceSize - destX - Math.round((expandW - imgCropW - (imgCropX - srcX)) * (pieceSize / expandW)),
+          pieceSize - destY - Math.round((expandH - imgCropH - (imgCropY - srcY)) * (pieceSize / expandH))
+        );
+      }
+      // 生成svg mask路径，按你的命名规则
+      const svgMaskPath = `betterPuzzle/puzzle_${up}_${down}_${left}_${right}.svg`;
+      // 合成图片和SVG mask
+      const pieceImageData = await applySvgMaskToImage(canvas, svgMaskPath, pieceSize, pieceSize, true);
+
+      // 生成边缘类型对象
+      function edgeTypeFromNum(num: number): import('./types').EdgeType {
+        if (num === 1) return 'knob';
+        if (num === -1) return 'hole';
+        return 'flat';
+      }
+      const edges = {
+        top: { type: edgeTypeFromNum(up), intensity: 0.5, seedValue: 0 },
+        right: { type: edgeTypeFromNum(right), intensity: 0.5, seedValue: 0 },
+        bottom: { type: edgeTypeFromNum(down), intensity: 0.5, seedValue: 0 },
+        left: { type: edgeTypeFromNum(left), intensity: 0.5, seedValue: 0 }
+      };
+      // ...existing code...
+
+      // 生成clipPath，遮盖扩展区域30%，只在原始方形边缘留出凹凸
+      const expandedSize = { width: pieceSize * (1 + expandRatio), height: pieceSize * (1 + expandRatio) };
+      const baseSize = { width: pieceSize, height: pieceSize };
+      let clipPath = '';
+      try {
+        clipPath = ClipPathGenerator.generateClipPath(edges, expandedSize, baseSize);
+      } catch (e) {
+        clipPath = '';
+      }
+
       const piece: IrregularPuzzlePiece = {
         id: i.toString(),
         originalIndex: i,
         rotation: 0,
-        imageData: sliceResult.pieces[i],
-        width: sliceResult.expandedSizes[i].width,
-        height: sliceResult.expandedSizes[i].height,
-        
-        // 异形拼图特有属性
-        // 固定块与吸附网格对齐：网格原点有 50px 偏移
-        x: i === fixedPieceIndex 
-          ? this.calculateGridAlignedPositionWithOffset(
-              50 + sliceResult.expandedPositions[i].x,
-              sliceResult.baseSize.width / 5,
-              50
-            ) 
-          : this.getRandomStartPosition().x,
-        y: i === fixedPieceIndex 
-          ? this.calculateGridAlignedPositionWithOffset(
-              50 + sliceResult.expandedPositions[i].y,
-              sliceResult.baseSize.width / 5,
-              50
-            ) 
-          : this.getRandomStartPosition().y,
-        isCorrect: i === fixedPieceIndex, // 固定块默认正确
-        
-        // 基础信息
-        basePosition: sliceResult.basePositions[i],
-        baseSize: sliceResult.baseSize,
-        
-        // 扩展信息
-        expandedPosition: sliceResult.expandedPositions[i],
-        expandedSize: sliceResult.expandedSizes[i],
-        
-        // 形状信息
+        correctRotation: 0,
+        imageData: pieceImageData,
+        width: pieceSize,
+        height: pieceSize,
+        x: this.getRandomStartPosition().x,
+        y: this.getRandomStartPosition().y,
+        isCorrect: false,
+        basePosition: { x: col * pieceSize, y: row * pieceSize },
+        baseSize,
+        expandedPosition: { x: col * pieceSize, y: row * pieceSize },
+        expandedSize,
         edges,
         clipPath,
-        
-        // 交互信息
-        isDraggable: i !== fixedPieceIndex,
-        snapTargets,
-        
-        // 网格信息
+        isDraggable: true,
+        snapTargets: [{ position: { x: col * pieceSize, y: row * pieceSize }, tolerance: 20 }],
         gridRow: row,
-        gridCol: col
+        gridCol: col,
+        up,
+        right,
+        down,
+        left
       };
-      
       pieces.push(piece);
     }
-    
-    // 8. 创建最终配置
+
+    // 4. 创建最终配置
     const puzzleConfig: IrregularPuzzleConfig = {
       id: Date.now().toString(),
       name,
-      originalImage: imageData,
+      originalImage: imageUrl,
       gridSize,
       pieceShape: 'irregular',
       pieces,
-      fixedPiece: fixedPieceIndex,
-      gridLayout,
+      fixedPiece: -1,
+      gridLayout: {
+        gridSize,
+        baseSize: { width: pieceSize, height: pieceSize },
+        expansionRatio: 0,
+        fixedPieceIndex: -1,
+        fixedPosition: { x: 0, y: 0 }
+      },
       createdAt: new Date(),
       updatedAt: new Date(),
       difficulty: this.calculateDifficulty(gridSize)
     };
-    
     return puzzleConfig;
   }
-  
+
+
   /**
    * 生成简化版异形拼图（用于测试）
    * @param imageData 图像数据
@@ -184,7 +231,7 @@ export class IrregularPuzzleGenerator {
     gridKey: keyof typeof GRID_CONFIGS = '3x3'
   ): Promise<IrregularPuzzleConfig> {
     const gridConfig = GRID_CONFIGS[gridKey];
-    
+
     const params: GenerateIrregularPuzzleParams = {
       imageData,
       gridSize: { rows: gridConfig.rows, cols: gridConfig.cols },
@@ -192,10 +239,10 @@ export class IrregularPuzzleGenerator {
       name: `异形拼图 ${gridKey}`,
       expansionRatio: 0.4
     };
-    
+
     return this.generateIrregularPuzzle(params);
   }
-  
+
   /**
    * 验证生成参数
    * @param params 参数
@@ -204,24 +251,24 @@ export class IrregularPuzzleGenerator {
     if (!params.imageData) {
       throw new Error('图像数据不能为空');
     }
-    
+
     if (!params.name || params.name.trim().length === 0) {
       throw new Error('拼图名称不能为空');
     }
-    
+
     if (params.gridSize.rows < 2 || params.gridSize.cols < 2) {
       throw new Error('网格尺寸至少为 2x2');
     }
-    
+
     if (params.gridSize.rows > 8 || params.gridSize.cols > 8) {
       throw new Error('网格尺寸不能超过 8x8');
     }
-    
+
     if (params.expansionRatio && (params.expansionRatio < 0.2 || params.expansionRatio > 0.8)) {
       throw new Error('扩展比例应在 0.2-0.8 之间');
     }
   }
-  
+
   /**
    * 计算固定块的绝对位置
    * @param fixedIndex 固定块索引
@@ -238,13 +285,13 @@ export class IrregularPuzzleGenerator {
     // 注意：这个位置是相对于拼接板容器的，不包含50px偏移
     const row = Math.floor(fixedIndex / gridSize.cols);
     const col = fixedIndex % gridSize.cols;
-    
+
     return {
       x: col * baseSize.width,
       y: row * baseSize.height
     };
   }
-  
+
   /**
    * 获取随机起始位置（用于可拖拽的块）
    * @returns 随机位置
@@ -271,7 +318,7 @@ export class IrregularPuzzleGenerator {
   ): number {
     return Math.round((position - offset) / gridSize) * gridSize + offset;
   }
-  
+
   /**
    * 计算拼图难度
    * @param gridSize 网格尺寸
@@ -279,13 +326,13 @@ export class IrregularPuzzleGenerator {
    */
   private static calculateDifficulty(gridSize: GridSize): 'easy' | 'medium' | 'hard' | 'expert' {
     const totalPieces = gridSize.rows * gridSize.cols;
-    
+
     if (totalPieces <= 9) return 'easy';
     if (totalPieces <= 16) return 'medium';
     if (totalPieces <= 25) return 'hard';
     return 'expert';
   }
-  
+
   /**
    * 验证拼图完成状态
    * @param pieces 拼图块数组
@@ -295,23 +342,23 @@ export class IrregularPuzzleGenerator {
   static validateCompletion(
     pieces: IrregularPuzzlePiece[],
     tolerance: number = 20
-  ): { 
-    isComplete: boolean; 
-    correctPieces: number; 
+  ): {
+    isComplete: boolean;
+    correctPieces: number;
     totalPieces: number;
     completionRate: number;
   } {
     let correctPieces = 0;
     const totalPieces = pieces.length;
-    
+
     pieces.forEach(piece => {
       // 检查是否在正确位置附近
       const targetX = piece.basePosition.x;
       const targetY = piece.basePosition.y;
-      
+
       const deltaX = Math.abs(piece.x - targetX);
       const deltaY = Math.abs(piece.y - targetY);
-      
+
       if (deltaX <= tolerance && deltaY <= tolerance) {
         correctPieces++;
         piece.isCorrect = true;
@@ -319,10 +366,10 @@ export class IrregularPuzzleGenerator {
         piece.isCorrect = false;
       }
     });
-    
+
     const completionRate = (correctPieces / totalPieces) * 100;
     const isComplete = correctPieces === totalPieces;
-    
+
     return {
       isComplete,
       correctPieces,
@@ -330,29 +377,26 @@ export class IrregularPuzzleGenerator {
       completionRate: Math.round(completionRate)
     };
   }
-  
+
   /**
    * 重置拼图到初始状态
    * @param pieces 拼图块数组
-   * @param fixedPieceIndex 固定块索引
+   * @param fixedPieceIndex 固定块索引（已弃用，所有块现在都可拖拽）
    */
   static resetPuzzle(pieces: IrregularPuzzlePiece[], fixedPieceIndex: number): void {
-    pieces.forEach((piece, index) => {
-      if (index === fixedPieceIndex) {
-        // 固定块保持在正确位置
-        piece.isCorrect = true;
-        return;
-      }
-      
-      // 其他块随机分布
+    pieces.forEach((piece) => {
+      // 所有块随机分布到待拼接区域
       const randomPos = this.getRandomStartPosition();
       piece.x = randomPos.x;
       piece.y = randomPos.y;
-      piece.rotation = 0;
+      // 随机旋转：0°, 90°, 180°, 270°
+      const rotations = [0, 90, 180, 270];
+      piece.rotation = rotations[Math.floor(Math.random() * rotations.length)];
       piece.isCorrect = false;
+      piece.isDraggable = true; // 确保所有块都可拖拽
     });
   }
-  
+
   /**
    * 获取拼图统计信息
    * @param config 拼图配置
@@ -368,11 +412,11 @@ export class IrregularPuzzleGenerator {
   } {
     const totalPieces = config.pieces.length;
     const draggablePieces = config.pieces.filter(p => p.isDraggable).length;
-    const fixedPieces = totalPieces - draggablePieces;
-    
+    const fixedPieces = 0; // 现在没有固定块了
+
     // 统计边缘类型
     let flatEdges = 0, knobEdges = 0, holeEdges = 0;
-    
+
     config.pieces.forEach(piece => {
       [piece.edges.top, piece.edges.right, piece.edges.bottom, piece.edges.left]
         .forEach(edge => {
@@ -383,14 +427,14 @@ export class IrregularPuzzleGenerator {
           }
         });
     });
-    
+
     // 估算完成时间
     const baseTime = totalPieces * 30; // 每块30秒基础时间
     const estimatedMinutes = Math.ceil(baseTime / 60);
-    const estimatedTime = estimatedMinutes < 60 
+    const estimatedTime = estimatedMinutes < 60
       ? `${estimatedMinutes} 分钟`
       : `${Math.floor(estimatedMinutes / 60)} 小时 ${estimatedMinutes % 60} 分钟`;
-    
+
     return {
       totalPieces,
       draggablePieces,

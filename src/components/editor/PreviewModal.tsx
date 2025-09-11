@@ -85,14 +85,12 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
           </div>
           
           <div className="preview-container">
-            <div className="preview-image-wrapper">
-              <img
-                src={imageSrc}
-                alt={imageTitle}
-                className="preview-image"
-              />
-              {renderPuzzleGrid()}
-            </div>
+            <img
+              src={imageSrc}
+              alt={imageTitle}
+              className="preview-image"
+            />
+            {renderPuzzleGrid()}
           </div>
         </div>
         

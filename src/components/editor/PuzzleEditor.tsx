@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback } from 'react';
-import SavedPuzzlesPage from '../../pages/SavedPuzzles';
 import { Button } from '../common/Button';
 import { ImageCropper } from './ImageCropper';
 import { DifficultySettings } from './DifficultySettings';
@@ -7,12 +6,8 @@ import { PreviewModal } from './PreviewModal';
 import { DifficultyLevel, PieceShape } from '../../types';
 import './PuzzleEditor.css';
 
-import { PuzzleConfig } from '../../types';
-
 interface PuzzleEditorProps {
   onBackToMenu: () => void;
-  onStartGame?: (config: PuzzleConfig) => void;
-  initialStep?: 'upload' | 'crop' | 'settings' | 'preview';
 }
 
 type EditorStep = 'upload' | 'crop' | 'settings' | 'preview';
@@ -27,8 +22,8 @@ interface CustomPuzzleConfig {
   croppedImageData?: string;
 }
 
-export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStartGame, initialStep }) => {
-  const [currentStep, setCurrentStep] = useState<EditorStep>(initialStep || 'upload');
+export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
+  const [currentStep, setCurrentStep] = useState<EditorStep>('upload');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>('1:1');
   const [customPuzzleConfig, setCustomPuzzleConfig] = useState<CustomPuzzleConfig>({
@@ -39,12 +34,8 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     aspectRatio: '1:1'
   });
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  // 新增：用于实时记录设置页的难度和形状选择
-  const [tempDifficulty, setTempDifficulty] = useState<DifficultyLevel>('medium');
-  const [tempPieceShape, setTempPieceShape] = useState<PieceShape>('square');
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // 新增：保存后跳转到存档页面
-  const [showSavedPage, setShowSavedPage] = useState(false);
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -104,7 +95,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     setCurrentStep('settings');
   }, [selectedAspectRatio]);
 
-  // 传递给 DifficultySettings 的回调，确认时才写入主配置
   const handleDifficultySettingsComplete = useCallback((
     difficulty: DifficultyLevel,
     pieceShape: PieceShape
@@ -117,38 +107,10 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     setCurrentStep('preview');
   }, []);
 
-  // 新增：用于 DifficultySettings 实时同步选择
-  const handleTempDifficultyChange = useCallback((difficulty: DifficultyLevel) => {
-    setTempDifficulty(difficulty);
-  }, []);
-  const handleTempPieceShapeChange = useCallback((shape: PieceShape) => {
-    setTempPieceShape(shape);
-  }, []);
-
   const handleSavePuzzle = useCallback(() => {
-    if (!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name) {
-      alert('请先完成拼图设置并裁剪图片！');
-      return;
-    }
-    // 获取已有存档
-    const saved = localStorage.getItem('savedPuzzles');
-    let puzzles = [];
-    try {
-      puzzles = saved ? JSON.parse(saved) : [];
-    } catch {
-      puzzles = [];
-    }
-    // 生成唯一id
-    const id = Date.now().toString();
-    const newPuzzle = {
-      id,
-      name: customPuzzleConfig.name,
-      data: customPuzzleConfig,
-      date: new Date().toLocaleString(),
-    };
-    puzzles.push(newPuzzle);
-    localStorage.setItem('savedPuzzles', JSON.stringify(puzzles));
-    setShowSavedPage(true);
+    // 这里是预留功能，暂时只显示提示
+    alert('保存功能正在开发中！此拼图配置将保存到本地存储。');
+    console.log('保存拼图配置:', customPuzzleConfig);
   }, [customPuzzleConfig]);
 
   const handleSharePuzzle = useCallback(() => {
@@ -157,33 +119,11 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     console.log('分享拼图配置:', customPuzzleConfig);
   }, [customPuzzleConfig]);
 
-  const handleStartGame = useCallback(async () => {
-    if (!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name) {
-      alert('请先完成拼图设置并裁剪图片！');
-      return;
-    }
-    // 生成PuzzleConfig
-    const gridSize =
-      customPuzzleConfig.difficulty === 'easy' ? { rows: 3, cols: 3 } :
-      customPuzzleConfig.difficulty === 'medium' ? { rows: 4, cols: 4 } :
-      customPuzzleConfig.difficulty === 'hard' ? { rows: 5, cols: 5 } :
-      { rows: 6, cols: 6 };
-    try {
-      const { PuzzleGenerator } = await import('../../utils/puzzleGenerator');
-      const puzzleConfig = await PuzzleGenerator.generatePuzzle({
-        imageData: customPuzzleConfig.croppedImageData,
-        gridSize,
-        pieceShape: customPuzzleConfig.pieceShape,
-        name: customPuzzleConfig.name || '自定义拼图',
-      });
-      if (typeof onStartGame === 'function') {
-        onStartGame(puzzleConfig);
-      }
-    } catch (e) {
-      alert('生成拼图失败！');
-      console.error(e);
-    }
-  }, [customPuzzleConfig, onStartGame]);
+  const handleStartGame = useCallback(() => {
+    // 这里是预留功能，将来会集成到游戏系统中
+    alert('开始游戏功能正在开发中！此拼图将加载到游戏中。');
+    console.log('开始自定义拼图游戏:', customPuzzleConfig);
+  }, [customPuzzleConfig]);
 
   const handleRestart = useCallback(() => {
     setCurrentStep('upload');
@@ -299,17 +239,13 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
         <h2>⚙️ 拼图设置</h2>
         <p>设置拼图的难度和拼块形状</p>
       </div>
+      
       <div className="settings-step-single">
         <DifficultySettings
           onComplete={handleDifficultySettingsComplete}
           onBack={() => setCurrentStep('crop')}
           onPreviewClick={() => setIsPreviewModalOpen(true)}
           hasPreviewImage={!!customPuzzleConfig.croppedImageData}
-          // 新增：传递当前选择和变更回调
-          selectedDifficulty={tempDifficulty}
-          selectedShape={tempPieceShape}
-          onDifficultyChange={handleTempDifficultyChange}
-          onShapeChange={handleTempPieceShapeChange}
         />
       </div>
     </div>
@@ -425,9 +361,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     return steps.indexOf(currentStep) + 1;
   };
 
-  if (showSavedPage) {
-    return <SavedPuzzlesPage />;
-  }
   return (
     <div className="puzzle-editor">
       <div className="editor-header">
@@ -452,23 +385,22 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
       </div>
       
       <div className="editor-content">
-        {currentStep === 'upload' && renderUploadStep()}
-        {currentStep === 'crop' && renderCropStep()}
-        {currentStep === 'settings' && renderSettingsStep()}
-        {currentStep === 'preview' && renderPreviewStep()}
-        {/* 预览模态框：设置页时用实时选择，否则用主配置 */}
-        <PreviewModal
-          isOpen={isPreviewModalOpen}
-          onClose={() => setIsPreviewModalOpen(false)}
-          imageSrc={customPuzzleConfig.croppedImageData || ''}
-          imageTitle={`${customPuzzleConfig.name} - 拼图预览`}
-          showPuzzleGrid={true}
-          gridSize={
-            currentStep === 'settings'
-              ? (tempDifficulty === 'easy' ? '3x3' : tempDifficulty === 'medium' ? '4x4' : tempDifficulty === 'hard' ? '5x5' : '6x6')
-              : (customPuzzleConfig.difficulty === 'easy' ? '3x3' : customPuzzleConfig.difficulty === 'medium' ? '4x4' : customPuzzleConfig.difficulty === 'hard' ? '5x5' : '6x6')
-          }
-        />
+              {currentStep === 'upload' && renderUploadStep()}
+      {currentStep === 'crop' && renderCropStep()}
+      {currentStep === 'settings' && renderSettingsStep()}
+      {currentStep === 'preview' && renderPreviewStep()}
+      
+      {/* 预览模态框 */}
+      <PreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        imageSrc={customPuzzleConfig.croppedImageData || ''}
+        imageTitle={`${customPuzzleConfig.name} - 拼图预览`}
+        showPuzzleGrid={true}
+        gridSize={customPuzzleConfig.difficulty === 'easy' ? '3x3' : 
+                  customPuzzleConfig.difficulty === 'medium' ? '4x4' :
+                  customPuzzleConfig.difficulty === 'hard' ? '5x5' : '6x6'}
+      />
       </div>
     </div>
   );

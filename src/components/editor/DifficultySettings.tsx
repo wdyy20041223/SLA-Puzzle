@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '../common/Button';
 import { DifficultyLevel, PieceShape } from '../../types';
 import './DifficultySettings.css';
@@ -8,22 +8,16 @@ interface DifficultySettingsProps {
   onBack: () => void;
   onPreviewClick?: () => void;
   hasPreviewImage?: boolean;
-  selectedDifficulty: DifficultyLevel;
-  selectedShape: PieceShape;
-  onDifficultyChange: (difficulty: DifficultyLevel) => void;
-  onShapeChange: (shape: PieceShape) => void;
 }
 
 export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
   onComplete,
   onBack,
   onPreviewClick,
-  hasPreviewImage,
-  selectedDifficulty,
-  selectedShape,
-  onDifficultyChange,
-  onShapeChange
+  hasPreviewImage
 }) => {
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('medium');
+  const [selectedShape, setSelectedShape] = useState<PieceShape>('square');
 
   const difficultyOptions = [
     {
@@ -106,7 +100,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
             <button
               key={option.value}
               className={`difficulty-card ${selectedDifficulty === option.value ? 'selected' : ''}`}
-              onClick={() => onDifficultyChange(option.value)}
+              onClick={() => setSelectedDifficulty(option.value)}
               style={{ '--accent-color': option.color } as React.CSSProperties}
             >
               <div className="card-header">
@@ -147,7 +141,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
             <button
               key={option.value}
               className={`shape-card ${selectedShape === option.value ? 'selected' : ''} ${option.comingSoon ? 'coming-soon' : ''}`}
-              onClick={() => !option.comingSoon && onShapeChange(option.value)}
+              onClick={() => !option.comingSoon && setSelectedShape(option.value)}
               disabled={option.comingSoon}
             >
               <div className="shape-header">

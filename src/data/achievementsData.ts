@@ -25,6 +25,32 @@ interface UserStats {
   coins: number;
   totalScore: number;
   bestTimes?: Record<string, number>;
+  recentGameResults?: Array<{
+    moves: number;
+    totalPieces: number;
+    timestamp: Date;
+  }>;
+}
+
+// 计算高效解谜者成就进度
+function calculateEfficientSolverProgress(userStats: UserStats): number {
+  const { recentGameResults } = userStats;
+  if (!recentGameResults || recentGameResults.length === 0) {
+    return 0;
+  }
+
+  // 检查最近的游戏是否连续符合条件
+  let consecutiveCount = 0;
+  for (let i = recentGameResults.length - 1; i >= 0 && consecutiveCount < 3; i--) {
+    const game = recentGameResults[i];
+    if (game.moves <= game.totalPieces * 1.5) {
+      consecutiveCount++;
+    } else {
+      break; // 如果有一局不符合条件，连续计数中断
+    }
+  }
+
+  return Math.min(consecutiveCount, 3);
 }
 
 export const createAchievements = (
@@ -188,10 +214,10 @@ export const createAchievements = (
   {
     id: 'efficient_solver',
     title: '高效解谜者',
-    description: '连续3次游戏都用少于标准步数完成',
+    description: '连续三次使用步数不超过总拼图数的1.5倍',
     icon: '🧠',
     category: 'performance',
-    progress: userAchievements.includes('efficient_solver') ? 3 : Math.min(Math.floor(gamesCompleted * 0.05), 2),
+    progress: userAchievements.includes('efficient_solver') ? 3 : calculateEfficientSolverProgress(userStats),
     maxProgress: 3,
     isUnlocked: userAchievements.includes('efficient_solver'),
     rarity: 'epic',
@@ -208,170 +234,6 @@ export const createAchievements = (
     isUnlocked: userAchievements.includes('no_mistakes'),
     rarity: 'legendary',
     reward: '完美主义者徽章'
-  },
-
-  // === 编辑器成就 ===
-  {
-    id: 'first_creation',
-    title: '初次创作',
-    description: '使用拼图编辑器创建第一个自定义拼图',
-    icon: '🎨',
-    category: 'special',
-    progress: userAchievements.includes('first_creation') ? 1 : 0,
-    maxProgress: 1,
-    isUnlocked: userAchievements.includes('first_creation'),
-    rarity: 'common',
-    reward: '创作者称号'
-  },
-  {
-    id: 'creative_artist',
-    title: '创意艺术家',
-    description: '创建10个自定义拼图',
-    icon: '🖼️',
-    category: 'special',
-    progress: userAchievements.includes('creative_artist') ? 10 : Math.min(Math.floor(gamesCompleted * 0.2), 9),
-    maxProgress: 10,
-    isUnlocked: userAchievements.includes('creative_artist'),
-    rarity: 'rare',
-    reward: '额外素材库'
-  },
-  {
-    id: 'puzzle_designer',
-    title: '拼图设计师',
-    description: '创建25个自定义拼图',
-    icon: '🏗️',
-    category: 'milestone',
-    progress: userAchievements.includes('puzzle_designer') ? 25 : Math.min(Math.floor(gamesCompleted * 0.3), 24),
-    maxProgress: 25,
-    isUnlocked: userAchievements.includes('puzzle_designer'),
-    rarity: 'epic',
-    reward: '设计师工具包'
-  },
-
-  // === 每日挑战成就 ===
-  {
-    id: 'consecutive_days',
-    title: '坚持不懈',
-    description: '连续7天完成拼图',
-    icon: '📅',
-    category: 'special',
-    progress: userAchievements.includes('consecutive_days') ? 7 : Math.min(Math.floor(gamesCompleted * 0.1), 6),
-    maxProgress: 7,
-    isUnlocked: userAchievements.includes('consecutive_days'),
-    rarity: 'rare',
-    reward: '每日奖励翻倍'
-  },
-  {
-    id: 'monthly_champion',
-    title: '月度冠军',
-    description: '完成当月所有每日挑战',
-    icon: '🗓️',
-    category: 'milestone',
-    progress: userAchievements.includes('monthly_champion') ? 30 : Math.min(Math.floor(gamesCompleted * 0.5), 29),
-    maxProgress: 30,
-    isUnlocked: userAchievements.includes('monthly_champion'),
-    rarity: 'legendary',
-    reward: '冠军徽章'
-  },
-  {
-    id: 'streak_master',
-    title: '连击大师',
-    description: '连续30天完成每日挑战',
-    icon: '🔥',
-    category: 'milestone',
-    progress: userAchievements.includes('streak_master') ? 30 : Math.min(Math.floor(gamesCompleted * 0.6), 29),
-    maxProgress: 30,
-    isUnlocked: userAchievements.includes('streak_master'),
-    rarity: 'legendary',
-    reward: '永恒火焰特效'
-  },
-
-  // === 社交成就 ===
-  {
-    id: 'first_multiplayer',
-    title: '多人初体验',
-    description: '参加第一场多人游戏',
-    icon: '👥',
-    category: 'special',
-    progress: userAchievements.includes('first_multiplayer') ? 1 : 0,
-    maxProgress: 1,
-    isUnlocked: userAchievements.includes('first_multiplayer'),
-    rarity: 'common',
-    reward: '社交达人称号'
-  },
-  {
-    id: 'multiplayer_winner',
-    title: '多人游戏胜者',
-    description: '在多人游戏中获胜5次',
-    icon: '🥇',
-    category: 'special',
-    progress: userAchievements.includes('multiplayer_winner') ? 5 : Math.min(Math.floor(gamesCompleted * 0.1), 4),
-    maxProgress: 5,
-    isUnlocked: userAchievements.includes('multiplayer_winner'),
-    rarity: 'rare',
-    reward: '胜利者光环'
-  },
-  {
-    id: 'host_master',
-    title: '房主大师',
-    description: '创建10个多人游戏房间',
-    icon: '🏠',
-    category: 'special',
-    progress: userAchievements.includes('host_master') ? 10 : Math.min(Math.floor(gamesCompleted * 0.15), 9),
-    maxProgress: 10,
-    isUnlocked: userAchievements.includes('host_master'),
-    rarity: 'epic',
-    reward: '房主专属装饰'
-  },
-  {
-    id: 'team_player',
-    title: '团队协作者',
-    description: '与不同玩家合作完成20场多人游戏',
-    icon: '🤝',
-    category: 'special',
-    progress: userAchievements.includes('team_player') ? 20 : Math.min(Math.floor(gamesCompleted * 0.3), 19),
-    maxProgress: 20,
-    isUnlocked: userAchievements.includes('team_player'),
-    rarity: 'rare',
-    reward: '合作精神徽章'
-  },
-
-  // === 收集成就 ===
-  {
-    id: 'image_collector',
-    title: '图片收藏家',
-    description: '解锁所有内置拼图图片',
-    icon: '🖼️',
-    category: 'special',
-    progress: userAchievements.includes('image_collector') ? 20 : Math.min(Math.floor(gamesCompleted * 0.4), 19),
-    maxProgress: 20,
-    isUnlocked: userAchievements.includes('image_collector'),
-    rarity: 'epic',
-    reward: '收藏家徽章'
-  },
-  {
-    id: 'theme_explorer',
-    title: '主题探索者',
-    description: '尝试所有拼图主题类别',
-    icon: '🌈',
-    category: 'special',
-    progress: userAchievements.includes('theme_explorer') ? 6 : Math.min(Math.floor(gamesCompleted * 0.1), 5),
-    maxProgress: 6,
-    isUnlocked: userAchievements.includes('theme_explorer'),
-    rarity: 'rare',
-    reward: '探索者指南'
-  },
-  {
-    id: 'pattern_master',
-    title: '图案大师',
-    description: '完成每种图案类型的拼图至少一次',
-    icon: '🎭',
-    category: 'special',
-    progress: userAchievements.includes('pattern_master') ? 8 : Math.min(Math.floor(gamesCompleted * 0.15), 7),
-    maxProgress: 8,
-    isUnlocked: userAchievements.includes('pattern_master'),
-    rarity: 'epic',
-    reward: '图案识别大师称号'
   },
 
   // === 特殊时间成就 ===
@@ -402,41 +264,17 @@ export const createAchievements = (
   {
     id: 'weekend_warrior',
     title: '周末战士',
-    description: '在周末完成20个拼图',
+    description: '在周末完成拼图',
     icon: '🏖️',
     category: 'special',
-    progress: userAchievements.includes('weekend_warrior') ? 20 : Math.min(Math.floor(gamesCompleted * 0.4), 19),
-    maxProgress: 20,
+    progress: userAchievements.includes('weekend_warrior') ? 1 : 0,
+    maxProgress: 1,
     isUnlocked: userAchievements.includes('weekend_warrior'),
     rarity: 'epic',
     reward: '休闲大师称号'
   },
-  {
-    id: 'holiday_player',
-    title: '节日玩家',
-    description: '在节假日完成特殊主题拼图',
-    icon: '🎄',
-    category: 'special',
-    progress: userAchievements.includes('holiday_player') ? 1 : 0,
-    maxProgress: 1,
-    isUnlocked: userAchievements.includes('holiday_player'),
-    rarity: 'rare',
-    reward: '节日限定装饰'
-  },
 
-  // === 等级和经验成就 ===
-  {
-    id: 'level_up',
-    title: '等级提升',
-    description: '升级到新等级',
-    icon: '⬆️',
-    category: 'milestone',
-    progress: userLevel,
-    maxProgress: userLevel,
-    isUnlocked: userAchievements.includes('level_up') || userLevel > 1,
-    rarity: 'common',
-    reward: '解锁新功能'
-  },
+  // === 等级成就 ===
   {
     id: 'level_10',
     title: '十级达人',
@@ -472,44 +310,6 @@ export const createAchievements = (
     isUnlocked: userAchievements.includes('max_level') || userLevel >= 50,
     rarity: 'legendary',
     reward: '传说级称号'
-  },
-
-  // === 技术与探索成就 ===
-  {
-    id: 'irregular_master',
-    title: '异形拼图大师',
-    description: '完成10个不规则形状拼图',
-    icon: '🔷',
-    category: 'milestone',
-    progress: userAchievements.includes('irregular_master') ? 10 : Math.min(Math.floor(gamesCompleted * 0.2), 9),
-    maxProgress: 10,
-    isUnlocked: userAchievements.includes('irregular_master'),
-    rarity: 'epic',
-    reward: '异形拼图专家称号'
-  },
-  {
-    id: 'size_challenger',
-    title: '尺寸挑战者',
-    description: '完成每种网格尺寸的拼图',
-    icon: '📏',
-    category: 'special',
-    progress: userAchievements.includes('size_challenger') ? 4 : Math.min(Math.floor(gamesCompleted * 0.08), 3),
-    maxProgress: 4,
-    isUnlocked: userAchievements.includes('size_challenger'),
-    rarity: 'rare',
-    reward: '全尺寸掌握者'
-  },
-  {
-    id: 'persistence_king',
-    title: '坚持之王',
-    description: '在同一个困难拼图上尝试超过100次',
-    icon: '💪',
-    category: 'special',
-    progress: userAchievements.includes('persistence_king') ? 1 : 0,
-    maxProgress: 1,
-    isUnlocked: userAchievements.includes('persistence_king'),
-    rarity: 'legendary',
-    reward: '永不放弃精神徽章'
   }
   ];
 };

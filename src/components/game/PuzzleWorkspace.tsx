@@ -1,5 +1,5 @@
 import React from 'react';
-import { PuzzlePiece, GameState } from '../../types';
+import { GameState } from '../../types';
 import { PuzzlePieceArea } from './PuzzlePieceArea';
 import { AnswerGrid } from './AnswerGrid';
 import './PuzzleWorkspace.css';
@@ -22,6 +22,14 @@ interface PuzzleWorkspaceProps {
   onDragLeave?: () => void;
   onDropToSlot?: (targetSlot: number) => void;
   onDropToProcessingArea?: () => void;
+  // 管中窥豹特效相关
+  availablePieces?: Set<string>;
+  hasPartialEffect?: boolean;
+  // 作茧自缚特效相关
+  unlockedSlots?: Set<number>;
+  hasCornerEffect?: boolean;
+  // 颠倒世界特效相关
+  hasUpsideDownEffect?: boolean;
 }
 
 export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
@@ -41,10 +49,24 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   onDragLeave,
   onDropToSlot,
   onDropToProcessingArea,
+  availablePieces,
+  hasPartialEffect,
+  unlockedSlots,
+  hasCornerEffect,
+  hasUpsideDownEffect,
 }) => {
   // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
-  const processingAreaPieces = gameState.config.pieces.filter(piece => piece.currentSlot === null);
-  
+  const processingAreaPieces = gameState.config.pieces.filter(piece => {
+    const isPieceInProcessingArea = piece.currentSlot === null;
+    
+    // 管中窥豹特效：只显示可用的拼图块
+    if (hasPartialEffect && availablePieces) {
+      return isPieceInProcessingArea && availablePieces.has(piece.id);
+    }
+    
+    return isPieceInProcessingArea;
+  });
+
   return (
     <div className="puzzle-workspace">
       {/* 左侧：拼图处理区 */}
@@ -68,7 +90,7 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
       </div>
 
       {/* 右侧：答题卡 */}
-      <div className="answer-area">
+      <div className={`answer-area ${hasUpsideDownEffect ? 'upside-down-area' : ''}`}>
         <div className="area-header">
           <h3>拼图答题卡</h3>
           <span className="grid-info">
@@ -81,6 +103,7 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           originalImage={gameState.config.originalImage}
           selectedPieceId={selectedPiece}
           showAnswers={showAnswers}
+          pieceShape={gameState.config.pieceShape} // 传递拼图形状
           onPlacePiece={onPlacePiece}
           onRemovePiece={onRemovePiece}
           onPieceSelect={onPieceSelect}
@@ -91,6 +114,8 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDropToSlot={onDropToSlot}
+          unlockedSlots={unlockedSlots}
+          hasCornerEffect={hasCornerEffect}
         />
       </div>
     </div>
