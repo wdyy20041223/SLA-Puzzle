@@ -11,13 +11,27 @@
 }
 
 /* 一手遮天特效：放置后的拼图块变黑 */
-.effect-invisible-placed .answer-slot .puzzle-piece {
+.effect-invisible-placed .placed-piece {
   background: #000000 !important;
+}
+
+.effect-invisible-placed .placed-piece .piece-image {
   filter: brightness(0) !important;
+  opacity: 1 !important;
+}
+
+.effect-invisible-placed .placed-piece .piece-info,
+.effect-invisible-placed .placed-piece .correctness-indicator {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  border-radius: 3px;
+  padding: 2px 4px;
+  font-size: 10px;
+  font-weight: bold;
 }
 
 /* 管中窥豹特效：隐藏的槽位样式 */
-.answer-slot.hidden-slot {
+.grid-slot.hidden-slot {
   opacity: 0.3;
   pointer-events: none;
   background: repeating-linear-gradient(
@@ -27,6 +41,18 @@
     #e0e0e0 10px,
     #e0e0e0 20px
   );
+}
+
+.grid-slot.hidden-slot::before {
+  content: "🔍";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  z-index: 10;
+  pointer-events: none;
+  color: #999;
 }
 
 /* 作茧自缚特效：锁定的槽位样式 */
@@ -141,6 +167,40 @@
 @keyframes hint-pulse {
   0%, 100% { opacity: 0.9; }
   50% { opacity: 1; }
+}
+
+/* 管中窥豹特效提示 */
+.partial-effect-hint {
+  position: absolute;
+  top: 50px;
+  right: 10px;
+  background: rgba(156, 39, 176, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
+}
+
+/* 一手遮天特效提示 */
+.invisible-effect-hint {
+  position: absolute;
+  top: 90px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
 }
 
 /* 颠倒世界特效：旋转提示 */

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一手遮天特效测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .demo-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        /* 模拟拼图网格 */
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .grid-slot {
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #fff;
+            position: relative;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .placed-piece {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #4caf50, #81c784);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .piece-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        
+        /* 一手遮天特效样式 */
+        .effect-invisible-placed .placed-piece {
+            background: #000000 !important;
+        }
+        
+        .effect-invisible-placed .placed-piece .piece-image {
+            filter: brightness(0) !important;
+            opacity: 1 !important;
+        }
+        
+        .effect-invisible-placed .placed-piece .piece-info,
+        .effect-invisible-placed .placed-piece .correctness-indicator {
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border-radius: 3px;
+            padding: 2px 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .piece-info {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        
+        .correctness-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .correctness-indicator.correct {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .correctness-indicator.incorrect {
+            background: #f44336;
+            color: white;
+        }
+        
+        .toggle-button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px;
+        }
+        
+        .toggle-button:hover {
+            background: #1976d2;
+        }
+        
+        .description {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .feature-list {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .feature-list h3 {
+            margin-top: 0;
+            color: #7b1fa2;
+        }
+        
+        .note {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ff9800;
+            margin: 15px 0;
+        }
+        
+        .invisible-effect-hint {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 100;
+            max-width: 250px;
+            line-height: 1.4;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: hint-pulse 2s infinite;
+        }
+        
+        @keyframes hint-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+        
+        .demo-container {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ 一手遮天特效测试</h1>
+        
+        <div class="description">
+            <h3>特效说明</h3>
+            <p><strong>一手遮天</strong>是一个4星难度的每日挑战特效，它的核心机制是：</p>
+            <ul>
+                <li><strong>放置后不可见</strong>：拼图块一旦放置到答题区，图像部分会变为纯黑色</li>
+                <li><strong>保留正确性提示</strong>：虽然图像变黑，但仍会显示拼图块编号和正确性指示器</li>
+                <li><strong>增加难度</strong>：玩家需要凭借记忆和逻辑推理来完成拼图</li>
+                <li><strong>策略挑战</strong>：需要更仔细地观察原图和规划放置顺序</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h3>特效演示</h3>
+            <div class="demo-container" id="demoContainer">
+                <button class="toggle-button" onclick="toggleEffect()">切换一手遮天特效</button>
+                
+                <div class="puzzle-grid" id="puzzleGrid">
+                    <div class="grid-slot">
+                        <div class="placed-piece">
+                            <div class="piece-info">1</div>
+                            <div class="correctness-indicator correct">✓</div>
+                            拼图块1
+                        </div>
+                    </div>
+                    <div class="grid-slot">
+                        <div class="placed-piece">
+                            <div class="piece-info">2</div>
+                            <div class="correctness-indicator incorrect">✗</div>
+                            拼图块2
+                        </div>
+                    </div>
+                    <div class="grid-slot">
+                        <span>空槽位</span>
+                    </div>
+                    <div class="grid-slot">
+                        <div class="placed-piece">
+                            <div class="piece-info">4</div>
+                            <div class="correctness-indicator correct">✓</div>
+                            拼图块4
+                        </div>
+                    </div>
+                    <div class="grid-slot">
+                        <span>空槽位</span>
+                    </div>
+                    <div class="grid-slot">
+                        <div class="placed-piece">
+                            <div class="piece-info">6</div>
+                            <div class="correctness-indicator incorrect">✗</div>
+                            拼图块6  
+                        </div>
+                    </div>
+                    <div class="grid-slot">
+                        <span>空槽位</span>
+                    </div>
+                    <div class="grid-slot">
+                        <div class="placed-piece">
+                            <div class="piece-info">8</div>
+                            <div class="correctness-indicator correct">✓</div>
+                            拼图块8
+                        </div>
+                    </div>
+                    <div class="grid-slot">
+                        <span>空槽位</span>
+                    </div>
+                </div>
+                
+                <div class="invisible-effect-hint" id="effectHint" style="display: none;">
+                    🗺️ 一手遮天：放置后的拼图块为纯黑色不可见，只会提示是否正确放置！
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>✨ 实现功能特性</h3>
+            <ul>
+                <li><strong>图像隐藏</strong>：使用filter: brightness(0)将放置的拼图块图像变为纯黑</li>
+                <li><strong>背景变黑</strong>：同时设置背景色为黑色确保完全不可见</li>
+                <li><strong>信息保留</strong>：拼图块编号和正确性指示器仍然可见，采用白色背景确保可读性</li>
+                <li><strong>CSS选择器</strong>：使用.effect-invisible-placed类精确控制特效范围</li>
+                <li><strong>视觉反馈</strong>：提供特效提示信息，帮助玩家理解游戏规则</li>
+                <li><strong>样式优先级</strong>：使用!important确保特效样式不被其他样式覆盖</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>💡 技术实现要点：</strong>
+            <ul>
+                <li>在DailyChallengeGame.tsx中通过getEffectClasses函数添加effect-invisible-placed类</li>
+                <li>CSS选择器精确定位.placed-piece和.piece-image元素</li>
+                <li>保留piece-info和correctness-indicator的可见性和可读性</li>
+                <li>提供视觉提示帮助玩家理解特效机制</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>🎮 游戏体验：</strong><br>
+            一手遮天特效大大增加了拼图的挑战性，玩家需要：
+            <ul>
+                <li>仔细观察原图，记住每个区域的特征</li>
+                <li>利用正确性提示来判断放置是否正确</li>
+                <li>制定更严谨的放置策略，减少试错次数</li>
+                <li>依靠逻辑推理和空间想象能力完成拼图</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let effectEnabled = false;
+        
+        function toggleEffect() {
+            const container = document.getElementById('demoContainer');
+            const hint = document.getElementById('effectHint');
+            const button = document.querySelector('.toggle-button');
+            
+            effectEnabled = !effectEnabled;
+            
+            if (effectEnabled) {
+                container.classList.add('effect-invisible-placed');
+                hint.style.display = 'block';
+                button.textContent = '关闭一手遮天特效';
+                button.style.background = '#f44336';
+            } else {
+                container.classList.remove('effect-invisible-placed');
+                hint.style.display = 'none';
+                button.textContent = '开启一手遮天特效';
+                button.style.background = '#2196f3';
+            }
+        }
+        
+        // 页面加载时的说明
+        console.log('一手遮天特效测试页面已加载');
+        console.log('点击按钮可以切换特效开关，观察拼图块的变化');
+    </script>
+</body>
+</html>

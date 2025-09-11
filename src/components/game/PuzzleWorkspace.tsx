@@ -22,6 +22,9 @@ interface PuzzleWorkspaceProps {
   onDragLeave?: () => void;
   onDropToSlot?: (targetSlot: number) => void;
   onDropToProcessingArea?: () => void;
+  // 管中窥豹特效相关
+  availablePieces?: Set<string>;
+  hasPartialEffect?: boolean;
   // 作茧自缚特效相关
   unlockedSlots?: Set<number>;
   hasCornerEffect?: boolean;
@@ -46,12 +49,23 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   onDragLeave,
   onDropToSlot,
   onDropToProcessingArea,
+  availablePieces,
+  hasPartialEffect,
   unlockedSlots,
   hasCornerEffect,
   hasUpsideDownEffect,
 }) => {
   // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
-  const processingAreaPieces = gameState.config.pieces.filter(piece => piece.currentSlot === null);
+  const processingAreaPieces = gameState.config.pieces.filter(piece => {
+    const isPieceInProcessingArea = piece.currentSlot === null;
+    
+    // 管中窥豹特效：只显示可用的拼图块
+    if (hasPartialEffect && availablePieces) {
+      return isPieceInProcessingArea && availablePieces.has(piece.id);
+    }
+    
+    return isPieceInProcessingArea;
+  });
 
   return (
     <div className="puzzle-workspace">

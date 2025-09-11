@@ -66,7 +66,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   // 特效实现状态
   const [effectStates, setEffectStates] = useState({
     brightnessPhase: 0, // 璀璨星河特效的亮度相位
-    visibleSlots: new Set<number>(), // 管中窥豹特效显示的槽位
+    availablePieces: new Set<string>(), // 管中窥豹特效当前可用的拼图块ID
+    remainingPieces: [] as string[], // 管中窥豹特效剩余待补充的拼图块ID
     unlockedSlots: new Set<number>(), // 作茧自缚特效解锁的槽位
     cornerOnlyMode: false, // 作茧自缚特效是否只能在角落放置
     hasStepError: false, // 最终防线特效是否已有错误
@@ -114,13 +115,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       return effectStates.unlockedSlots.has(slotIndex);
     }
     
-    // 管中窥豹特效：只能在可见槽位放置
-    if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
-      return effectStates.visibleSlots.has(slotIndex);
-    }
-    
     return true;
-  }, [challenge.effects, gameState, isCornerSlot, effectStates.unlockedSlots, effectStates.visibleSlots]);
+  }, [challenge.effects, gameState, isCornerSlot, effectStates.unlockedSlots]);
 
   // 获取特效CSS类名
   const getEffectClasses = useCallback(() => {
@@ -192,7 +188,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     const descriptionMap: { [key: string]: string } = {
       'rotate': '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', '天旋地转': '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置',
       'blur': '本关卡拼图块在鼠标选中前模糊化', '雾里看花': '本关卡拼图块在鼠标选中前模糊化',
-      'partial': '本关卡答题区最开始只展示一半的拼图块', '管中窥豹': '本关卡答题区最开始只展示一半的拼图块',
+      'partial': '本关卡初始只提供一半数量的拼图块，正确放置后自动补充新的拼图块', '管中窥豹': '本关卡初始只提供一半数量的拼图块，正确放置后自动补充新的拼图块',
       'upside_down': '本关卡中正确答案旋转180°后得到原图', '颠倒世界': '本关卡中正确答案旋转180°后得到原图',
       'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
       'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位',
@@ -293,7 +289,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       // 重置特效状态
       setEffectStates({
         brightnessPhase: 0,
-        visibleSlots: new Set(),
+        availablePieces: new Set(),
+        remainingPieces: [],
         unlockedSlots: new Set(),
         cornerOnlyMode: false,
         hasStepError: false,
@@ -329,15 +326,29 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     setEffectStates(prev => {
       const newStates = { ...prev };
       
-      // 管中窥豹特效：只显示一半的槽位
+      // 管中窥豹特效：初始化可用拼图块和剩余拼图块
       if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
-        const totalSlots = rows * cols;
-        const visibleCount = Math.floor(totalSlots / 2);
-        const allSlots = Array.from({ length: totalSlots }, (_, i) => i);
-        const shuffled = allSlots.sort(() => Math.random() - 0.5);
-        newStates.visibleSlots = new Set(shuffled.slice(0, visibleCount));
+        const allPieceIds = puzzleConfig.pieces.map(piece => piece.id);
+        const halfCount = Math.floor(allPieceIds.length / 2);
+        
+        // 随机选择一半作为初始可用拼图块
+        const shuffled = [...allPieceIds].sort(() => Math.random() - 0.5);
+        const initialAvailable = shuffled.slice(0, halfCount);
+        const remaining = shuffled.slice(halfCount);
+        
+        newStates.availablePieces = new Set(initialAvailable);
+        newStates.remainingPieces = remaining;
+        
+        console.log('🔍 管中窥豹特效初始化:', {
+          总拼图块数: allPieceIds.length,
+          初始可用: initialAvailable.length,
+          剩余待补充: remaining.length,
+          可用拼图块ID: initialAvailable,
+          待补充拼图块ID: remaining
+        });
       } else {
-        newStates.visibleSlots = new Set();
+        newStates.availablePieces = new Set();
+        newStates.remainingPieces = [];
       }
       
       // 作茧自缚特效：初始化角落槽位为解锁状态
@@ -502,6 +513,38 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     
     // 执行正常的放置逻辑
     placePieceToSlot(pieceId, slotIndex);
+    
+    // 管中窥豹特效：正确放置后补充新的拼图块
+    if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
+      const piece = gameState?.config.pieces.find(p => p.id === pieceId);
+      if (piece && 
+          piece.correctSlot === slotIndex && 
+          piece.rotation === piece.correctRotation && 
+          piece.isFlipped === (piece.correctIsFlipped || false)) {
+        // 正确放置，从剩余拼图块中补充一个
+        setEffectStates(prev => {
+          if (prev.remainingPieces.length > 0) {
+            const newRemainingPieces = [...prev.remainingPieces];
+            const nextPieceId = newRemainingPieces.shift(); // 取出第一个
+            const newAvailablePieces = new Set(prev.availablePieces);
+            if (nextPieceId) {
+              newAvailablePieces.add(nextPieceId);
+              console.log('🔍 管中窥豹特效补充拼图块:', {
+                正确放置的拼图块: pieceId,
+                补充的拼图块: nextPieceId,
+                剩余待补充: newRemainingPieces.length
+              });
+            }
+            return {
+              ...prev,
+              availablePieces: newAvailablePieces,
+              remainingPieces: newRemainingPieces
+            };
+          }
+          return prev;
+        });
+      }
+    }
     
     // 作茧自缚特效：只有正确放置才会解锁相邻槽位
     if (challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) {
@@ -1008,6 +1051,18 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
                 </div>
               )}
             </div>
+            {/* 管中窥豹特效提示 */}
+            {(challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) && (
+              <div className="partial-effect-hint">
+                🔍 管中窥豹：初始只提供一半拼图块，正确放置后自动补充新的拼图块！当前可用: {effectStates.availablePieces.size}/{gameState?.config.pieces.length || 0}
+              </div>
+            )}
+            {/* 一手遮天特效提示 */}
+            {(challenge.effects?.includes('invisible') || challenge.effects?.includes('一手遮天')) && (
+              <div className="invisible-effect-hint">
+                🗺️ 一手遮天：放置后的拼图块为纯黑色不可见，只会提示是否正确放置！
+              </div>
+            )}
             {/* 颠倒世界特效提示 */}
             {(challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')) && (
               <div className="upside-down-effect-hint">
@@ -1096,6 +1151,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDragOver={handleDragOver}
+              availablePieces={effectStates.availablePieces}
+              hasPartialEffect={challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')}
               unlockedSlots={effectStates.unlockedSlots}
               hasCornerEffect={challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')}
               hasUpsideDownEffect={challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')}
