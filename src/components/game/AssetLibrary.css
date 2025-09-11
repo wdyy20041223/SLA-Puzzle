@@ -216,3 +216,35 @@
     padding: 16px;
   }
 }
+
+/* 加载更多按钮样式 */
+.load-more-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.load-more-button {
+  background: linear-gradient(135deg, var(--primary-pink), var(--accent-pink));
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 182, 193, 0.3);
+}
+
+.load-more-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+  background: linear-gradient(135deg, var(--accent-pink), var(--primary-pink));
+}
+
+.load-more-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 182, 193, 0.3);
+}

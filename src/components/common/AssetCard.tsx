@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Asset } from '../../types';
+import { ImageCache } from '../../utils/imageOptimizer';
 import './AssetCard.css';
 
 interface AssetCardProps {
@@ -17,6 +18,49 @@ export const AssetCard: React.FC<AssetCardProps> = ({
   isLocked = false,
   lockMessage = '需要购买解锁',
 }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string>('');
+  const imgRef = useRef<HTMLImageElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { 
+        rootMargin: '50px', // 提前50px开始加载
+        threshold: 0.1 
+      }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // 加载图片
+  useEffect(() => {
+    if (isInView && asset.thumbnail) {
+      ImageCache.getImage(asset.thumbnail)
+        .then(src => {
+          setImageSrc(src);
+          setImageLoaded(true);
+        })
+        .catch(() => {
+          setImageError(true);
+        });
+    }
+  }, [isInView, asset.thumbnail]);
+
   const handleClick = () => {
     if (isLocked) {
       alert(lockMessage);
@@ -25,28 +69,64 @@ export const AssetCard: React.FC<AssetCardProps> = ({
     onSelect(asset);
   };
 
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   return (
     <div
-      className={`asset-card ${isLocked ? 'locked' : ''}`}
+      ref={cardRef}
+      className={`asset-card ${isLocked ? 'locked' : ''} ${imageLoaded ? 'loaded' : 'loading'}`}
       onClick={handleClick}
     >
       <div className="asset-thumbnail">
-        {asset.thumbnail.endsWith('.svg') ? (
+        {!isInView ? (
+          // 占位符，在图片进入视口前显示
+          <div className="image-placeholder">
+            <div className="placeholder-content">
+              <div className="placeholder-icon">🖼️</div>
+              <div className="placeholder-text">加载中...</div>
+            </div>
+          </div>
+        ) : asset.thumbnail.endsWith('.svg') ? (
           <div className="svg-thumbnail">
             <img
-              src={asset.thumbnail}
+              ref={imgRef}
+              src={imageSrc || asset.thumbnail}
               alt={asset.name}
-              loading="lazy"
-              className={`svg-image ${isLocked ? 'locked' : ''}`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              className={`svg-image ${isLocked ? 'locked' : ''} ${imageLoaded ? 'loaded' : 'loading'}`}
             />
           </div>
         ) : (
           <img
-            src={asset.thumbnail}
+            ref={imgRef}
+            src={imageSrc || asset.thumbnail}
             alt={asset.name}
-            loading="lazy"
-            className={isLocked ? 'locked' : ''}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            className={`${isLocked ? 'locked' : ''} ${imageLoaded ? 'loaded' : 'loading'}`}
           />
+        )}
+
+        {/* 加载状态指示器 */}
+        {isInView && !imageLoaded && !imageError && (
+          <div className="loading-indicator">
+            <div className="loading-spinner"></div>
+          </div>
+        )}
+
+        {/* 错误状态指示器 */}
+        {imageError && (
+          <div className="error-indicator">
+            <div className="error-icon">⚠️</div>
+            <div className="error-text">加载失败</div>
+          </div>
         )}
 
         {/* 锁定覆盖层 */}

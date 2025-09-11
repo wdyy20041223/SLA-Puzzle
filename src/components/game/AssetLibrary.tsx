@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Asset } from '../../types';
 import { AssetCard } from '../common/AssetCard';
 import { Button } from '../common/Button';
@@ -314,11 +314,12 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   const [customAssets, setCustomAssets] = useState<Asset[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20); // 初始显示20个
 
   const categories = [
     { id: 'all', name: '全部' },
     { id: '图标', name: '图标' },
-    { id: '火山旅梦', name: '夏日旋律', isNew: true },
+    { id: '火山旅梦', name: '夏日旋律 ', isNew: true },
     { id: '自然风光', name: '自然风光' },
     { id: '动物', name: '动物' },
     { id: '建筑', name: '建筑' },
@@ -369,13 +370,31 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
       index === self.findIndex(a => a.id === asset.id)
     );
 
-  const filteredAssets = allAssets.filter(asset => {
-    const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;
-    const matchesSearch = searchTerm === '' ||
-      asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  // 使用useMemo优化过滤逻辑
+  const filteredAssets = useMemo(() => {
+    return allAssets.filter(asset => {
+      const matchesCategory = selectedCategory === 'all' || asset.category === selectedCategory;
+      const matchesSearch = searchTerm === '' ||
+        asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+  }, [allAssets, selectedCategory, searchTerm]);
+
+  // 分批显示的资产
+  const visibleAssets = useMemo(() => {
+    return filteredAssets.slice(0, visibleCount);
+  }, [filteredAssets, visibleCount]);
+
+  // 加载更多函数
+  const loadMore = useCallback(() => {
+    setVisibleCount(prev => Math.min(prev + 20, filteredAssets.length));
+  }, [filteredAssets.length]);
+
+  // 重置可见数量当分类或搜索改变时
+  React.useEffect(() => {
+    setVisibleCount(20);
+  }, [selectedCategory, searchTerm]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -464,7 +483,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
 
       {/* 素材网格 */}
       <div className="asset-grid">
-        {filteredAssets.map(asset => {
+        {visibleAssets.map(asset => {
           // 检查拼图素材是否已解锁
           const isPuzzleAsset = asset.category === '拼图素材';
           const isLocked = isPuzzleAsset && !isPuzzleAssetUnlocked(asset.id);
@@ -482,6 +501,18 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
             />
           );
         })}
+
+        {/* 加载更多按钮 */}
+        {visibleCount < filteredAssets.length && (
+          <div className="load-more-container">
+            <button 
+              className="load-more-button"
+              onClick={loadMore}
+            >
+              加载更多 ({filteredAssets.length - visibleCount} 个剩余)
+            </button>
+          </div>
+        )}
 
         {filteredAssets.length === 0 && (
           <div className="no-assets">
