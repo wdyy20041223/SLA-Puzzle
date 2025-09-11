@@ -96,7 +96,7 @@
 }
 
 .menu-item {
-  background: var(--accent-pink);
+  background: var(--secondary-pink);
   border: 2px solid var(--primary-pink);
   border-radius: 16px;
   padding: 2rem;
@@ -111,7 +111,7 @@
   position: relative;
   overflow: hidden;
   opacity: 1;
-  box-shadow: 0 6px 16px var(--shadow-pink);
+  box-shadow: 0 8px 20px var(--shadow-pink);
 }
 
 .menu-item::before {
@@ -137,8 +137,8 @@
 .menu-item:hover {
   transform: translateY(-4px) scale(1.02);
   border-color: var(--primary-pink);
-  background: var(--secondary-pink);
-  box-shadow: 0 12px 24px var(--shadow-pink);
+  background: var(--primary-pink);
+  box-shadow: 0 12px 24px rgba(255, 214, 224, 0.4);
 }
 
 .menu-item:active {
@@ -160,18 +160,18 @@
   font-size: 1.4rem;
   color: var(--text-primary);
   margin: 0 0 0.5rem 0;
-  font-weight: 400;
+  font-weight: 600;
   opacity: 1;
   font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .menu-text p {
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   margin: 0;
   opacity: 1;
   line-height: 1.4;
-  font-weight: 300;
+  font-weight: 500;
   font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 

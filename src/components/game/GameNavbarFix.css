@@ -46,6 +46,12 @@
   color: var(--text-primary) !important;
   font-weight: 600 !important;
   opacity: 1 !important;
+  padding: 8px 16px !important;
+  margin: 0 4px !important;
+  border-radius: 8px !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.3s ease !important;
 }
 
 .puzzle-game .game-header .game-controls button.btn-primary {
@@ -69,6 +75,10 @@
 .puzzle-game .game-header .game-controls button:hover:not(:disabled) {
   color: var(--text-primary) !important;
   opacity: 1 !important;
+  background-color: var(--light-pink) !important;
+  border: 1px solid var(--primary-pink) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(255, 114, 140, 0.3) !important;
 }
 
 .puzzle-game .game-header .game-controls button:active:not(:disabled) {
