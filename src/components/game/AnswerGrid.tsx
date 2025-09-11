@@ -186,7 +186,9 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
       {/* 网格槽位 */}
       <div
         ref={gridRef}
-        className={`answer-grid ${pieceShape === 'triangle' ? 'triangle-grid' : ''}`}
+        className={`answer-grid ${pieceShape === 'triangle' ? 'triangle-grid' : ''
+          } ${pieceShape === 'tetris' ? 'tetris-grid' : ''
+          }`}
         style={gridStyle}
       >
         {pieceShape === 'triangle' ? (
@@ -311,6 +313,103 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
                     </div>
                   )}
                 </div>
+              </div>
+            );
+          })
+        ) : pieceShape === 'tetris' ? (
+          // 俄罗斯方块拼图：每个槽位显示对应的图像片段
+          answerGrid.map((piece, index) => {
+            const row = Math.floor(index / gridSize.cols);
+            const col = index % gridSize.cols;
+
+            // 动态计算cellKey，考虑俄罗斯方块的移动
+            let cellKey = `${row}-${col}`;
+
+            if (piece && piece.occupiedPositions && piece.currentSlot !== null) {
+              // 计算俄罗斯方块当前位置的锚点
+              const currentSlotRow = Math.floor(piece.currentSlot / gridSize.cols);
+              const currentSlotCol = piece.currentSlot % gridSize.cols;
+
+              // 计算原始锚点位置（最小行列）
+              const minRow = Math.min(...piece.occupiedPositions.map(pos => pos[0]));
+              const minCol = Math.min(...piece.occupiedPositions.map(pos => pos[1]));
+
+              // 计算当前槽位相对于当前锚点的偏移
+              const offsetRow = row - currentSlotRow;
+              const offsetCol = col - currentSlotCol;
+
+              // 映射回原始相对位置
+              const originalRow = minRow + offsetRow;
+              const originalCol = minCol + offsetCol;
+
+              cellKey = `${originalRow}-${originalCol}`;
+            }
+
+            return (
+              <div
+                key={`slot-${index}-${piece?.id || 'empty'}`}
+                className={`grid-slot tetris-slot ${piece ? 'occupied' : 'empty'
+                  } ${selectedPieceId && !piece ? 'highlight' : ''
+                  } ${piece && selectedPieceId === piece.id ? 'selected' : ''
+                  } ${dragOverSlot === index ? 'drag-over' : ''
+                  } ${draggedPiece === piece?.id ? 'dragging' : ''
+                  }`}
+                onClick={() => handleSlotClick(index)}
+                onDragOver={(e) => handleSlotDragOver(e, index)}
+                onDragLeave={handleSlotDragLeave}
+                onDrop={(e) => handleSlotDrop(e, index)}
+                style={{
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
+                }}
+              >
+                {/* 槽位编号 */}
+                <div className="slot-number">{getSlotNumber(index)}</div>
+
+                {/* 俄罗斯方块单元格图像 */}
+                {piece && piece.cellImages && piece.cellImages[cellKey] ? (
+                  <div
+                    className="tetris-cell"
+                    draggable={true}
+                    onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                    onDragEnd={handlePieceDragEnd}
+                  >
+                    <img
+                      src={piece.cellImages[cellKey]}
+                      alt={`俄罗斯方块单元格 ${cellKey}`}
+                      className="tetris-cell-image"
+                      draggable={false}
+                    />
+                    {/* 俄罗斯方块标识 */}
+                    {piece.tetrisShape && (
+                      <div className="tetris-block-indicator">
+                        {piece.tetrisShape}
+                      </div>
+                    )}
+                  </div>
+                ) : piece && !piece.cellImages ? (
+                  // 备用显示方式
+                  <div
+                    className="tetris-fallback"
+                    draggable={true}
+                    onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                    onDragEnd={handlePieceDragEnd}
+                  >
+                    <img
+                      src={piece.imageData}
+                      alt={`俄罗斯方块 ${piece.originalIndex + 1}`}
+                      className="piece-image"
+                      draggable={false}
+                    />
+                  </div>
+                ) : null}
+
+                {/* 拖拽提示 */}
+                {!piece && selectedPieceId && (
+                  <div className="drop-hint tetris-hint">
+                    点击放置俄罗斯方块
+                  </div>
+                )}
               </div>
             );
           })
