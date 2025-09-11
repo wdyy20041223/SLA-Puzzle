@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "拼图大师",
+        "title": "拼图大师-SLA",
         "width": 1330,
         "height": 875,
         "resizable": false,

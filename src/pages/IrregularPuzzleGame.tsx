@@ -25,6 +25,7 @@ import { Timer } from '../components/common/Timer';
 import { Button } from '../components/common/Button';
 import { GameHelpButton } from '../components/common/GameHelp';
 import { musicManager } from '../services/musicService';
+import { getVolcanicJourneyDescription, isVolcanicJourneyPuzzle } from '../data/volcanicJourneyDescriptions';
 import '../components/game/PuzzleGame.css';
 import '../components/game/PuzzleWorkspace.css';
 import '../components/game/GameNavbarFix.css';
@@ -504,6 +505,22 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
             <p>拼图块: {puzzleConfig.gridSize.rows} × {puzzleConfig.gridSize.cols}</p>
             <p>形状: 异形</p>
           </div>
+          
+          {/* 火山旅梦特殊简介 */}
+          {isVolcanicJourneyPuzzle(puzzleConfig.name) && (
+            <div className="volcanic-journey-description">
+              <div className="description-header">
+                <span className="volcano-icon">🌋</span>
+                <span className="description-title">SoLong,Adele: Home away from home</span>
+              </div>
+              <div className="description-content">
+                {getVolcanicJourneyDescription(puzzleConfig.name)?.split('\n').map((line, index) => (
+                  <p key={index} className="description-line">{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="start-actions">
             <Button onClick={startGame} variant="primary" size="large">
               开始游戏

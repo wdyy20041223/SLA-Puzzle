@@ -57,6 +57,11 @@ export const AssetCard: React.FC<AssetCardProps> = ({
           </div>
         )}
 
+        {/* NEW标签 */}
+        {asset.isNew && (
+          <div className="new-badge-small">NEW</div>
+        )}
+
         <div className="asset-overlay">
           <div className="asset-info">
             <h4>{asset.name}</h4>

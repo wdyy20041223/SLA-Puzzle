@@ -83,6 +83,7 @@ export interface Asset {
   height: number;
   fileSize: number;
   createdAt: Date;
+  isNew?: boolean; // 是否为新增素材
 }
 
 // 排行榜记录

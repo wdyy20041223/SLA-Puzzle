@@ -7,7 +7,7 @@ export interface PuzzleAsset {
   id: string;
   name: string;
   imagePath: string;
-  category: 'nature' | 'animals' | 'architecture' | 'art';
+  category: 'nature' | 'animals' | 'architecture' | 'art' | 'volcanic_journey';
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   description: string;
   tags: string[];
@@ -133,6 +133,98 @@ export const puzzleAssets: PuzzleAsset[] = [
     difficulty: 'easy',
     description: '浪漫的玫瑰花园',
     tags: ['玫瑰', '花园', '浪漫']
+  },
+
+  // 火山旅梦系列
+  {
+    id: 'misty_memory_day',
+    name: 'MistyMemory_Day',
+    imagePath: '/images/SolongAdele/MistyMemory_Day.png',
+    category: 'volcanic_journey',
+    difficulty: 'hard',
+    description: '火山旅梦CG回顾：白昼雾忆',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'misty_memory_night',
+    name: 'MistyMemory_Night',
+    imagePath: '/images/SolongAdele/MistyMemory_Night.png',
+    category: 'volcanic_journey',
+    difficulty: 'hard',
+    description: '火山旅梦CG回顾：夜晚雾忆',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'ill_miss_you',
+    name: 'I\'llMissYou',
+    imagePath: '/images/SolongAdele/I\'llMissYou.png',
+    category: 'volcanic_journey',
+    difficulty: 'medium',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'in_the_night',
+    name: 'InTheNight',
+    imagePath: '/images/SolongAdele/InTheNight.png',
+    category: 'volcanic_journey',
+    difficulty: 'medium',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'sing_with_me',
+    name: 'SingWithMe',
+    imagePath: '/images/SolongAdele/SingWithMe.png',
+    category: 'volcanic_journey',
+    difficulty: 'easy',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'rain_rain_go_away',
+    name: 'RainRainGoAway',
+    imagePath: '/images/SolongAdele/RainRainGoAway.png',
+    category: 'volcanic_journey',
+    difficulty: 'medium',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'enjoy_summer',
+    name: 'EnjoySummer',
+    imagePath: '/images/SolongAdele/EnjoySummer.png',
+    category: 'volcanic_journey',
+    difficulty: 'easy',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'last_not_last',
+    name: 'LastNotLast',
+    imagePath: '/images/SolongAdele/LastNotLast.png',
+    category: 'volcanic_journey',
+    difficulty: 'expert',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'so_long_adele',
+    name: 'SoLongAdele',
+    imagePath: '/images/SolongAdele/SoLongAdele.png',
+    category: 'volcanic_journey',
+    difficulty: 'expert',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
+  },
+  {
+    id: 'dancing_in_the_lava',
+    name: 'DancingInTheLava',
+    imagePath: '/images/SolongAdele/DancingInTheLava.png',
+    category: 'volcanic_journey',
+    difficulty: 'expert',
+    description: '火山旅梦CG回顾',
+    tags: ['火山旅梦', 'CG', '回顾']
   }
 ];
 
@@ -180,5 +272,6 @@ export const categoryLabels = {
   nature: '自然风光',
   animals: '动物世界',
   architecture: '建筑艺术',
-  art: '艺术作品'
+  art: '艺术作品',
+  volcanic_journey: '火山旅梦'
 };

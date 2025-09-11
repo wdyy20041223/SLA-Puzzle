@@ -87,6 +87,60 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* 火山旅梦分类特殊样式 */
+.tab.new-category {
+  position: relative;
+  background: linear-gradient(135deg, #ff69b4, #ff1493);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(255, 20, 147, 0.3);
+  animation: newCategoryPulse 2s ease-in-out infinite;
+}
+
+.tab.new-category:hover {
+  background: linear-gradient(135deg, #ff1493, #dc143c);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
+}
+
+.tab.new-category.active {
+  background: linear-gradient(135deg, #ff1493, #dc143c);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 20, 147, 0.4);
+}
+
+.new-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff1744;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  animation: newBadgeBounce 1.5s ease-in-out infinite;
+}
+
+@keyframes newCategoryPulse {
+  0%, 100% { 
+    box-shadow: 0 2px 8px rgba(255, 20, 147, 0.3);
+  }
+  50% { 
+    box-shadow: 0 4px 16px rgba(255, 20, 147, 0.5);
+  }
+}
+
+@keyframes newBadgeBounce {
+  0%, 100% { 
+    transform: scale(1);
+  }
+  50% { 
+    transform: scale(1.1);
+  }
+}
+
 .asset-grid {
   flex: 1;
   overflow-y: auto;

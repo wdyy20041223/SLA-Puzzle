@@ -15,6 +15,7 @@ import { validateGameReward } from '../../utils/rewardDebugger';
 import { HybridLeaderboardService } from '../../services/hybridLeaderboardService';
 // import { musicManager } from '../../services/musicService';  // 暂时注释掉未使用的导入
 import { themeManager, ThemeState } from '../../services/themeService';
+import { getVolcanicJourneyDescription, isVolcanicJourneyPuzzle } from '../../data/volcanicJourneyDescriptions';
 import './PuzzleGame.css';
 import './PuzzleWorkspace.css';
 import './GameNavbarFix.css';
@@ -389,6 +390,22 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
             <p>形状: {puzzleConfig.pieceShape === 'square' ? '方形' :
               puzzleConfig.pieceShape === 'triangle' ? '三角形' : '异形'}</p>
           </div>
+          
+          {/* 火山旅梦特殊简介 */}
+          {isVolcanicJourneyPuzzle(puzzleConfig.name) && (
+            <div className="volcanic-journey-description">
+              <div className="description-header">
+                <span className="volcano-icon">🌋</span>
+                <span className="description-title">SoLong,Adele: Home away from home</span>
+              </div>
+              <div className="description-content">
+                {getVolcanicJourneyDescription(puzzleConfig.name)?.split('\n').map((line, index) => (
+                  <p key={index} className="description-line">{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="start-actions">
             <Button onClick={startGame} variant="primary" size="large">
               开始游戏

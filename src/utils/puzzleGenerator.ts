@@ -370,6 +370,10 @@ export class PuzzleGenerator {
         return { gridSize: { rows: 5, cols: 5 }, pieceShape: 'square' as PieceShape };
       case 'expert':
         return { gridSize: { rows: 6, cols: 6 }, pieceShape: 'square' as PieceShape };
+      case 'custom':
+        return { gridSize: { rows: 4, cols: 4 }, pieceShape: 'square' as PieceShape };
+      default:
+        return { gridSize: { rows: 3, cols: 3 }, pieceShape: 'square' as PieceShape };
     }
   }
 

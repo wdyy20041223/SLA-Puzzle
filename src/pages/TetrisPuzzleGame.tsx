@@ -11,6 +11,7 @@ import { GameHelpButton } from '../components/common/GameHelp';
 import { useAuth } from '../contexts/AuthContext';
 import { calculateGameCompletion } from '../utils/rewardSystem';
 import { LeaderboardService } from '../services/leaderboardService';
+import { getVolcanicJourneyDescription, isVolcanicJourneyPuzzle } from '../data/volcanicJourneyDescriptions';
 import '../components/game/PuzzleGame.css';
 
 interface TetrisPuzzleGameProps {
@@ -260,6 +261,22 @@ export const TetrisPuzzleGame: React.FC<TetrisPuzzleGameProps> = ({
                         <p>拼图块: {puzzleConfig.gridSize.rows} × {puzzleConfig.gridSize.cols}</p>
                         <p>形状: 俄罗斯方块</p>
                     </div>
+                    
+                    {/* 火山旅梦特殊简介 */}
+                    {isVolcanicJourneyPuzzle(puzzleConfig.name) && (
+                        <div className="volcanic-journey-description">
+                            <div className="description-header">
+                                <span className="volcano-icon">🌋</span>
+                                <span className="description-title">SoLong,Adele: Home away from home</span>
+                            </div>
+                            <div className="description-content">
+                                {getVolcanicJourneyDescription(puzzleConfig.name)?.split('\n').map((line, index) => (
+                                    <p key={index} className="description-line">{line}</p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
                     <div className="start-actions">
                         <Button onClick={startGame} variant="primary" size="large">
                             开始游戏

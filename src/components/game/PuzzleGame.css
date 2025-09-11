@@ -712,3 +712,99 @@
     max-width: 200px;
   }
 }
+
+/* 火山旅梦特殊简介样式 */
+.volcanic-journey-description {
+  margin: 20px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 87, 34, 0.1), rgba(255, 152, 0, 0.1));
+  border: 2px solid rgba(255, 87, 34, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(255, 87, 34, 0.2);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.description-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  gap: 8px;
+}
+
+.volcano-icon {
+  font-size: 24px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.description-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff5722;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.description-content {
+  text-align: center;
+  line-height: 1.6;
+}
+
+.description-line {
+  margin: 8px 0;
+  color: #333;
+  font-size: 15px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.description-line:first-child {
+  margin-top: 0;
+}
+
+.description-line:last-child {
+  margin-bottom: 0;
+}
+
+/* 夜间模式下的火山旅梦简介样式 */
+.night-mode .volcanic-journey-description {
+  background: linear-gradient(135deg, rgba(255, 87, 34, 0.15), rgba(255, 152, 0, 0.15));
+  border-color: rgba(255, 87, 34, 0.4);
+}
+
+.night-mode .description-title {
+  color: #ff7043;
+}
+
+.night-mode .description-line {
+  color: #e0e0e0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .volcanic-journey-description {
+    margin: 15px;
+    padding: 15px;
+    max-width: none;
+  }
+  
+  .description-title {
+    font-size: 16px;
+  }
+  
+  .description-line {
+    font-size: 14px;
+  }
+  
+  .volcano-icon {
+    font-size: 20px;
+  }
+}
