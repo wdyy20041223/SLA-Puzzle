@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '../common/Button';
 import { DifficultyLevel, PieceShape } from '../../types';
 import './DifficultySettings.css';
@@ -8,16 +8,22 @@ interface DifficultySettingsProps {
   onBack: () => void;
   onPreviewClick?: () => void;
   hasPreviewImage?: boolean;
+  selectedDifficulty: DifficultyLevel;
+  selectedShape: PieceShape;
+  onDifficultyChange: (difficulty: DifficultyLevel) => void;
+  onShapeChange: (shape: PieceShape) => void;
 }
 
 export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
   onComplete,
   onBack,
   onPreviewClick,
-  hasPreviewImage
+  hasPreviewImage,
+  selectedDifficulty,
+  selectedShape,
+  onDifficultyChange,
+  onShapeChange
 }) => {
-  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>('medium');
-  const [selectedShape, setSelectedShape] = useState<PieceShape>('square');
 
   const difficultyOptions = [
     {
@@ -69,8 +75,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
       icon: '🔺',
       description: '三角形状，增加趣味性',
       preview: '/images/shapes/triangle-preview.svg',
-      difficulty: '中等',
-      comingSoon: true
+      difficulty: '中等'
     },
     {
       value: 'irregular' as PieceShape,
@@ -80,6 +85,14 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
       preview: '/images/shapes/irregular-preview.svg',
       difficulty: '困难',
       comingSoon: true
+    },
+    {
+      value: 'tetris' as PieceShape,
+      label: '俄罗斯方块',
+      icon: '🟦🟦🟦',
+      description: '经典俄罗斯方块拼图，挑战空间感',
+      preview: '/images/shapes/tetris-preview.svg',
+      difficulty: '专家'
     }
   ];
 
@@ -100,7 +113,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
             <button
               key={option.value}
               className={`difficulty-card ${selectedDifficulty === option.value ? 'selected' : ''}`}
-              onClick={() => setSelectedDifficulty(option.value)}
+              onClick={() => onDifficultyChange(option.value)}
               style={{ '--accent-color': option.color } as React.CSSProperties}
             >
               <div className="card-header">
@@ -136,30 +149,18 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
           不同的拼块形状将带来不同的游戏体验和视觉效果
         </p>
         
-        <div className="shape-grid">
+        <div className="shape-grid shape-grid-horizontal">
           {shapeOptions.map((option) => (
             <button
               key={option.value}
-              className={`shape-card ${selectedShape === option.value ? 'selected' : ''} ${option.comingSoon ? 'coming-soon' : ''}`}
-              onClick={() => !option.comingSoon && setSelectedShape(option.value)}
-              disabled={option.comingSoon}
+              className={`shape-card ${selectedShape === option.value ? 'selected' : ''}`}
+              onClick={() => onShapeChange(option.value)}
             >
               <div className="shape-header">
                 <span className="shape-icon">{option.icon}</span>
                 <h4>{option.label}</h4>
-                {option.comingSoon && (
-                  <span className="coming-soon-badge">即将推出</span>
-                )}
               </div>
-              
-              <div className="shape-preview">
-                {/* 这里可以放置形状预览图 */}
-                <div className="preview-placeholder">
-                  <span className="preview-icon">{option.icon}</span>
-                  <span className="preview-text">形状预览</span>
-                </div>
-              </div>
-              
+              {/* 形状预览已移除 */}
               <div className="shape-details">
                 <p className="shape-description">{option.description}</p>
                 <div className="shape-meta">
@@ -168,12 +169,9 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
                   </span>
                 </div>
               </div>
-              
-              {!option.comingSoon && (
-                <div className={`selection-indicator ${selectedShape === option.value ? 'active' : ''}`}>
-                  {selectedShape === option.value ? '✓ 已选择' : '点击选择'}
-                </div>
-              )}
+              <div className={`selection-indicator ${selectedShape === option.value ? 'active' : ''}`}>
+                {selectedShape === option.value ? '✓ 已选择' : '点击选择'}
+              </div>
             </button>
           ))}
         </div>

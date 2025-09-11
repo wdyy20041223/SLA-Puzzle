@@ -1,15 +1,48 @@
+/* 让上传和导入按钮大小一致 */
+.same-size-btn {
+  min-width: 160px;
+  height: 44px;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.upload-step .upload-btn,
+.upload-step .import-btn {
+  margin: 0;
+}
+
+.upload-step {
+  /* 保证按钮容器本身是flex且垂直居中 */
+  /* 只影响上传区域的按钮，不影响其它地方 */
+}
 .difficulty-settings {
   display: flex;
   flex-direction: column;
   gap: 32px;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding-top: 24px;
+  box-sizing: border-box;
 }
 
 .settings-section {
   background: white;
   border-radius: 12px;
-  padding: 24px;
+  padding: 8px 24px 24px 24px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* 单独放大“选择拼块形状”大框 */
+.settings-section:nth-of-type(2) {
+  padding: 32px 48px 36px 48px;
+  margin-bottom: 44px;
 }
 
 .settings-section h3 {
@@ -17,11 +50,11 @@
   font-size: 24px;
   color: #1f2937;
   font-weight: 600;
-  padding-top: 8px;
+  padding-top: 0;
 }
 
 .settings-section:first-of-type h3 {
-  padding-top: 40px;
+  padding-top: 0;
 }
 
 .section-description {
@@ -142,6 +175,9 @@
   font-weight: 500;
   text-align: center;
   transition: all 0.2s ease;
+  margin-top: 8px;
+  min-height: 24px;
+  overflow: visible;
 }
 
 .selection-indicator:not(.active) {
@@ -157,20 +193,37 @@
 /* Shape Grid */
 .shape-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.shape-grid-horizontal {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
   gap: 16px;
 }
 
+.shape-grid-horizontal .shape-card {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 220px;
+}
 .shape-card {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 20px 12px 20px 12px;
   border: 2px solid #e5e7eb;
   border-radius: 12px;
   background: white;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
+  min-width: 0;
+  min-height: 220px;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 .shape-card:hover:not(.coming-soon) {
@@ -257,7 +310,10 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+  overflow: visible;
 }
 
 .shape-description {
@@ -270,6 +326,8 @@
 .shape-meta {
   display: flex;
   justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 0;
 }
 
 .difficulty-badge {
@@ -379,7 +437,7 @@
   background: #f0f9ff;
   border: 1px solid #bfdbfe;
   border-radius: 12px;
-  padding: 20px;
+  padding: 8px 20px 20px 20px;
 }
 
 .settings-tips h4 {
