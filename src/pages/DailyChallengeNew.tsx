@@ -104,13 +104,13 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, on
 
   // 拼图图片库
   const puzzleImageLibrary = [
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '梦幻城堡', description: '一座隐藏在云端的神秘城堡，等待着勇敢的冒险者来探索' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '樱花飞舞', description: '春日樱花盛开的美景' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '星空之夜', description: '浩瀚星空下的宁静夜晚' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '草原之王', description: '非洲草原上的雄狮，展现王者风范' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '高山流水', description: '壮丽的山脉与清澈的溪流' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '动漫角色', description: '来自异世界的神秘角色' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '城市之巅', description: '现代化都市的摩天大楼' }
+    { path: '/images/nature/landscape1.svg', title: '梦幻城堡', description: '一座隐藏在云端的神秘城堡，等待着勇敢的冒险者来探索' },
+    { path: '/images/nature/landscape2.svg', title: '樱花飞舞', description: '春日樱花盛开的美景' },
+    { path: '/images/nature/landscape3.svg', title: '星空之夜', description: '浩瀚星空下的宁静夜晚' },
+    { path: '/images/animals/cat.svg', title: '草原之王', description: '非洲草原上的雄狮，展现王者风范' },
+    { path: '/images/nature/landscape1.svg', title: '高山流水', description: '壮丽的山脉与清澈的溪流' },
+    { path: '/images/anime/character.svg', title: '动漫角色', description: '来自异世界的神秘角色' },
+    { path: '/images/buildings/castle.svg', title: '城市之巅', description: '现代化都市的摩天大楼' }
   ];
 
   // 难度配置

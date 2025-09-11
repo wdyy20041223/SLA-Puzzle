@@ -439,6 +439,8 @@ export class LeaderboardService {
    * 添加或更新每日挑战记录
    */
   static addDailyChallengeEntry(entry: Omit<DailyChallengeLeaderboardEntry, 'id' | 'completedAt'>): DailyChallengeLeaderboardEntry {
+    console.log('📝 添加每日挑战记录:', entry);
+    
     const newEntry: DailyChallengeLeaderboardEntry = {
       ...entry,
       id: this.generateId(),
@@ -446,6 +448,7 @@ export class LeaderboardService {
     };
 
     const entries = this.getDailyChallengeLeaderboard();
+    console.log('📊 当前排行榜记录数:', entries.length);
     
     // 检查是否已存在同一天同一用户的记录
     const existingIndex = entries.findIndex(e => 
@@ -455,15 +458,27 @@ export class LeaderboardService {
     if (existingIndex >= 0) {
       // 如果新记录更好，则更新
       const existing = entries[existingIndex];
+      console.log('🔄 发现同一天同一用户的记录，比较分数:', {
+        existing: existing.score,
+        new: newEntry.score,
+        existingTime: existing.completionTime,
+        newTime: newEntry.completionTime
+      });
+      
       if (newEntry.score > existing.score || 
           (newEntry.score === existing.score && newEntry.completionTime < existing.completionTime)) {
         entries[existingIndex] = newEntry;
+        console.log('✅ 更新记录');
+      } else {
+        console.log('⏭️ 保持原记录');
       }
     } else {
       entries.push(newEntry);
+      console.log('➕ 添加新记录');
     }
 
     this.saveDailyChallengeLeaderboard(entries);
+    console.log('💾 保存完成，当前记录数:', entries.length);
     return newEntry;
   }
 
@@ -471,15 +486,19 @@ export class LeaderboardService {
    * 获取每日挑战排行榜（按指定日期）
    */
   static getDailyChallengeRanking(date?: string, limit: number = 50): DailyChallengeLeaderboardEntry[] {
+    console.log('📊 获取每日挑战排行榜:', { date, limit });
+    
     const entries = this.getDailyChallengeLeaderboard();
+    console.log('📋 原始记录数:', entries.length);
     
     let filtered = entries;
     if (date) {
       filtered = entries.filter(entry => entry.date === date);
+      console.log('📅 按日期筛选后记录数:', filtered.length);
     }
 
     // 按得分降序排序，得分相同则按时间升序
-    return filtered
+    const sorted = filtered
       .sort((a, b) => {
         if (a.score !== b.score) {
           return b.score - a.score; // 得分高的在前
@@ -487,6 +506,11 @@ export class LeaderboardService {
         return a.completionTime - b.completionTime; // 时间短的在前
       })
       .slice(0, limit);
+    
+    console.log('🏆 排序后记录数:', sorted.length);
+    console.log('📊 排行榜数据:', sorted);
+    
+    return sorted;
   }
 
   /**
