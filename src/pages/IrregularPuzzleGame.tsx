@@ -52,62 +52,73 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
   const [draggedPiece, setDraggedPiece] = useState<string | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [answerGrid, setAnswerGrid] = useState<(IrregularPuzzlePiece | null)[]>([]);
-  // 旋转/翻转状态（仅处理区）
-  const [pieceTransforms, setPieceTransforms] = useState<Record<string, { rotation: number; flipX: boolean; flipY: boolean }>>({});
-  // 处理区拼图块旋转
 
-  // 右旋（顺时针90°，视觉始终一致）
-  const handleRotatePiece = useCallback((pieceId: string) => {
-    setPieceTransforms(prev => {
-      const prevTrans = prev[pieceId] || { rotation: 0, flipX: false, flipY: false };
-      const isFlipped = (prevTrans.flipX ? 1 : 0) + (prevTrans.flipY ? 1 : 0);
-      const direction = isFlipped % 2 === 0 ? 1 : -1;
-      const newRotation = prevTrans.rotation + 90 * direction;
-      // 同步答题卡上已放置拼图块的rotation
-      setAnswerGrid(grid => grid.map(piece =>
-        piece && piece.id === pieceId ? { ...piece, rotation: newRotation } : piece
-      ));
-      return { ...prev, [pieceId]: { ...prevTrans, rotation: newRotation } };
+  // 旋转/翻转直接同步到puzzleConfig.pieces属性
+  const handleRotatePiece = useCallback((pieceId: string, direction: 1 | -1 = 1) => {
+    if (!puzzleConfig) return;
+    setPuzzleConfig(cfg => {
+      if (!cfg) return cfg;
+      const newPieces = cfg.pieces.map(piece => {
+        if (piece.id !== pieceId) return piece;
+        // 旋转属性变换
+  // 动态补充属性，兼容老数据
+  let { up, right, down, left } = piece;
+  let rotation = typeof piece.rotation === 'number' ? piece.rotation : 0;
+  let flipX = typeof piece.flipX === 'boolean' ? piece.flipX : false;
+        let dirs = [up, right, down, left];
+        // 旋转方向：1=右旋，-1=左旋
+        let times = direction;
+        if (flipX) times = -times;
+        times = (times + 4) % 4;
+        for (let i = 0; i < times; i++) {
+          dirs = [dirs[3], dirs[0], dirs[1], dirs[2]];
+        }
+        // 修正：翻转后旋转角度也要反向
+        const realDirection = flipX ? -direction : direction;
+        return {
+          ...piece,
+          up: dirs[0],
+          right: dirs[1],
+          down: dirs[2],
+          left: dirs[3],
+          rotation: rotation + 90 * realDirection, // 不取模，累加
+          flipX,
+        };
+      });
+      return { ...cfg, pieces: newPieces };
     });
-  }, []);
+  }, [puzzleConfig]);
 
-  // 左旋（逆时针90°，视觉始终一致）
   const handleRotatePieceLeft = useCallback((pieceId: string) => {
-    setPieceTransforms(prev => {
-      const prevTrans = prev[pieceId] || { rotation: 0, flipX: false, flipY: false };
-      const isFlipped = (prevTrans.flipX ? 1 : 0) + (prevTrans.flipY ? 1 : 0);
-      const direction = isFlipped % 2 === 0 ? 1 : -1;
-      const newRotation = prevTrans.rotation - 90 * direction;
-      setAnswerGrid(grid => grid.map(piece =>
-        piece && piece.id === pieceId ? { ...piece, rotation: newRotation } : piece
-      ));
-      return { ...prev, [pieceId]: { ...prevTrans, rotation: newRotation } };
-    });
-  }, []);
+    handleRotatePiece(pieceId, -1);
+  }, [handleRotatePiece]);
 
-
-  // 处理区拼图块水平翻转
   const handleFlipX = useCallback((pieceId: string) => {
-    setPieceTransforms(prev => {
-      const prevTrans = prev[pieceId] || { rotation: 0, flipX: false, flipY: false };
-      return { ...prev, [pieceId]: { ...prevTrans, flipX: !prevTrans.flipX } };
+    if (!puzzleConfig) return;
+    setPuzzleConfig(cfg => {
+      if (!cfg) return cfg;
+      const newPieces = cfg.pieces.map(piece => {
+        if (piece.id !== pieceId) return piece;
+        // 左右对称翻转：只交换 left/right
+        return {
+          ...piece,
+          left: piece.right,
+          right: piece.left,
+          flipX: !(piece.flipX ?? false),
+        };
+      });
+      return { ...cfg, pieces: newPieces };
     });
-  }, []);
+  }, [puzzleConfig]);
 
-  // 处理区拼图块垂直翻转
-  const handleFlipY = useCallback((pieceId: string) => {
-    setPieceTransforms(prev => {
-      const prevTrans = prev[pieceId] || { rotation: 0, flipX: false, flipY: false };
-      return { ...prev, [pieceId]: { ...prevTrans, flipY: !prevTrans.flipY } };
-    });
-  }, []);
+
 
   // 生成拼图配置
   const generatePuzzle = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      setPieceTransforms({}); // 保证每次生成都清空旋转/翻转状态
+  // 生成新拼图时属性已重置，无需pieceTransforms
 
       let puzzleImageData = imageData;
 
@@ -122,7 +133,16 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
         gridSize
       );
 
-      setPuzzleConfig(config);
+      // 初始化时为每个piece补充flipX/rotation属性
+      const patchedConfig = {
+        ...config,
+        pieces: config.pieces.map(p => ({
+          ...p,
+          flipX: false,
+          rotation: 0,
+        })),
+      };
+      setPuzzleConfig(patchedConfig);
     } catch (err) {
       console.error('生成异形拼图失败:', err);
       setError(err instanceof Error ? err.message : '生成拼图时发生未知错误');
@@ -140,7 +160,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       setProgress({ correct: 0, total: puzzleConfig.pieces.length, percentage: 0 });
       setElapsedTime(0);
       setMoves(0);
-      setPieceTransforms({}); // 开始游戏时也清空旋转/翻转状态
+  // 开始游戏时属性已重置，无需pieceTransforms
 
       // 初始化答题网格
       const totalSlots = puzzleConfig.gridSize.rows * puzzleConfig.gridSize.cols;
@@ -222,58 +242,17 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
     const piece = puzzleConfig.pieces.find(p => p.id === pieceId);
     if (!piece) return;
 
-    // 获取当前旋转/翻转状态
-    const transform = pieceTransforms[pieceId] || { rotation: 0, flipX: false, flipY: false };
-
-    // 动态变换属性函数，和答题卡渲染一致
-    function transformPieceProps(piece: any, transform: { rotation?: number; flipX?: boolean; flipY?: boolean }) {
-      let { up, down, left, right } = piece;
-      let dirs = [up, right, down, left];
-      let rot = ((transform.rotation ?? 0) % 360 + 360) % 360;
-      let times = Math.round(rot / 90) % 4;
-      for (let i = 0; i < times; i++) {
-        dirs = [dirs[3], dirs[0], dirs[1], dirs[2]];
-      }
-      if (transform.flipX) {
-        [dirs[1], dirs[3]] = [dirs[3], dirs[1]];
-        dirs[1] = dirs[1] === 0 ? 0 : -dirs[1];
-        dirs[3] = dirs[3] === 0 ? 0 : -dirs[3];
-        dirs[0] = dirs[0] === 0 ? 0 : -dirs[0];
-        dirs[2] = dirs[2] === 0 ? 0 : -dirs[2];
-      }
-      if (transform.flipY) {
-        [dirs[0], dirs[2]] = [dirs[2], dirs[0]];
-        dirs[0] = dirs[0] === 0 ? 0 : -dirs[0];
-        dirs[2] = dirs[2] === 0 ? 0 : -dirs[2];
-        dirs[1] = dirs[1] === 0 ? 0 : -dirs[1];
-        dirs[3] = dirs[3] === 0 ? 0 : -dirs[3];
-      }
-      return {
-        ...piece,
-        up: dirs[0],
-        right: dirs[1],
-        down: dirs[2],
-        left: dirs[3],
-        rotation: transform.rotation ?? 0,
-        flipX: !!transform.flipX,
-        flipY: !!transform.flipY,
-      };
-    }
-
-    // 只对异形拼图专用判定
+    // 只对异形拼图专用判定，直接用piece当前属性
     const rows = puzzleConfig.gridSize?.rows || puzzleConfig.gridLayout?.gridSize?.rows;
     const cols = puzzleConfig.gridSize?.cols || puzzleConfig.gridLayout?.gridSize?.cols;
     const row = Math.floor(slotIndex / cols);
     const col = slotIndex % cols;
     const directions = [
-      { dr: -1, dc: 0, self: 'up', other: 'down', edge: 'top', otherEdge: 'bottom' },
-      { dr: 0, dc: 1, self: 'right', other: 'left', edge: 'right', otherEdge: 'left' },
-      { dr: 1, dc: 0, self: 'down', other: 'up', edge: 'bottom', otherEdge: 'top' },
-      { dr: 0, dc: -1, self: 'left', other: 'right', edge: 'left', otherEdge: 'right' },
+      { dr: -1, dc: 0, self: 'up', other: 'down' },
+      { dr: 0, dc: 1, self: 'right', other: 'left' },
+      { dr: 1, dc: 0, self: 'down', other: 'up' },
+      { dr: 0, dc: -1, self: 'left', other: 'right' },
     ];
-  // 应用变换后的piece（动态）
-  const transformedPiece = transformPieceProps(piece, transform);
-    // 检查四个方向是否有凸对凸、凸对平，未放拼图块的小格子视为凹(-1)，边界禁止凸出
     for (const dir of directions) {
       const nRow = row + dir.dr;
       const nCol = col + dir.dc;
@@ -289,7 +268,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       } else {
         neighborVal = null;
       }
-      const selfVal = (transformedPiece as any)[dir.self];
+      const selfVal = (piece as any)[dir.self];
       if (neighborVal === null && selfVal === 1) {
         return;
       }
@@ -323,8 +302,8 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       return p;
     });
     setPuzzleConfig({ ...puzzleConfig, pieces: updatedPieces });
-    // 将变换后的拼图块放置到新槽位
-    newAnswerGrid[slotIndex] = { ...transformedPiece, isCorrect: true };
+    // 直接把 piece 放进新槽位
+    newAnswerGrid[slotIndex] = { ...piece, isCorrect: true };
     setAnswerGrid(newAnswerGrid);
     // 更新进度
     const correctCount = newAnswerGrid.filter(slot => slot !== null).length;
@@ -337,8 +316,18 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       percentage
     });
 
-    // 检查是否完成
-    if (correctCount === totalCount) {
+    // 检查是否全部正确（位置、旋转、翻转都对）
+    const allCorrect = newAnswerGrid.every((piece, idx) => {
+      if (!piece) return false;
+      // 位置判定
+      const posCorrect = (piece.gridRow * (puzzleConfig.gridSize?.cols || puzzleConfig.gridLayout?.gridSize?.cols) + piece.gridCol) === idx;
+      // 旋转判定
+      const rotCorrect = (piece.rotation ?? 0) % 360 === (piece.correctRotation ?? 0) % 360;
+      // 翻转判定（只要未翻转）
+      const flipCorrect = (piece.flipX ?? false) === false;
+      return posCorrect && rotCorrect && flipCorrect;
+    });
+    if (allCorrect) {
       setIsComplete(true);
       handlePuzzleComplete();
     }
@@ -552,11 +541,9 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
               {processingAreaPieces.length > 0 ? (
                 <div className="pieces-grid">
                   {processingAreaPieces.map(piece => {
-                    const transformState = pieceTransforms[piece.id] || { rotation: 0, flipX: false, flipY: false };
-                    // 旋转后，左右/上下翻转的视觉方向会互换，这里做修正
-                    const scaleX = transformState.flipX ? -1 : 1;
-                    const scaleY = transformState.flipY ? -1 : 1;
-                    const transform = `translate(0%, 0%) scaleX(${scaleX}) scaleY(${scaleY}) rotate(${transformState.rotation}deg)`;
+                    const _piece: any = piece;
+                    const scaleX = typeof _piece.flipX === 'boolean' && _piece.flipX ? -1 : 1;
+                    const transform = `translate(0%, 0%) scaleX(${scaleX}) rotate(${typeof _piece.rotation === 'number' ? _piece.rotation : 0}deg)`;
                     return (
                       <div
                         key={piece.id}
@@ -639,7 +626,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDropToSlot={handleDropToBoard}
-                pieceTransforms={pieceTransforms}
+                // pieceTransforms已废弃
               />
             </div>
           </div>

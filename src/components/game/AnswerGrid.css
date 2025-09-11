@@ -9,6 +9,8 @@
   /* 重要：允许内容收缩 */
 
   overflow: hidden;
+  align-items: center;      /* 新增：内容水平居中 */
+  justify-content: center;  /* 新增：内容垂直居中 */
 }
 
 .background-image {
@@ -33,10 +35,10 @@
   position: relative;
   flex: 1;
   display: grid;
-  gap: 2px;
-  background: #e2e8f0;
+  gap: 0px; /* 去除间隙，防止出现细线 */
+  background: transparent; /* 去除背景色 */
   border-radius: 8px;
-  padding: 2px;
+  padding: 0; /* 去除内边距 */
   z-index: 1;
 
   /* 添加垂直滚动 */
@@ -553,4 +555,8 @@
 .grid-slot {
   position: relative;
   z-index: 2;
+  scrollbar-width: none; /* Firefox 隐藏滚动条 */
+}
+.answer-grid::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Edge 隐藏滚动条 */
 }

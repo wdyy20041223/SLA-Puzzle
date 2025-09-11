@@ -29,6 +29,7 @@
 }
 
 .puzzle-piece-item {
+  opacity: 1 !important;
   position: relative;
   aspect-ratio: 1;
   background: #f8fafc;
