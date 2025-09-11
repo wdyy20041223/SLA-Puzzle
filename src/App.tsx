@@ -1,32 +1,44 @@
 import { useState } from 'react';
 import { PuzzleConfig } from './types';
+import { HomePage } from './pages/HomePage';
 import { MainMenu } from './pages/MainMenu';
 import { PuzzleGame } from './components/game/PuzzleGame';
 import { LoadedPuzzleGame } from './components/game/LoadedPuzzleGame';
+import { TetrisPuzzleGame } from './pages/TetrisPuzzleGame';
 import { PuzzleEditor } from './components/editor/PuzzleEditor';
 import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
-import { DailyChallenge } from './pages/DailyChallenge';
+import { DailyChallenge } from './pages/DailyChallengeNew';
 import { Multiplayer } from './pages/Multiplayer';
+import { MultiplayerGame } from './pages/MultiplayerGame';
 import { Shop } from './pages/Shop';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
+import { DailyChallengeHistory } from './pages/DailyChallengeHistory';
+import { Settings } from './pages/Settings';
 import { Button } from './components/common/Button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/auth/Auth';
+import { MultiplayerRoom } from './services/apiService';
 import './App.css';
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+
+
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+
+
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
-  const [currentView, setCurrentView] = useState<AppView>('menu');
+  const [currentView, setCurrentView] = useState<AppView>('home');
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleConfig | null>(null);
+  const [currentTetrisPuzzle, setCurrentTetrisPuzzle] = useState<PuzzleConfig | null>(null);
   const [loadGameSaveId, setLoadGameSaveId] = useState<string | null>(null);
   const [irregularGameParams, setIrregularGameParams] = useState<{
     imageData?: string;
     gridSize?: '3x3' | '4x4' | '5x5' | '6x6';
   }>({});
+  const [multiplayerRoom, setMultiplayerRoom] = useState<MultiplayerRoom | null>(null);
 
   // 如果正在加载认证状态，显示加载画面
   if (authState.isLoading) {
@@ -61,11 +73,28 @@ const AppContent: React.FC = () => {
     setCurrentView('irregular-game');
   };
 
+  const handleStartTetrisGame = (puzzleConfig: PuzzleConfig) => {
+    setCurrentTetrisPuzzle(puzzleConfig);
+    setCurrentView('tetris-game');
+  };
+
   const handleBackToMenu = () => {
-    setCurrentView('menu');
+    setCurrentView('singlePlayer');
+    setCurrentPuzzle(null);
+    setCurrentTetrisPuzzle(null);
+    setLoadGameSaveId(null);
+    setIrregularGameParams({});
+  };
+
+  const handleBackToHome = () => {
+    setCurrentView('home');
     setCurrentPuzzle(null);
     setLoadGameSaveId(null);
     setIrregularGameParams({});
+  };
+
+  const handleOpenSinglePlayer = () => {
+    setCurrentView('singlePlayer');
   };
 
   const handleOpenEditor = () => {
@@ -96,6 +125,10 @@ const AppContent: React.FC = () => {
     setCurrentView('leaderboard');
   };
 
+  const handleOpenDailyChallengeHistory = () => {
+    setCurrentView('dailyChallengeHistory');
+  };
+
   const handleOpenSettings = () => {
     setCurrentView('settings');
   };
@@ -105,25 +138,53 @@ const AppContent: React.FC = () => {
     // 这里可以添加完成后的处理逻辑，比如保存到排行榜
   };
 
+  const handleStartMultiplayerGame = (roomData: { room: MultiplayerRoom }) => {
+    setMultiplayerRoom(roomData.room);
+    setCurrentView('multiplayer-game');
+  };
+
+  const handleBackToMultiplayerRoom = () => {
+    setCurrentView('multiplayer');
+  };
+
+  const handleMultiplayerGameComplete = () => {
+    setMultiplayerRoom(null);
+    setCurrentView('home');
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'menu':
+      case 'home':
+        return (
+          <HomePage
+            onOpenSinglePlayer={handleOpenSinglePlayer}
+            onOpenMultiplayer={handleOpenMultiplayer}
+            onOpenEditor={handleOpenEditor}
+            onOpenSettings={handleOpenSettings}
+            onOpenProfile={handleOpenProfile}
+            onOpenShop={handleOpenShop}
+          />
+        );
+      
+      case 'singlePlayer':
         return (
           <MainMenu
             onStartGame={handleStartGame}
             onLoadGame={handleLoadGame}
             onStartIrregularGame={handleStartIrregularGame}
+
+            onStartTetrisGame={handleStartTetrisGame}
             onOpenEditor={handleOpenEditor}
+
             onOpenAchievements={handleOpenAchievements}
             onOpenDailyChallenge={handleOpenDailyChallenge}
-            onOpenMultiplayer={handleOpenMultiplayer}
             onOpenShop={handleOpenShop}
             onOpenProfile={handleOpenProfile}
             onOpenLeaderboard={handleOpenLeaderboard}
-            onOpenSettings={handleOpenSettings}
+            onBackToHome={handleBackToHome}
           />
         );
-      
+
       case 'game':
         if (loadGameSaveId) {
           // 加载保存的游戏
@@ -152,12 +213,12 @@ const AppContent: React.FC = () => {
             </div>
           );
         }
-      
+
       case 'editor':
         return (
           <PuzzleEditor onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'irregular-game':
         return (
           <IrregularPuzzleGame
@@ -166,53 +227,93 @@ const AppContent: React.FC = () => {
             gridSize={irregularGameParams.gridSize}
           />
         );
-      
+
+      case 'tetris-game':
+        if (currentTetrisPuzzle) {
+          return (
+            <TetrisPuzzleGame
+              puzzleConfig={currentTetrisPuzzle}
+              onGameComplete={handleGameComplete}
+              onBackToMenu={handleBackToMenu}
+            />
+          );
+        } else {
+          return (
+            <div className="error-view">
+              <h2>错误</h2>
+              <p>俄罗斯方块拼图配置加载失败</p>
+              <Button onClick={handleBackToMenu}>返回菜单</Button>
+            </div>
+          );
+        }
+
       case 'achievements':
         return (
           <Achievements onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'dailyChallenge':
         return (
-          <DailyChallenge onBackToMenu={handleBackToMenu} />
+          <DailyChallenge 
+            onBackToMenu={handleBackToMenu} 
+            onOpenDailyChallengeHistory={handleOpenDailyChallengeHistory}
+          />
         );
-      
+
       case 'multiplayer':
         return (
-          <Multiplayer onBackToMenu={handleBackToMenu} />
+          <Multiplayer 
+            onBackToMenu={handleBackToMenu} 
+            onStartGame={handleStartMultiplayerGame}
+          />
         );
       
+      case 'multiplayer-game':
+        if (!multiplayerRoom) {
+          return (
+            <div className="error-view">
+              <h2>房间信息丢失</h2>
+              <p>无法找到房间信息，请重新加入房间</p>
+              <Button onClick={handleBackToMenu}>返回菜单</Button>
+            </div>
+          );
+        }
+        return (
+          <MultiplayerGame
+            room={multiplayerRoom}
+            onBackToRoom={handleBackToMultiplayerRoom}
+            onGameComplete={handleMultiplayerGameComplete}
+          />
+        );
+
       case 'shop':
         return (
           <Shop onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'profile':
         return (
           <Profile onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'leaderboard':
         return (
-          <Leaderboard onBackToMenu={handleBackToMenu} />
+          <Leaderboard 
+            onBackToMenu={handleBackToMenu} 
+            onOpenDailyChallengeHistory={handleOpenDailyChallengeHistory}
+          />
         );
       
+      case 'dailyChallengeHistory':
+        return (
+          <DailyChallengeHistory onBackToMenu={handleBackToMenu} />
+        );
+
       case 'settings':
         return (
-          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
-              <div className="text-center">
-                <div className="text-6xl mb-4">⚙️</div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">设置</h2>
-                <p className="text-gray-600 mb-6">设置功能正在开发中，敬请期待！</p>
-                <Button onClick={handleBackToMenu} variant="primary" size="large" className="w-full">
-                  返回主菜单
-                </Button>
-              </div>
-            </div>
-          </div>
+          <Settings onBackToHome={handleBackToHome} />
         );
-      
+
       default:
         return (
           <div className="error-view">

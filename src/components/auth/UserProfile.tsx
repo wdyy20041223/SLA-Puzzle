@@ -97,6 +97,28 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onOpenShop, onOpenProf
     setShowDropdown(false);
   };
 
+  // 检查头像框拥有权的函数（与Profile页面保持一致）
+  const checkFrameOwnership = (frameId: string) => {
+    const owned = user.ownedItems || [];
+    // 检查原始ID
+    if (owned.includes(frameId)) return true;
+    // 检查带avatar_frame_前缀的ID
+    if (owned.includes(`avatar_frame_${frameId}`)) return true;
+    // 检查带decoration_前缀的ID
+    if (owned.includes(`decoration_${frameId}`)) return true;
+    return false;
+  };
+  
+  // 检查头像拥有权的函数（与AvatarSelector保持一致）
+  const checkAvatarOwnership = (avatarId: string) => {
+    const owned = user.ownedItems || [];
+    // 检查原始ID
+    if (owned.includes(avatarId)) return true;
+    // 检查带avatar_前缀的ID
+    if (owned.includes(`avatar_${avatarId}`)) return true;
+    return false;
+  };
+  
   const renderAvatar = () => {
     const owned = user.ownedItems || [];
     // 如果是默认头像（id 以 default_ 开头），直接渲染
@@ -105,7 +127,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onOpenShop, onOpenProf
     }
     // 如果是商店购买头像，需校验 owned
     if (user.avatar && avatarMap[user.avatar]) {
-      if (!owned.includes(user.avatar)) {
+      if (!checkAvatarOwnership(user.avatar)) {
         return <span className="avatar-emoji">{avatarMap['default_user']}</span>;
       }
       return <span className="avatar-emoji">{avatarMap[user.avatar]}</span>;
@@ -126,7 +148,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ onOpenShop, onOpenProf
     <div className="user-profile">
       <div className="user-profile-header">
         <div 
-          className={`user-avatar ${user.avatarFrame && (user.ownedItems || []).includes(user.avatarFrame) ? 'with-frame' : ''}`}
+          className={`user-avatar ${user.avatarFrame && checkFrameOwnership(user.avatarFrame) ? 'with-frame' : ''}`}
           onClick={handleAvatarClick}
           title="点击更改头像"
         >

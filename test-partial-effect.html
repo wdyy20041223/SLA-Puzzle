@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管中窥豹特效测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .puzzle-pieces-demo {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .pieces-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .puzzle-piece {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .puzzle-piece.available {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #1976d2;
+        }
+        
+        .puzzle-piece.hidden {
+            background: #f5f5f5;
+            border-color: #bdbdbd;
+            color: #757575;
+            opacity: 0.6;
+        }
+        
+        .puzzle-piece.new {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #2e7d32;
+            animation: highlight 1s ease-out;
+        }
+        
+        @keyframes highlight {
+            0% { transform: scale(1.2); background: #fff3e0; }
+            100% { transform: scale(1); }
+        }
+        
+        .arrow {
+            text-align: center;
+            font-size: 18px;
+            margin: 15px 0;
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .description {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .feature-list {
+            background: #f3e5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .feature-list h3 {
+            margin-top: 0;
+            color: #7b1fa2;
+        }
+        .feature-list ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .note {
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #ff9800;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 管中窥豹特效测试（更新版）</h1>
+        
+        <div class="description">
+            <h3>特效说明（重新设计）</h3>
+            <p><strong>管中窥豹</strong>是一个3星难度的每日挑战特效，它的核心机制是：</p>
+            <ul>
+                <li><strong>限制初始拼图块数量</strong>：游戏开始时只提供一半数量的拼图块</li>
+                <li><strong>动态补充机制</strong>：当玩家正确放置一块拼图后，自动补充一个新的拼图块到处理区</li>
+                <li><strong>只有正确放置才补充</strong>：错误放置不会触发补充机制</li>
+                <li><strong>增加策略性</strong>：玩家需要在有限的拼图块中做出明智的选择</li>
+            </ul>
+        </div>
+
+        <h3>拼图块供应演示（从9块中初始只显示4块）</h3>
+        
+        <div class="puzzle-pieces-demo">
+            <h4>初始状态：处理区</h4>
+            <div class="pieces-container">
+                <div class="puzzle-piece available">1</div>
+                <div class="puzzle-piece available">3</div>
+                <div class="puzzle-piece available">5</div>
+                <div class="puzzle-piece available">7</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+            </div>
+            
+            <div class="arrow">↓ 正确放置拼图块１后</div>
+            
+            <h4>补充后状态：处理区</h4>
+            <div class="pieces-container">
+                <div class="puzzle-piece available">3</div>
+                <div class="puzzle-piece available">5</div>
+                <div class="puzzle-piece available">7</div>
+                <div class="puzzle-piece available new">2</div> <!-- 新补充的 -->
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+                <div class="puzzle-piece hidden">隐藏</div>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>✨ 实现功能特性（更新版）</h3>
+            <ul>
+                <li><strong>初始限制</strong>：游戏开始时只提供一半数量的拼图块</li>
+                <li><strong>随机选择</strong>：随机选择初始可用的拼图块，每次游戏都不同</li>
+                <li><strong>正确放置检测</strong>：只有当拼图块放置在正确位置且旋转、翻转状态正确时才触发补充</li>
+                <li><strong>动态补充</strong>：正确放置后从剩余待补充列表中取一个拼图块添加到处理区</li>
+                <li><strong>状态管理</strong>：通过availablePieces Set管理当前可用拼图块</li>
+                <li><strong>视觉反馈</strong>：实时显示当前可用拼图块数量和总数量</li>
+                <li><strong>调试信息</strong>：提供console.log输出特效运行状态</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>💡 技术实现要点（更新版）：</strong>
+            <ul>
+                <li>在DailyChallengeGame.tsx中添加availablePieces和remainingPieces状态管理</li>
+                <li>在特效初始化时随机选择Math.floor(totalPieces / 2)个拼图块作为初始可用</li>
+                <li>在PuzzleWorkspace.tsx中根据availablePieces过滤显示的拼图块</li>
+                <li>在enhancedPlacePieceToSlot函数中添加正确放置检测和补充逻辑</li>
+                <li>提供console.log调试信息跟踪特效运行状态</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>🎮 使用方法（更新版）：</strong><br>
+            在每日挑战中选择包含"管中窥豹"或"partial"特效的挑战即可体验此功能。特效会在拼图生成时自动激活，初始只会在处理区显示一半的拼图块。当您正确放置拼图块时，新的拼图块会自动出现！
+        </div>
+    </div>
+</body>
+</html>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { usePuzzleGame } from '../../hooks/usePuzzleGame';
 import { PuzzleConfig, GameCompletionResult, GameState } from '../../types';
 import { PuzzleWorkspace } from './PuzzleWorkspace';
@@ -11,7 +11,9 @@ import { Timer } from '../common/Timer';
 import { GameHelpButton } from '../common/GameHelp';
 import { useAuth } from '../../contexts/AuthContext';
 import { calculateGameCompletion } from '../../utils/rewardSystem';
-import { LeaderboardService } from '../../services/leaderboardService';
+import { validateGameReward } from '../../utils/rewardDebugger';
+import { HybridLeaderboardService } from '../../services/hybridLeaderboardService';
+import { musicManager } from '../../services/musicService';
 import './PuzzleGame.css';
 
 interface PuzzleGameProps {
@@ -19,6 +21,7 @@ interface PuzzleGameProps {
   preloadedGameState?: GameState;
   onGameComplete?: (completionTime: number, moves: number) => void;
   onBackToMenu?: () => void;
+  isMultiplayer?: boolean; // 是否为多人游戏模式
 }
 
 export const PuzzleGame: React.FC<PuzzleGameProps> = ({
@@ -26,6 +29,7 @@ export const PuzzleGame: React.FC<PuzzleGameProps> = ({
   preloadedGameState,
   onGameComplete,
   onBackToMenu,
+  isMultiplayer = false,
 }) => {
   const [showAnswers, setShowAnswers] = useState(false);
 const [showOriginalImage, setShowOriginalImage] = useState(false);
@@ -84,7 +88,11 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
     setHasProcessedCompletion(false); // 重置完成处理标记
     setShowCompletionModal(false);
     setCompletionResult(null);
+    
+    // 不在这里播放音乐，因为这个函数会在确认界面被重复调用
   }, [initializeGame, puzzleConfig]);
+
+  // 不在这里播放音乐，音乐播放已移至MainMenu的handleStartGame中
 
   // 处理再玩一次
   const handlePlayAgain = useCallback(() => {
@@ -135,6 +143,14 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
 
       const processGameCompletion = async () => {
         try {
+          // 多人游戏模式下只调用完成回调，不进行奖励计算
+          if (isMultiplayer) {
+            if (onGameComplete) {
+              onGameComplete(timer, gameState.moves);
+            }
+            return;
+          }
+
           if (authState.isAuthenticated && authState.user) {
             // 根据拼图配置计算理想步数
             const calculatePerfectMoves = (config: PuzzleConfig): number => {
@@ -153,17 +169,29 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
             const perfectMoves = calculatePerfectMoves(puzzleConfig);
             const totalPieces = puzzleConfig.pieces.length;
 
-            // 计算游戏完成结果
+            console.log('🎮 游戏完成数据:', {
+              难度: puzzleConfig.difficulty,
+              完成时间: timer,
+              实际步数: gameState.moves,
+              理想步数: perfectMoves,
+              总拼图块: totalPieces,
+              用户当前金币: authState.user.coins,
+              用户当前经验: authState.user.experience,
+              当前游戏完成数: authState.user.gamesCompleted,
+              计算用游戏完成数: authState.user.gamesCompleted // 使用当前真实值而非+1
+            });
+
+            // 计算游戏完成结果 - 使用当前真实状态，避免状态不一致
             const result = calculateGameCompletion(
               puzzleConfig.difficulty,
               timer,
               gameState.moves,
               {
-                gamesCompleted: authState.user.gamesCompleted + 1, // 使用即将更新的值
+                gamesCompleted: authState.user.gamesCompleted, // ✅ 使用当前真实值，成就系统内部会处理+1逻辑
                 level: authState.user.level,
                 experience: authState.user.experience,
                 bestTimes: authState.user.bestTimes,
-                recentGameResults: (authState.user as any).recentGameResults || [], // 添加最近游戏结果
+                recentGameResults: (authState.user as any).recentGameResults || [],
                 difficultyStats: (authState.user as any).difficultyStats || {
                   easyCompleted: 0,
                   mediumCompleted: 0,
@@ -176,16 +204,59 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
               totalPieces
             );
 
+            console.log('🎯 前端奖励计算结果:', {
+              基础奖励: result.rewards,
+              是否新记录: result.isNewRecord,
+              新成就数量: result.rewards.achievements?.length || 0
+            });
+
+            // 使用调试工具验证计算
+            const validation = validateGameReward(
+              puzzleConfig.difficulty,
+              timer,
+              gameState.moves,
+              perfectMoves,
+              {
+                gamesCompleted: authState.user.gamesCompleted + 1,
+                level: authState.user.level,
+                experience: authState.user.experience,
+                bestTimes: authState.user.bestTimes
+              }
+            );
+
+            console.log('🔍 奖励验证结果:', validation);
+
             setCompletionResult(result);
             setShowCompletionModal(true);
 
+            // 记录用户完成前的状态，用于后续比较
+            const userBeforeCompletion = {
+              coins: authState.user.coins,
+              experience: authState.user.experience
+            };
+
+            console.log('🔄 开始处理游戏完成:', {
+              前端计算奖励: result.rewards,
+              用户完成前状态: userBeforeCompletion,
+              处理标志: { hasProcessedCompletion, isProcessingCompletion }
+            });
+
             // 更新用户数据
-            await handleGameCompletion(result);
+            const updateSuccess = await handleGameCompletion(result);
+            
+            if (updateSuccess) {
+              console.log('✅ 游戏完成处理成功');
+              
+              // 注意：不再使用 setTimeout，因为 handleGameCompletion 内部已经处理了奖励对比
+              // AuthContext 中的 handleGameCompletion 会在状态更新后立即进行对比分析
+            } else {
+              console.error('❌ 游戏完成处理失败');
+            }
 
             // 记录到排行榜（仅限方形拼图）
             if (authState.user && puzzleConfig.pieceShape === 'square') {
               try {
-                LeaderboardService.addEntry({
+                await HybridLeaderboardService.addEntry({
                   puzzleId: puzzleConfig.id,
                   puzzleName: puzzleConfig.name,
                   playerName: authState.user.username,
@@ -324,7 +395,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           <GameHelpButton />
           <Button
             onClick={getHint}
-            variant="secondary"
+            variant="primary"
             size="small"
             className="hint-button"
           >
@@ -333,7 +404,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
 
           <Button 
             onClick={() => setShowOriginalImage(true)} 
-            variant="secondary" 
+            variant="primary" 
             size="small"
             className="original-image-button"
           >
@@ -341,19 +412,18 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           </Button>
           <Button 
             onClick={() => setShowAnswers(!showAnswers)} 
-            variant={showAnswers ? "primary" : "secondary"} 
-
+            variant="primary"
             size="small"
             className="answer-toggle"
           >
             {showAnswers ? '👁️ 隐藏答案' : '👁️‍🗨️ 显示答案'}
           </Button>
-          <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
+          <Button onClick={undo} variant="primary" size="small" disabled={!gameState || gameState.history.length === 0}>
             ↩️ 撤销
           </Button>
           <Button
             onClick={handleSaveGame}
-            variant="secondary"
+            variant="primary"
             size="small"
             className="save-button"
             disabled={!canSaveGame()}
@@ -363,14 +433,14 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
             <Button
               onClick={handleShowLeaderboard}
-              variant="secondary"
+              variant="primary"
               size="small"
               className="leaderboard-button"
             >
               🏆 排行榜
             </Button>
           )}
-          <Button onClick={resetGame} variant="secondary" size="small">
+          <Button onClick={resetGame} variant="primary" size="small">
             🔄 重置游戏
           </Button>
           <Button onClick={onBackToMenu} variant="danger" size="small">
@@ -418,8 +488,8 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           />
         )}
 
-        {/* 简单完成提示（未登录用户或奖励弹窗未显示时） */}
-        {gameState?.isCompleted && !showCompletionModal && (
+        {/* 简单完成提示（未登录用户或奖励弹窗未显示时，且非多人游戏） */}
+        {gameState?.isCompleted && !showCompletionModal && !isMultiplayer && (
           <div className="completion-modal">
             <div className="modal-content">
               <h3>🎉 恭喜完成！</h3>

@@ -1,0 +1,275 @@
+/* 联机游戏页面样式 */
+.multiplayer-game-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 游戏信息面板 */
+.game-info-panel {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.room-info {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.room-code,
+.game-mode {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.players-status {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.player-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.player-name {
+  color: white;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.status-indicator {
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.status-indicator.playing {
+  background: rgba(59, 130, 246, 0.8);
+  color: white;
+}
+
+.status-indicator.finished {
+  background: rgba(34, 197, 94, 0.8);
+  color: white;
+}
+
+.status-indicator.waiting {
+  background: rgba(251, 191, 36, 0.8);
+  color: white;
+}
+
+/* 游戏加载状态 */
+.game-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loading-container {
+  text-align: center;
+  color: white;
+}
+
+.loading-container h2 {
+  margin: 24px 0 12px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.loading-container p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 对手完成提示 */
+.opponent-finished-notice {
+  background: rgba(251, 191, 36, 0.9);
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+.notice-icon {
+  font-size: 1.2rem;
+}
+
+/* 游戏区域 */
+.game-area {
+  flex: 1;
+  padding: 0;
+}
+
+/* 游戏结果页面 */
+.multiplayer-game-result {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.result-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  padding: 48px;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.result-header {
+  margin-bottom: 40px;
+}
+
+.result-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+}
+
+.result-title.winner {
+  color: #10b981;
+}
+
+.result-title.loser {
+  color: #ef4444;
+}
+
+.result-subtitle {
+  font-size: 1.2rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.result-stats {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+
+.player-stats {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.stats-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.player-avatar {
+  font-size: 1.5rem;
+}
+
+.player-name {
+  font-weight: 600;
+  color: #374151;
+}
+
+.winner-crown {
+  font-size: 1.2rem;
+}
+
+.stats-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.stat-value {
+  font-weight: 600;
+  color: #374151;
+}
+
+.vs-divider {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
+.result-actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .game-info-panel {
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .players-status {
+    gap: 16px;
+  }
+
+  .result-container {
+    padding: 32px 24px;
+    margin: 20px;
+  }
+
+  .result-stats {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .vs-divider {
+    transform: rotate(90deg);
+  }
+}

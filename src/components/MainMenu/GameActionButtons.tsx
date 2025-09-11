@@ -4,12 +4,9 @@ import { Button } from '../common/Button';
 interface GameActionButtonsProps {
   onStartGame: () => void;
   onLoadGame?: () => void;
-  onOpenEditor: () => void;
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
-  onOpenMultiplayer: () => void;
   onOpenLeaderboard: () => void;
-  onOpenSettings: () => void;
   canStartGame: boolean;
   isGenerating: boolean;
 }
@@ -17,12 +14,9 @@ interface GameActionButtonsProps {
 export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
   onStartGame,
   onLoadGame,
-  onOpenEditor,
   onOpenAchievements,
   onOpenDailyChallenge,
-  onOpenMultiplayer,
   onOpenLeaderboard,
-  onOpenSettings,
   canStartGame,
   isGenerating,
 }) => {
@@ -51,15 +45,6 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
       
       <div className="grid grid-cols-2 gap-2">
         <Button
-          onClick={onOpenEditor}
-          variant="secondary"
-          size="medium"
-          className="w-full py-3 text-sm font-medium"
-        >
-          🎨 编辑器
-        </Button>
-        
-        <Button
           onClick={onOpenAchievements}
           variant="secondary"
           size="medium"
@@ -81,27 +66,9 @@ export const GameActionButtons: React.FC<GameActionButtonsProps> = ({
           onClick={onOpenLeaderboard}
           variant="secondary"
           size="medium"
-          className="w-full py-3 text-sm font-medium"
+          className="w-full py-3 text-sm font-medium col-span-2"
         >
           🏆 排行榜
-        </Button>
-        
-        <Button
-          onClick={onOpenMultiplayer}
-          variant="secondary"
-          size="medium"
-          className="w-full py-3 text-sm font-medium"
-        >
-          ⚔️ 联机
-        </Button>
-        
-        <Button
-          onClick={onOpenSettings}
-          variant="secondary"
-          size="medium"
-          className="w-full py-3 text-sm font-medium"
-        >
-          ⚙️ 设置
         </Button>
       </div>
     </div>

@@ -53,13 +53,6 @@ const ACHIEVEMENTS: Record<string, Omit<Achievement, 'unlocked' | 'unlockedAt'>>
     category: 'performance'
   },
 
-  speed_runner: {
-    id: 'speed_runner',
-    name: '速度跑者',
-    description: '在2分钟内完成任意难度拼图',
-    icon: '🏃',
-    category: 'performance'
-  },
   // 新增成就定义
   lightning_fast: {
     id: 'lightning_fast',
@@ -161,13 +154,6 @@ const ACHIEVEMENTS: Record<string, Omit<Achievement, 'unlocked' | 'unlockedAt'>>
     description: '连续7天完成拼图',
     icon: '📅',
     category: 'special'
-  },
-  level_up: {
-    id: 'level_up',
-    name: '等级提升',
-    description: '升级到新等级',
-    icon: '⬆️',
-    category: 'milestone'
   }
 };
 
@@ -258,9 +244,13 @@ export function checkAchievements(
   const newAchievements: Achievement[] = [];
   const now = new Date();
 
+  // ✅ 在成就检查时使用即将完成的游戏数（当前值+1）
+  const completedGamesAfterThis = userStats.gamesCompleted + 1;
+
   // 调试输出
   console.log('🔍 成就检查开始:', {
-    userStats,
+    当前游戏完成数: userStats.gamesCompleted,
+    完成本局后游戏数: completedGamesAfterThis,
     gameResult,
     currentTime: now.toLocaleString(),
     hour: now.getHours(),
@@ -268,8 +258,9 @@ export function checkAchievements(
     unlockedAchievements
   });
 
-  // 检查进度成就（可以与其他成就同时触发）
-  if (userStats.gamesCompleted === 1 && !unlockedAchievements.includes('first_game')) {
+  // 检查进度成就（基于完成本局后的游戏数）
+  if (completedGamesAfterThis === 1 && !unlockedAchievements.includes('first_game')) {
+    console.log('🎉 触发首次游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.first_game,
       unlocked: true,
@@ -277,7 +268,8 @@ export function checkAchievements(
     });
   }
 
-  if (userStats.gamesCompleted === 10 && !unlockedAchievements.includes('games_10')) {
+  if (completedGamesAfterThis === 10 && !unlockedAchievements.includes('games_10')) {
+    console.log('🎉 触发10局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_10,
       unlocked: true,
@@ -285,7 +277,8 @@ export function checkAchievements(
     });
   }
 
-  if (userStats.gamesCompleted === 50 && !unlockedAchievements.includes('games_50')) {
+  if (completedGamesAfterThis === 50 && !unlockedAchievements.includes('games_50')) {
+    console.log('🎉 触发50局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_50,
       unlocked: true,
@@ -293,7 +286,8 @@ export function checkAchievements(
     });
   }
 
-  if (userStats.gamesCompleted === 100 && !unlockedAchievements.includes('games_100')) {
+  if (completedGamesAfterThis === 100 && !unlockedAchievements.includes('games_100')) {
+    console.log('🎉 触发100局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_100,
       unlocked: true,
@@ -307,16 +301,6 @@ export function checkAchievements(
       !unlockedAchievements.includes('speed_demon')) {
     newAchievements.push({
       ...ACHIEVEMENTS.speed_demon,
-      unlocked: true,
-      unlockedAt: now
-    });
-  }
-
-  // 新增：快速完成任意难度（更容易触发的速度成就）
-  if (gameResult.completionTime <= 120 && 
-      !unlockedAchievements.includes('speed_runner')) {
-    newAchievements.push({
-      ...ACHIEVEMENTS.speed_runner,
       unlocked: true,
       unlockedAt: now
     });
@@ -471,15 +455,6 @@ export function checkAchievements(
     }
   }
 
-  // 等级提升成就
-  if (userStats.level > 1 && !unlockedAchievements.includes('level_up')) {
-    newAchievements.push({
-      ...ACHIEVEMENTS.level_up,
-      unlocked: true,
-      unlockedAt: now
-    });
-  }
-
   // 调试输出最终结果
   console.log('🎉 成就检查完成:', {
     totalAchievements: newAchievements.length,
@@ -535,11 +510,24 @@ export function calculateGameCompletion(
     unlockedAchievements
   );
 
-  // 成就奖励
+  // 过滤掉不在官方成就列表中的成就，防止显示未定义的成就
+  const officialAchievementIds = getOfficialAchievementIds();
+  const filteredAchievements = newAchievements.filter(achievement => 
+    officialAchievementIds.includes(achievement.id)
+  );
+
+  console.log('🔍 成就过滤结果:', {
+    原始成就数量: newAchievements.length,
+    过滤后成就数量: filteredAchievements.length,
+    被过滤的成就: newAchievements.filter(a => !officialAchievementIds.includes(a.id)).map(a => a.name),
+    保留的成就: filteredAchievements.map(a => a.name)
+  });
+
+  // 成就奖励（基于过滤后的成就）
   let achievementCoins = 0;
   let achievementExp = 0;
   
-  newAchievements.forEach(achievement => {
+  filteredAchievements.forEach(achievement => {
     switch (achievement.category) {
       case 'progress':
         achievementCoins += 25;
@@ -574,7 +562,7 @@ export function calculateGameCompletion(
   const finalRewards: GameReward = {
     coins: baseRewards.coins + achievementCoins,
     experience: baseRewards.experience + achievementExp,
-    achievements: newAchievements.length > 0 ? newAchievements : undefined
+    achievements: filteredAchievements.length > 0 ? filteredAchievements : undefined
   };
 
   return {
@@ -585,6 +573,48 @@ export function calculateGameCompletion(
     totalPieces,
     rewards: finalRewards
   };
+}
+
+/**
+ * 获取官方成就ID列表（从成就数据文件中提取）
+ * 只有在这个列表中的成就才会在游戏结算时显示
+ */
+function getOfficialAchievementIds(): string[] {
+  return [
+    // 基础进度成就
+    'first_game',
+    'games_10', 
+    'games_50',
+    'games_100',
+    'games_500',
+    
+    // 难度专精成就
+    'easy_master',
+    'hard_challenger', 
+    'expert_elite',
+    
+    // 速度成就
+    'speed_demon',
+    // 'speed_runner', // 移除：速度跑者成就
+    'lightning_fast',
+    'time_master',
+    
+    // 技巧成就
+    'perfectionist',
+    'efficient_solver',
+    'no_mistakes',
+    
+    // 特殊时间成就
+    'night_owl',
+    'early_bird', 
+    'weekend_warrior',
+    
+    // 等级成就
+    // 'level_up', // 移除：等级提升成就
+    'level_10',
+    'level_25',
+    'max_level'
+  ];
 }
 
 /**

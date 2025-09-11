@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日挑战特效测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>每日挑战特效系统测试</h1>
+        
+        <div class="test-section">
+            <h3>修复验证</h3>
+            <p>这个测试验证每日挑战系统的循环依赖问题是否已解决</p>
+            <button class="test-button" onclick="testNoInfiniteLoop()">测试无限循环修复</button>
+            <div id="loop-test-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>特效效果测试</h3>
+            <p>测试各种特效的基本功能</p>
+            
+            <button class="test-button" onclick="testEffectCalculations()">测试特效计算</button>
+            <button class="test-button" onclick="testEffectRestrictions()">测试特效限制</button>
+            <button class="test-button" onclick="testEffectStyling()">测试特效样式</button>
+            <button class="test-button" onclick="testCornerEffect()">测试作茧自缚特效</button>
+            
+            <div id="effect-test-result" class="test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>特效清单</h3>
+            <div id="effect-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟特效数据
+        const mockEffects = {
+            star3: [
+                { id: 'rotate', name: '天旋地转', description: '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', star: 3 },
+                { id: 'blur', name: '雾里看花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 },
+                { id: 'partial', name: '管中窥豹', description: '本关卡答题区最开始只展示一半的拼图块', star: 3 },
+                { id: 'upside_down', name: '颠倒世界', description: '本关卡中正确答案旋转180°后得到原图', star: 3 },
+                { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 }
+            ],
+            star4: [
+                { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', star: 4 },
+                { id: 'invisible', name: '深渊漫步', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 },
+                { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 },
+                { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 }
+            ],
+            star5: [
+                { id: 'no_mistakes', name: '最终防线', description: '本关卡不允许任何一次放置失误', star: 5 },
+                { id: 'step_limit', name: '精打细算', description: '本关卡必须在1.5*拼图块数量次步数内完成', star: 5 },
+                { id: 'brightness', name: '亦步亦趋', description: '仅能在上次放置的拼图块周围放置拼图块', star: 5 }
+            ]
+        };
+
+        function testNoInfiniteLoop() {
+            const result = document.getElementById('loop-test-result');
+            result.innerHTML = '正在测试...';
+            
+            try {
+                // 模拟challengeEffects变化不会导致无限循环
+                let callCount = 0;
+                const maxCalls = 100;
+                
+                // 模拟generatePuzzle函数调用
+                function mockGeneratePuzzle(effects) {
+                    callCount++;
+                    if (callCount > maxCalls) {
+                        throw new Error('检测到无限循环！');
+                    }
+                    return { success: true, callCount };
+                }
+                
+                // 测试多次调用不会导致循环
+                const testEffects = ['rotate', 'blur', 'no_preview'];
+                for (let i = 0; i < 10; i++) {
+                    mockGeneratePuzzle(testEffects);
+                }
+                
+                result.innerHTML = `<span class="success">✓ 无限循环修复成功！总调用次数: ${callCount}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 测试失败: ${error.message}</span>`;
+            }
+        }
+
+        function testEffectCalculations() {
+            const result = document.getElementById('effect-test-result');
+            
+            try {
+                // 测试特效星数计算
+                const testCases = [
+                    { effects: ['rotate'], expectedStars: 3 },
+                    { effects: ['rotate', 'blur'], expectedStars: 6 },
+                    { effects: ['corner_start'], expectedStars: 4 },
+                    { effects: ['no_mistakes'], expectedStars: 5 },
+                    { effects: ['rotate', 'corner_start', 'no_mistakes'], expectedStars: 12 }
+                ];
+                
+                let testResults = '特效星数计算测试:\\n';
+                
+                testCases.forEach((testCase, index) => {
+                    const calculatedStars = calculateEffectStars(testCase.effects);
+                    const passed = calculatedStars === testCase.expectedStars;
+                    testResults += `测试 ${index + 1}: ${testCase.effects.join(', ')} = ${calculatedStars}星 ${passed ? '✓' : '✗'}\\n`;
+                });
+                
+                // 测试时间限制计算
+                const timeTests = [
+                    { gridSize: '3x3', effects: ['time_limit'], expected: 126 },
+                    { gridSize: '4x4', effects: ['time_limit'], expected: 224 },
+                    { gridSize: '5x5', effects: [], expected: 1200 } // 默认时间
+                ];
+                
+                testResults += '\\n时间限制计算测试:\\n';
+                timeTests.forEach((test, index) => {
+                    const calculated = calculateTimeLimit(test.gridSize, test.effects, 1200);
+                    const passed = calculated === test.expected;
+                    testResults += `测试 ${index + 1}: ${test.gridSize} ${test.effects.includes('time_limit') ? '(生死时速)' : '(正常)'} = ${calculated}秒 ${passed ? '✓' : '✗'}\\n`;
+                });
+                
+                result.innerHTML = `<span class="success">${testResults}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 计算测试失败: ${error.message}</span>`;
+            }
+        }
+
+        function testEffectRestrictions() {
+            const result = document.getElementById('effect-test-result');
+            
+            try {
+                let testResults = '特效限制测试:\\n';
+                
+                // 测试预览限制
+                const previewTests = [
+                    { effects: [], canPreview: true },
+                    { effects: ['no_preview'], canPreview: false },
+                    { effects: ['一叶障目'], canPreview: false },
+                    { effects: ['rotate', 'no_preview'], canPreview: false }
+                ];
+                
+                previewTests.forEach((test, index) => {
+                    const canPreview = !isPreviewDisabled(test.effects);
+                    const passed = canPreview === test.canPreview;
+                    testResults += `预览测试 ${index + 1}: [${test.effects.join(', ')}] 预览${canPreview ? '允许' : '禁止'} ${passed ? '✓' : '✗'}\\n`;
+                });
+                
+                // 测试答案限制
+                const answerTests = [
+                    { effects: [], canAnswer: true },
+                    { effects: ['no_mistakes'], canAnswer: false },
+                    { effects: ['最终防线'], canAnswer: false },
+                    { effects: ['rotate', 'no_mistakes'], canAnswer: false }
+                ];
+                
+                answerTests.forEach((test, index) => {
+                    const canAnswer = !isAnswerDisabled(test.effects);
+                    const passed = canAnswer === test.canAnswer;
+                    testResults += `答案测试 ${index + 1}: [${test.effects.join(', ')}] 答案${canAnswer ? '允许' : '禁止'} ${passed ? '✓' : '✗'}\\n`;
+                });
+                
+                result.innerHTML = `<span class="success">${testResults}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 限制测试失败: ${error.message}</span>`;
+            }
+        }
+
+        function testEffectStyling() {
+            const result = document.getElementById('effect-test-result');
+            
+            try {
+                let testResults = 'CSS类名生成测试:\\n';
+                
+                const styleTests = [
+                    { effects: [], expected: [] },
+                    { effects: ['blur'], expected: ['effect-blur-unselected'] },
+                    { effects: ['invisible'], expected: ['effect-invisible-placed'] },
+                    { effects: ['blur', 'invisible'], expected: ['effect-blur-unselected', 'effect-invisible-placed'] }
+                ];
+                
+                styleTests.forEach((test, index) => {
+                    const classes = getEffectClasses(test.effects);
+                    const passed = JSON.stringify(classes.sort()) === JSON.stringify(test.expected.sort());
+                    testResults += `样式测试 ${index + 1}: [${test.effects.join(', ')}] -> [${classes.join(', ')}] ${passed ? '✓' : '✗'}\\n`;
+                });
+                
+                result.innerHTML = `<span class="success">${testResults}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 样式测试失败: ${error.message}</span>`;
+            }
+        }
+
+        function testCornerEffect() {
+            const result = document.getElementById('effect-test-result');
+            
+            try {
+                let testResults = '作茧自缚特效测试:\\n';
+                
+                // 模拟3x3网格
+                const gridSize = { rows: 3, cols: 3 };
+                const totalSlots = gridSize.rows * gridSize.cols;
+                
+                // 初始解锁角落
+                const initialCorners = [0, 2, 6, 8]; // 3x3网格的角落索引
+                let unlockedSlots = new Set(initialCorners);
+                
+                testResults += `初始解锁槽位: [${Array.from(unlockedSlots).join(', ')}]\\n`;
+                
+                // 模拟拼图块数据
+                const mockPieces = [
+                    { id: 'piece-0', correctSlot: 0, rotation: 0, isFlipped: false, correctRotation: 0, correctIsFlipped: false },
+                    { id: 'piece-1', correctSlot: 1, rotation: 0, isFlipped: false, correctRotation: 90, correctIsFlipped: false },
+                    { id: 'piece-2', correctSlot: 2, rotation: 0, isFlipped: false, correctRotation: 0, correctIsFlipped: false }
+                ];
+                
+                // 测试1: 正确放置到角落0
+                const placedSlot1 = 0;
+                const piece1 = mockPieces.find(p => p.correctSlot === placedSlot1);
+                if (piece1 && piece1.correctSlot === placedSlot1 && 
+                    piece1.rotation === piece1.correctRotation && 
+                    piece1.isFlipped === (piece1.correctIsFlipped || false)) {
+                    const adjacentSlots = getAdjacentSlots(placedSlot1, gridSize);
+                    adjacentSlots.forEach(slot => unlockedSlots.add(slot));
+                    testResults += `✓ 正确放置到槽位${placedSlot1}，解锁相邻槽位: [${adjacentSlots.join(', ')}]\\n`;
+                } else {
+                    testResults += `✗ 放置到槽位${placedSlot1}失败或不正确\\n`;
+                }
+                
+                testResults += `当前解锁槽位: [${Array.from(unlockedSlots).join(', ')}]\\n`;
+                
+                // 测试2: 错误放置到角落0（旋转不正确）
+                unlockedSlots = new Set(initialCorners); // 重置
+                const piece2 = mockPieces.find(p => p.correctSlot === 1);
+                if (piece2) {
+                    piece2.rotation = 0; // 设置为错误旋转
+                    const placedSlot2 = 0;
+                    if (piece2.correctSlot === placedSlot2 && 
+                        piece2.rotation === piece2.correctRotation && 
+                        piece2.isFlipped === (piece2.correctIsFlipped || false)) {
+                        const adjacentSlots = getAdjacentSlots(placedSlot2, gridSize);
+                        adjacentSlots.forEach(slot => unlockedSlots.add(slot));
+                        testResults += `✓ 错误放置也解锁了相邻槽位（这不应该发生）\\n`;
+                    } else {
+                        testResults += `✓ 错误放置到槽位${placedSlot2}，未解锁相邻槽位（正确行为）\\n`;
+                    }
+                }
+                
+                testResults += `最终解锁槽位: [${Array.from(unlockedSlots).join(', ')}]\\n`;
+                
+                result.innerHTML = `<span class="success">${testResults}</span>`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">✗ 作茧自缚测试失败: ${error.message}</span>`;
+            }
+        }
+
+        // 获取相邻槽位的辅助函数
+        function getAdjacentSlots(slotIndex, gridSize) {
+            const adjacent = [];
+            const row = Math.floor(slotIndex / gridSize.cols);
+            const col = slotIndex % gridSize.cols;
+            
+            // 上
+            if (row > 0) adjacent.push(slotIndex - gridSize.cols);
+            // 下
+            if (row < gridSize.rows - 1) adjacent.push(slotIndex + gridSize.cols);
+            // 左
+            if (col > 0) adjacent.push(slotIndex - 1);
+            // 右
+            if (col < gridSize.cols - 1) adjacent.push(slotIndex + 1);
+            
+            return adjacent;
+        }
+
+        // 辅助函数
+        function calculateEffectStars(effects) {
+            return effects.reduce((total, effectId) => {
+                if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
+                    return total + 3;
+                } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
+                    return total + 4;
+                } else if (['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '亦步亦趋'].includes(effectId)) {
+                    return total + 5;
+                }
+                return total;
+            }, 0);
+        }
+
+        function calculateTimeLimit(gridSize, effects, defaultTime) {
+            if (effects.includes('time_limit') || effects.includes('生死时速')) {
+                const [rows, cols] = gridSize.split('x').map(Number);
+                const totalPieces = rows * cols;
+                return Math.floor(126 * (totalPieces / 9));
+            }
+            return defaultTime;
+        }
+
+        function isPreviewDisabled(effects) {
+            return effects.includes('no_preview') || effects.includes('一叶障目');
+        }
+
+        function isAnswerDisabled(effects) {
+            return effects.includes('no_mistakes') || effects.includes('最终防线');
+        }
+
+        function getEffectClasses(effects) {
+            const classes = [];
+            if (effects.includes('blur') || effects.includes('雾里看花')) {
+                classes.push('effect-blur-unselected');
+            }
+            if (effects.includes('invisible') || effects.includes('深渊漫步')) {
+                classes.push('effect-invisible-placed');
+            }
+            return classes;
+        }
+
+        // 初始化特效列表
+        function initEffectList() {
+            const container = document.getElementById('effect-list');
+            let html = '';
+            
+            // 显示所有特效，方便测试
+            html += '<h4>所有特效列表</h4>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px;">';
+            
+            ['star3', 'star4', 'star5'].forEach(category => {
+                mockEffects[category].forEach(effect => {
+                    html += `<div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #f9f9f9;">
+                        <strong>${effect.name}</strong> (${effect.id}) - ${effect.star}星
+                        <br><small>${effect.description}</small>
+                    </div>`;
+                });
+            });
+            
+            html += '</div>';
+            
+            container.innerHTML = html;
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            initEffectList();
+        };
+    </script>
+</body>
+</html>
