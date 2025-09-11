@@ -1,4 +1,5 @@
 import React from 'react';
+import './SavedPuzzles.css';
 
 interface SavedPuzzle {
   id: string;
@@ -25,25 +26,69 @@ import { useState } from 'react';
 interface SavedPuzzlesPageProps {
   onBackToMenu?: () => void;
   onOpenEditor?: (step: 'upload' | 'crop' | 'settings' | 'preview') => void;
+  highlightId?: string;
 }
 
-const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpenEditor }) => {
-  const [puzzles, setPuzzles] = useState(getSavedPuzzles());
+const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpenEditor, highlightId }) => {
+  // 按id倒序（时间戳）排序
+  const sortPuzzles = (arr: SavedPuzzle[]) => [...arr].sort((a, b) => Number(b.id) - Number(a.id));
+  const [puzzles, setPuzzles] = useState(() => sortPuzzles(getSavedPuzzles()));
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [highlighted, setHighlighted] = useState<string | null>(highlightId || null);
+  const [showApplyButton, setShowApplyButton] = useState(false);
+  const [selectedPuzzleRect, setSelectedPuzzleRect] = useState<DOMRect | null>(null);
 
-  // 删除存档
+  // 2秒后自动移除高亮
+  React.useEffect(() => {
+    if (highlightId) {
+      setHighlighted(highlightId);
+      const timer = setTimeout(() => setHighlighted(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightId]);
+
+  // 删除存档，增加弹窗确认
   const handleDelete = (id: string) => {
+    const puzzle = puzzles.find(p => p.id === id);
+    const name = puzzle?.name || '该存档';
+    if (!window.confirm(`确定要删除"${name}"吗？此操作不可撤销。`)) return;
     const filtered = puzzles.filter(p => p.id !== id);
-    setPuzzles(filtered);
-    localStorage.setItem('savedPuzzles', JSON.stringify(filtered));
+    const sorted = sortPuzzles(filtered);
+    setPuzzles(sorted);
+    localStorage.setItem('savedPuzzles', JSON.stringify(sorted));
   };
 
-  // 返回菜单
+  // 返回上一页面
   const handleBack = () => {
     if (onBackToMenu) {
       onBackToMenu();
     } else {
-      // 兼容直接页面跳转（如刷新后）
-      window.location.reload();
+      window.history.length > 1 ? window.history.back() : window.location.reload();
+    }
+  };
+
+  // 处理存档选择
+  const handlePuzzleSelect = (puzzleId: string, event: React.MouseEvent) => {
+    const newSelectedId = selectedId === puzzleId ? null : puzzleId;
+    setSelectedId(newSelectedId);
+    
+    if (newSelectedId) {
+      // 获取选中存档容器的位置信息
+      const element = event.currentTarget as HTMLElement;
+      const rect = element.getBoundingClientRect();
+      setSelectedPuzzleRect(rect);
+      setShowApplyButton(true);
+    } else {
+      setShowApplyButton(false);
+      setSelectedPuzzleRect(null);
+    }
+  };
+
+  // 处理确认并应用
+  const handleApply = () => {
+    if (selectedId && onOpenEditor) {
+      const selected = puzzles.find(p => p.id === selectedId);
+      if (selected) onOpenEditor(selected);
     }
   };
 
@@ -59,7 +104,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
     }}>
       <div style={{
         width: '100%',
-        maxWidth: 600,
+  maxWidth: 420,
         margin: '0 auto',
         display: 'flex',
         flexDirection: 'column',
@@ -76,7 +121,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
           onClick={handleBack}
           style={{
             marginBottom: 32,
-            background: 'linear-gradient(90deg,#60a5fa,#38bdf8)',
+            background: 'linear-gradient(90deg,#34d399,#10b981)',
             color: '#fff',
             border: 'none',
             borderRadius: 8,
@@ -88,7 +133,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
             transition: 'background 0.2s',
           }}
         >
-          ← 返回菜单
+          ← 返回上一页
         </button>
         {puzzles.length === 0 ? (
           <div style={{
@@ -97,6 +142,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
             boxShadow: cardShadow,
             padding: '48px 0',
             width: '100%',
+            maxWidth: 420,
             textAlign: 'center',
             color: '#888',
             fontSize: 18,
@@ -113,16 +159,25 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
             {puzzles.map((puzzle) => (
               <div
                 key={puzzle.id}
+                onClick={(e) => handlePuzzleSelect(puzzle.id, e)}
                 style={{
-                  background: '#fff',
+                  background: selectedId === puzzle.id ? '#e0f7e9' : '#fff',
                   borderRadius: 16,
                   boxShadow: cardShadow,
-                  padding: '28px 36px',
+                  padding: '20px 20px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 28,
-                  minHeight: 100,
+                  gap: 16,
+                  minHeight: 80,
                   position: 'relative',
+                  maxWidth: 400,
+                  margin: '0 auto',
+                  border: selectedId === puzzle.id ? '2px solid #22c55e' : '2px solid transparent',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s, border 0.2s',
+                  // 闪烁动画
+                  animation: highlighted === puzzle.id ? 'flash-border 0.4s linear 0s 5 alternate' : undefined,
+                  zIndex: highlighted === puzzle.id ? 2 : 1,
                 }}
               >
                 {puzzle.data?.croppedImageData ? (
@@ -199,7 +254,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
                   </div>
                 </div>
                 <button
-                  onClick={() => handleDelete(puzzle.id)}
+                  onClick={e => { e.stopPropagation(); handleDelete(puzzle.id); }}
                   style={{
                     background: 'linear-gradient(90deg,#f87171,#fbbf24)',
                     color: '#fff',
@@ -217,31 +272,41 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
                 >
                   删除存档
                 </button>
-                <button
-                  onClick={() => {
-                    if (onOpenEditor) {
-                      onOpenEditor('settings');
-                    }
-                  }}
-                  style={{
-                    background: 'linear-gradient(90deg,#38bdf8,#60a5fa)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 8,
-                    padding: '8px 16px',
-                    fontWeight: 600,
-                    fontSize: 14,
-                    cursor: 'pointer',
-                    marginLeft: 8,
-                    boxShadow: '0 1px 4px 0 rgba(0,0,0,0.08)',
-                    transition: 'background 0.2s',
-                  }}
-                  title="打开拼图编辑器"
-                >
-                  打开拼图编辑器
-                </button>
+                {/* 打开拼图编辑器按钮已移除 */}
               </div>
             ))}
+          </div>
+        )}
+        {/* 确认按钮区域 - 只在选中存档时显示，且onOpenEditor存在（即从上传页面进入） */}
+        {onOpenEditor && showApplyButton && selectedPuzzleRect && (
+          <div
+            style={{
+              position: 'fixed',
+              top: selectedPuzzleRect.top + window.scrollY + (selectedPuzzleRect.height / 2) - 20,
+              left: selectedPuzzleRect.right + 20,
+              zIndex: 1000,
+              animation: 'fadeInScale 0.3s ease-out forwards',
+              opacity: 0,
+              transform: 'scale(0.9)',
+            }}
+          >
+            <button
+              onClick={handleApply}
+              style={{
+                background: 'linear-gradient(90deg,#22c55e,#16a34a)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                padding: '10px 28px',
+                fontWeight: 600,
+                fontSize: 16,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px 0 rgba(34,197,94,0.3)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              确认并应用
+            </button>
           </div>
         )}
       </div>

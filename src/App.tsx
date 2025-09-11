@@ -216,7 +216,7 @@ const AppContent: React.FC = () => {
 
       case 'editor':
         return (
-          <PuzzleEditor onBackToMenu={handleBackToMenu} onStartGame={handleStartGame} onStartIrregularGame={handleStartIrregularGame} />
+          <PuzzleEditor onBackToMenu={handleBackToMenu} onBackToHome={handleBackToHome} onStartGame={handleStartGame} onStartIrregularGame={handleStartIrregularGame} />
         );
 
       case 'irregular-game':

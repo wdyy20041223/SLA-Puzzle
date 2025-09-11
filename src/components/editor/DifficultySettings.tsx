@@ -12,6 +12,8 @@ interface DifficultySettingsProps {
   selectedShape: PieceShape;
   onDifficultyChange: (difficulty: DifficultyLevel) => void;
   onShapeChange: (shape: PieceShape) => void;
+  onRecrop?: () => void; // 新增：重新剪裁回调
+  hasUploadedImage?: boolean; // 新增：是否有已上传图片
 }
 
 export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
@@ -22,7 +24,9 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
   selectedDifficulty,
   selectedShape,
   onDifficultyChange,
-  onShapeChange
+  onShapeChange,
+  onRecrop,
+  hasUploadedImage
 }) => {
   const [customRows, setCustomRows] = useState('3');
   const [customCols, setCustomCols] = useState('3');
@@ -244,6 +248,19 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
             background: 'linear-gradient(135deg, color-mix(in srgb, #8b5cf6 5%, white), white)',
             animation: 'fadeIn 0.3s ease-in'
           }}>
+            {/* 新增：重新剪裁图片按钮 */}
+            {hasUploadedImage && onRecrop && (
+              <div style={{ margin: '12px 0 0 0', textAlign: 'right' }}>
+                <Button
+                  onClick={onRecrop}
+                  variant="secondary"
+                  size="small"
+                  className="recrop-btn"
+                >
+                  ✂️ 重新剪裁图片
+                </Button>
+              </div>
+            )}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
               <h4 style={{ margin: 0, fontSize: '18px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ color: '#8b5cf6' }}>⚙️</span>

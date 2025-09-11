@@ -32,13 +32,13 @@ import '../components/game/GameNavbarFix.css';
 interface IrregularPuzzleGameProps {
   onBackToMenu: () => void;
   imageData?: string;
-  gridSize?: '3x3' | '4x4' | '5x5' | '6x6';
+  gridSize?: { rows: number; cols: number } | '3x3' | '4x4' | '5x5' | '6x6';
 }
 
 export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
   onBackToMenu,
   imageData,
-  gridSize = '3x3'
+  gridSize = { rows: 3, cols: 3 }
 }) => {
   const [puzzleConfig, setPuzzleConfig] = useState<IrregularPuzzleConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -130,11 +130,21 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
         puzzleImageData = '/images/nature/landscape1.svg'; // 假设有这个图像
       }
 
-      const config = await IrregularPuzzleGenerator.generateSimpleIrregular(
-        puzzleImageData,
-        gridSize
-      );
-
+      let realGridSize: { rows: number; cols: number };
+      if (typeof gridSize === 'string') {
+        // 兼容老用法
+        const [rows, cols] = gridSize.split('x').map(Number);
+        realGridSize = { rows, cols };
+      } else {
+        realGridSize = gridSize;
+      }
+      const config = await IrregularPuzzleGenerator.generateIrregularPuzzle({
+        imageData: puzzleImageData,
+        gridSize: realGridSize,
+        pieceShape: 'irregular',
+        name: '异形拼图',
+        expansionRatio: 0.4
+      });
       // 初始化时为每个piece补充flipX/rotation属性
       const patchedConfig = {
         ...config,
