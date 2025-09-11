@@ -13,6 +13,7 @@ import { MultiplayerGame } from './pages/MultiplayerGame';
 import { Shop } from './pages/Shop';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
+import { DailyChallengeHistory } from './pages/DailyChallengeHistory';
 import { Settings } from './pages/Settings';
 import { Button } from './components/common/Button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -20,7 +21,7 @@ import { Auth } from './components/auth/Auth';
 import { MultiplayerRoom } from './services/apiService';
 import './App.css';
 
-type AppView = 'home' | 'singlePlayer' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'multiplayer-game' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+type AppView = 'home' | 'singlePlayer' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'dailyChallengeHistory' | 'multiplayer' | 'multiplayer-game' | 'shop' | 'profile' | 'leaderboard' | 'settings';
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
@@ -110,6 +111,10 @@ const AppContent: React.FC = () => {
 
   const handleOpenLeaderboard = () => {
     setCurrentView('leaderboard');
+  };
+
+  const handleOpenDailyChallengeHistory = () => {
+    setCurrentView('dailyChallengeHistory');
   };
 
   const handleOpenSettings = () => {
@@ -214,7 +219,10 @@ const AppContent: React.FC = () => {
       
       case 'dailyChallenge':
         return (
-          <DailyChallenge onBackToMenu={handleBackToMenu} />
+          <DailyChallenge 
+            onBackToMenu={handleBackToMenu} 
+            onOpenDailyChallengeHistory={handleOpenDailyChallengeHistory}
+          />
         );
       
       case 'multiplayer':
@@ -255,7 +263,15 @@ const AppContent: React.FC = () => {
       
       case 'leaderboard':
         return (
-          <Leaderboard onBackToMenu={handleBackToMenu} />
+          <Leaderboard 
+            onBackToMenu={handleBackToMenu} 
+            onOpenDailyChallengeHistory={handleOpenDailyChallengeHistory}
+          />
+        );
+      
+      case 'dailyChallengeHistory':
+        return (
+          <DailyChallengeHistory onBackToMenu={handleBackToMenu} />
         );
       
       case 'settings':

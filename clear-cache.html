@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>清除每日挑战缓存</title>
+</head>
+<body>
+    <h1>清除每日挑战缓存工具</h1>
+    <button onclick="clearCache()">清除缓存并刷新页面</button>
+
+    <script>
+        function clearCache() {
+            // 清除所有每日挑战相关的数据
+            const keys = Object.keys(localStorage);
+            let removedCount = 0;
+
+            keys.forEach(key => {
+                if (key.startsWith('daily_challenge_')) {
+                    localStorage.removeItem(key);
+                    removedCount++;
+                    console.log('Removed:', key);
+                }
+            });
+
+            alert(`已清除 ${removedCount} 条缓存数据，请刷新主页面查看新的挑战列表！`);
+        }
+    </script>
+</body>
+</html>
