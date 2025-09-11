@@ -31,15 +31,15 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
   // 更新拼图块位置
   const handlePieceMove = useCallback((pieceId: string, x: number, y: number) => {
     setPieces(prevPieces => {
-      const newPieces = prevPieces.map(piece =>
+      const newPieces = prevPieces.map(piece => 
         piece.id === pieceId ? { ...piece, x, y } : piece
       );
-
+      
       // 通知外部组件
       if (onPieceMove) {
         onPieceMove(pieceId, x, y);
       }
-
+      
       return newPieces;
     });
   }, [onPieceMove]);
@@ -49,15 +49,15 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     setPieces(prevPieces => {
       const newPieces = prevPieces.map(piece => {
         if (piece.id !== pieceId) return piece;
-
+        
         // 检查是否吸附到正确位置
         const targetX = piece.basePosition.x;
         const targetY = piece.basePosition.y;
         const tolerance = 20;
-
+        
         const deltaX = Math.abs(piece.x - targetX);
         const deltaY = Math.abs(piece.y - targetY);
-
+        
         if (deltaX <= tolerance && deltaY <= tolerance) {
           // 吸附到正确位置
           return {
@@ -67,10 +67,10 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
             isCorrect: true
           };
         }
-
+        
         return piece;
       });
-
+      
       return newPieces;
     });
   }, []);
@@ -81,16 +81,16 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     const totalPieces = pieces.length;
     const completionRate = Math.round((correctPieces / totalPieces) * 100);
     const isComplete = correctPieces === totalPieces;
-
+    
     const newStatus = {
       isComplete,
       correctPieces,
       totalPieces,
       completionRate
     };
-
+    
     setCompletionStatus(newStatus);
-
+    
     // 通知进度变化
     if (onProgressChange) {
       onProgressChange({
@@ -99,7 +99,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
         percentage: completionRate
       });
     }
-
+    
     // 检查是否完成
     if (isComplete && !completionStatus.isComplete && onPuzzleComplete) {
       onPuzzleComplete();
@@ -136,10 +136,10 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     // 动态导入interactjs
     import('interactjs').then((interactModule) => {
       const interact = interactModule.default;
-
+      
       // 清理之前的interactjs实例
       interact('.puzzle-piece').unset();
-
+      
       // 设置拖拽
       // 计算与页面坐标系对齐的网格原点（board 左上角 + 50 偏移）
       const boardEl = document.getElementById('puzzle-board') as HTMLElement | null;
@@ -170,8 +170,12 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
               ],
               range: Infinity,
               relativePoints: [{ x: 0, y: 0 }]
+            }),
+            interact.modifiers.restrict({
+              restriction: '#puzzle-board',
+              elementRect: { top: 0, left: 0, bottom: 1, right: 1 },
+              endOnly: true
             })
-            // 移除restrict限制，允许拼图块在待拼接区域和拼接板之间自由拖拽
           ],
           inertia: true
         })
@@ -226,7 +230,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
                     snapBoardOffsetX,
                     snapBoardOffsetY
                   });
-                } catch { }
+                } catch {}
               }
             }
           }
@@ -234,79 +238,36 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
         .on('dragend', function (event: any) {
           event.target.style.zIndex = '';
           event.target.style.cursor = 'grab';
-
-          // 在 dragend 时一次性提交状态并判断拖拽位置
+          
+          // 在 dragend 时一次性提交状态并做吸附判断
           const pieceId = event.target.getAttribute('data-piece-id');
           const piece = pieces.find(p => p.id === pieceId);
           if (piece) {
             const finalX = parseFloat(event.target.getAttribute('data-x')) || 0;
             const finalY = parseFloat(event.target.getAttribute('data-y')) || 0;
-            const finalPieceX = piece.x + finalX;
-            const finalPieceY = piece.y + finalY;
+            const alignedX = Math.round((piece.x + finalX - gridOffset) / gridSize) * gridSize + gridOffset;
+            const alignedY = Math.round((piece.y + finalY - gridOffset) / gridSize) * gridSize + gridOffset;
 
-            // 检测拖拽位置：左侧为待拼接区域（x < 300），右侧为拼接板区域（x >= 300）
-            const isInWaitingArea = finalPieceX < 300;
-
-            if (isInWaitingArea) {
-              // 拖拽到待拼接区域：重置拼图块位置
-              setPieces(prevPieces => {
-                return prevPieces.map(p => {
-                  if (p.id === pieceId) {
-                    return {
-                      ...p,
-                      x: 0, // 重置位置，让它回到待拼接区域显示
-                      y: 0,
-                      isCorrect: false // 标记为未完成
-                    };
-                  }
-                  return p;
-                });
-              });
-
-              // 通知外部组件拼图块已移回
-              if (onPieceMove) {
-                onPieceMove(pieceId, 0, 0);
-              }
-            } else {
-              // 拖拽到拼接板区域：进行网格对齐和吸附检查
-              const alignedX = Math.round((finalPieceX - gridOffset) / gridSize) * gridSize + gridOffset;
-              const alignedY = Math.round((finalPieceY - gridOffset) / gridSize) * gridSize + gridOffset;
-
-              // 更新拼图块状态
-              setPieces(prevPieces => {
-                return prevPieces.map(p => {
-                  if (p.id === pieceId) {
-                    // 检查是否在正确位置（根据原始数据）
-                    const targetX = piece.expandedPosition.x + gridOffset;
-                    const targetY = piece.expandedPosition.y + gridOffset;
-                    const isAtCorrectPosition = Math.abs(alignedX - targetX) < 30 && 
-                                               Math.abs(alignedY - targetY) < 30;
-                    
-                    return {
-                      ...p,
-                      x: alignedX,
-                      y: alignedY,
-                      isCorrect: isAtCorrectPosition // 根据位置准确性更新状态
-                    };
-                  }
-                  return p;
-                });
-              });
-
-              // 通知外部组件拼图块位置
-              if (onPieceMove) {
-                onPieceMove(pieceId, alignedX, alignedY);
-              }
+            // 提交对齐后的状态
+            if (onPieceMove) {
+              onPieceMove(pieceId, alignedX, alignedY);
             }
 
-            // 重置拖拽状态
-            event.target.setAttribute('data-x', '0');
-            event.target.setAttribute('data-y', '0');
-            event.target.style.transform = '';
+            // 检查是否吸附到目标位置
+            if (handleSnapToTarget) {
+              const targetX = Math.round((gridOffset + piece.expandedPosition.x) / gridSize) * gridSize;
+              const targetY = Math.round((gridOffset + piece.expandedPosition.y) / gridSize) * gridSize;
+              const deltaX = Math.abs(alignedX - targetX);
+              const deltaY = Math.abs(alignedY - targetY);
+              const tolerance = gridSize * 1.5;
+              if (deltaX <= tolerance && deltaY <= tolerance) {
+                handleSnapToTarget(pieceId);
+              }
+            }
           }
         });
     });
-
+    
     // 清理函数
     return () => {
       import('interactjs').then((interactModule) => {
@@ -329,79 +290,33 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
     });
   }, [pieces.map(p => `${p.id}-${p.x}-${p.y}`).join(',')]); // 依赖于每个拼图块的位置
 
-  // 处理拼图块选择和移动
+  // 处理拼图块选择
   const handlePieceClick = useCallback((pieceId: string) => {
     const piece = pieces.find(p => p.id === pieceId);
-    if (!piece) return;
-
-    const isInWaiting = !piece.isCorrect;
-
+    if (!piece?.isDraggable) return;
+    
+    const isInWaiting = piece.isDraggable && !piece.isCorrect;
+    
     if (isInWaiting) {
-      // 在待拼接区域：直接移动到拼接板中心位置
-      const boardCenterX = 300; // 拼接板中心X坐标
-      const boardCenterY = 250; // 拼接板中心Y坐标
-      
-      setPieces(prevPieces => {
-        return prevPieces.map(p => {
-          if (p.id === pieceId) {
-            const newX = boardCenterX - piece.expandedSize.width / 2;
-            const newY = boardCenterY - piece.expandedSize.height / 2;
-            
-            return {
-              ...p,
-              x: newX,
-              y: newY,
-              isCorrect: false // 标记为已放置但未完成（需要用户调整到正确位置）
-            };
-          }
-          return p;
-        });
-      });
-      
-      // 通知外部组件拼图块已移动
-      if (onPieceMove) {
-        const newX = boardCenterX - piece.expandedSize.width / 2;
-        const newY = boardCenterY - piece.expandedSize.height / 2;
-        onPieceMove(pieceId, newX, newY);
-      }
-      
-      setSelectedPieceId(pieceId);
+      // 在待拼接区域：选中/取消选中
+      setSelectedPieceId(selectedPieceId === pieceId ? null : pieceId);
     } else {
-      // 在拼接板上：将拼图块移回待拼接区域
-      setPieces(prevPieces => {
-        return prevPieces.map(p => {
-          if (p.id === pieceId) {
-            return {
-              ...p,
-              x: 0, // 重置位置，让它回到待拼接区域显示
-              y: 0,
-              isCorrect: false // 标记为未完成
-            };
-          }
-          return p;
-        });
-      });
-      
-      // 通知外部组件拼图块已移回
-      if (onPieceMove) {
-        onPieceMove(pieceId, 0, 0);
-      }
-      
-      setSelectedPieceId(null);
+      // 在拼接板上：选中/取消选中
+      setSelectedPieceId(selectedPieceId === pieceId ? null : pieceId);
     }
-  }, [pieces, onPieceMove]);
+  }, [selectedPieceId, pieces]);
 
   // 处理拼接板点击：将选中的拼图块移动到点击位置
   const handleBoardClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (!selectedPieceId) return;
-
+    
     const selectedPiece = pieces.find(p => p.id === selectedPieceId);
-    if (!selectedPiece) return;
-
+    if (!selectedPiece || !selectedPiece.isDraggable) return;
+    
     const rect = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
     const clickX = event.clientX - rect.left;
     const clickY = event.clientY - rect.top;
-
+    
     // 吸附到最近网格（考虑50px偏移）
     const gridSize = config.gridLayout.baseSize.width / 5;
     const offsetX = 50;
@@ -421,21 +336,21 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
         snapY
       });
     }
-
+    
     // 移动拼图块到拼接板
     handlePieceMove(selectedPieceId, snapX, snapY);
-
+    
     // 检查是否需要标记为正确（坐标相对于拼接板容器）
     const targetX = Math.round((50 + selectedPiece.expandedPosition.x) / gridSize) * gridSize;
     const targetY = Math.round((50 + selectedPiece.expandedPosition.y) / gridSize) * gridSize;
     const deltaX = Math.abs(snapX - targetX);
     const deltaY = Math.abs(snapY - targetY);
     const tolerance = gridSize * 1.5; // 减小容差，因为现在都是网格对齐的
-
+    
     if (deltaX <= tolerance && deltaY <= tolerance) {
       handleSnapToTarget(selectedPieceId);
     }
-
+    
     // 取消选中
     setSelectedPieceId(null);
   }, [selectedPieceId, pieces, config, handlePieceMove, handleSnapToTarget]);
@@ -450,13 +365,12 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
   const getHint = useCallback(() => {
     const incorrectPieces = pieces.filter(piece => !piece.isCorrect && piece.isDraggable);
     if (incorrectPieces.length === 0) return;
-
-
+    
     const randomPiece = incorrectPieces[Math.floor(Math.random() * incorrectPieces.length)];
-
-    setPieces(prevPieces =>
-      prevPieces.map(piece =>
-        piece.id === randomPiece.id
+    
+    setPieces(prevPieces => 
+      prevPieces.map(piece => 
+        piece.id === randomPiece.id 
           ? {
               ...piece,
               x: piece.basePosition.x,
@@ -502,7 +416,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
 
   const boardWidth = config.gridSize.cols * config.gridLayout.baseSize.width;
   const boardHeight = config.gridSize.rows * config.gridLayout.baseSize.height;
-
+  
   // 网格参数已在前面计算
 
   return (
@@ -510,32 +424,23 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
       {/* 左侧：待拼接区域 */}
       <div style={waitingAreaStyle}>
         <div className="text-sm text-gray-600 mb-4 font-medium">
-          待拼接块 ({pieces.filter(p => !p.isCorrect).length})
+          待拼接块 ({pieces.filter(p => p.isDraggable && !p.isCorrect).length})
         </div>
         <div className="grid grid-cols-2 gap-3">
-          {pieces.filter(piece => !piece.isCorrect).map((piece, _index) => (
-            <div
-              key={`waiting-${piece.id}`}
-              className={`
-                puzzle-piece relative cursor-pointer rounded-lg transition-all duration-200 p-2
-                ${selectedPieceId === piece.id
-                  ? 'bg-blue-50 border-2 border-blue-500 shadow-lg scale-105'
-                  : 'bg-gray-50 border-2 border-transparent hover:border-gray-300 hover:shadow-md'
-                }
-              `}
-              data-piece-id={piece.id}
-              data-x="0"
-              data-y="0"
+          {pieces.filter(piece => piece.isDraggable && !piece.isCorrect).map((piece, _index) => (
+            <div 
+              key={`waiting-${piece.id}`} 
               onClick={(e) => {
                 e.stopPropagation();
                 handlePieceClick(piece.id);
               }}
-              style={{
-                position: 'relative',
-                width: piece.expandedSize.width,
-                height: piece.expandedSize.height,
-                cursor: 'grab'
-              }}
+              className={`
+                relative cursor-pointer rounded-lg transition-all duration-200 p-2
+                ${selectedPieceId === piece.id 
+                  ? 'bg-blue-50 border-2 border-blue-500 shadow-lg scale-105' 
+                  : 'bg-gray-50 border-2 border-transparent hover:border-gray-300 hover:shadow-md'
+                }
+              `}
             >
               <div className="relative aspect-square">
                 <img
@@ -547,8 +452,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
                   }}
                   draggable={false}
                 />
-
-
+                
                 {/* 选中指示器 */}
                 {selectedPieceId === piece.id && (
                   <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
@@ -558,7 +462,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
                   </div>
                 )}
               </div>
-
+              
               {/* 拼图块编号 */}
               <div className="text-xs text-gray-500 text-center mt-1">
                 块 {piece.id}
@@ -566,7 +470,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
             </div>
           ))}
         </div>
-
+        
         {/* 操作提示 */}
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <div className="text-xs text-blue-700">
@@ -579,7 +483,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
       </div>
 
       {/* 右侧：拼接板区域 */}
-      <div
+      <div 
         style={puzzleBoardStyle}
         onClick={handleBoardClick}
         id="puzzle-board"
@@ -624,7 +528,7 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
             />
           ))}
         </svg>
-
+        
         {/* 目标拼图区域标识 */}
         <div
           style={{
@@ -677,9 +581,47 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
             ))}
           </svg>
         </div>
+        
+        {/* 固定块位置标识 */}
+        {pieces.filter(piece => !piece.isDraggable).map(piece => (
+          <React.Fragment key={`fixed-indicator-${piece.id}`}>
+            <div
+              style={{
+                position: 'absolute',
+                left: 50 + piece.basePosition.x - 3,
+                top: 50 + piece.basePosition.y - 3,
+                width: config.gridLayout.baseSize.width + 6,
+                height: config.gridLayout.baseSize.height + 6,
+                border: '4px solid #10b981',
+                borderRadius: '8px',
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                pointerEvents: 'none',
+                zIndex: 3
+              }}
+            />
+            
+            {/* 固定块标签 */}
+            <div
+              style={{
+                position: 'absolute',
+                left: 50 + piece.basePosition.x,
+                top: 50 + piece.basePosition.y - 25,
+                padding: '2px 8px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                borderRadius: '12px',
+                zIndex: 4
+              }}
+            >
+              固定块
+            </div>
+          </React.Fragment>
+        ))}
 
         {/* 拼接板标题 */}
-  <div
+        <div 
           style={{
             position: 'absolute',
             top: 5,
@@ -692,11 +634,40 @@ export const IrregularPuzzleWorkspace: React.FC<IrregularPuzzleWorkspaceProps> =
           拼接板 ({config.gridSize.rows}×{config.gridSize.cols})
         </div>
 
+        {/* 固定块（直接DOM显示，不参与拖拽） */}
+        {pieces.filter(piece => !piece.isDraggable).map(piece => (
+          <div
+            key={`fixed-${piece.id}`}
+            style={{
+              position: 'absolute',
+              left: piece.x,
+              top: piece.y,
+              width: piece.expandedSize.width,
+              height: piece.expandedSize.height,
+              zIndex: 5,
+              pointerEvents: 'none'
+            }}
+          >
+            <img
+              src={piece.imageData}
+              alt={`固定块 ${piece.id}`}
+              style={{
+                width: '100%',
+                height: '100%',
+                clipPath: piece.clipPath,
+                userSelect: 'none',
+                objectFit: 'cover'
+              }}
+              draggable={false}
+            />
+          </div>
+        ))}
+
         {/* 可拖拽的拼图块（使用interactjs） */}
-        {pieces.filter(piece => piece.isCorrect).map(piece => {
+        {pieces.filter(piece => piece.isDraggable && piece.isCorrect).map(piece => {
           return (
-            <div
-              key={`draggable-${piece.id}`}
+            <div 
+              key={`draggable-${piece.id}`} 
               className="puzzle-piece"
               style={{
                 position: 'absolute',

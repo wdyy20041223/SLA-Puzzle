@@ -1,28 +1,16 @@
 @import "tailwindcss";
 
-/* App 全局样式 - 慵懒夏日淡粉色主题 */
+/* App 全局样式 */
 :root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   font-size: 16px;
-  line-height: 1.6;
-  font-weight: 300;
+  line-height: 1.5;
+  font-weight: 400;
 
-  /* 慵懒夏日淡粉色调色板 */
-  --primary-pink: #FFB6C1;           /* 淡粉色 */
-  --secondary-pink: #FFB6C1;         /* 浅粉色 */
-  --accent-pink: #FFC0CB;            /* 玫瑰粉 */
-  --light-pink: #FFE4E1;            /* 薄荷粉 */
-  --warm-pink: #FFCCCB;             /* 温暖粉 */
-  --text-primary: #8B5A6B;          /* 深粉棕色 */
-  --text-secondary: #A0758D;        /* 中等粉棕色 */
-  --text-light: #C4A484;            /* 浅粉棕色 */
-  --background-main: #FFF8F8;       /* 极淡粉色背景 */
-  --background-secondary: #FFF5F5;  /* 次级背景 */
-  
-  color: var(--text-primary);
-  background-color: var(--background-main);
+  color: #333;
+  background-color: #f5f5f5;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -40,13 +28,10 @@ body {
   padding: 0;
   font-family: inherit;
   line-height: inherit;
-  background: var(--background-main);
-  color: var(--text-primary);
 }
 
 .app {
   height: 100vh;
-  background: var(--background-main);
 }
 
 /* 加载屏幕 */
@@ -56,7 +41,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 50%, var(--warm-pink) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -113,17 +98,16 @@ body {
   height: 100vh;
   padding: 2rem;
   text-align: center;
-  background: var(--background-main);
+  background: #f5f5f5;
 }
 
 .error-view h2 {
-  color: var(--text-primary);
+  color: #dc3545;
   margin-bottom: 1rem;
-  font-weight: 400;
 }
 
 .error-view p {
-  color: var(--text-secondary);
+  color: #666;
   margin-bottom: 2rem;
 }
 

@@ -35,12 +35,6 @@
 .answer-area {
   flex: 1;
   min-width: 500px;
-  transition: transform 0.3s ease;
-}
-
-/* 颠倒世界特效：答题区旋转180度 */
-.answer-area.upside-down-area {
-  transform: rotate(180deg);
 }
 
 .area-header {

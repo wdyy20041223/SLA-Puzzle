@@ -15,17 +15,12 @@ export interface IrregularPuzzleConfig extends Omit<PuzzleConfig, 'pieces'> {
 
 // 异形拼图块
 export interface IrregularPuzzlePiece extends Omit<PuzzlePiece, 'shape' | 'currentSlot' | 'correctSlot' | 'isFlipped'> {
-  /** 是否左右翻转 */
-  flipX?: boolean;
   // 当前显示位置
   x: number;
   y: number;
   
   // 是否在正确位置
   isCorrect: boolean;
-  
-  // 正确的旋转角度
-  correctRotation: number;
   
   // 基础位置和尺寸（不考虑扩展）
   basePosition: Position;
@@ -48,12 +43,6 @@ export interface IrregularPuzzlePiece extends Omit<PuzzlePiece, 'shape' | 'curre
   // 网格坐标
   gridRow: number;
   gridCol: number;
-
-  // 新增：四个方向的异形标识（1=凸出，-1=凹陷，0=平）
-  up: number;
-  right: number;
-  down: number;
-  left: number;
 }
 
 // 尺寸接口

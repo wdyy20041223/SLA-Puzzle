@@ -108,58 +108,7 @@
   font-size: 16px;
 }
 
-.asset-card.locked {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.asset-card.locked:hover {
-  transform: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.asset-thumbnail img.locked {
-  filter: grayscale(100%) blur(1px);
-}
-
-.svg-image.locked {
-  filter: grayscale(100%) blur(1px);
-}
-
-.lock-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-}
-
-.lock-icon {
-  font-size: 48px;
-  margin-bottom: 8px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.lock-text {
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  background: rgba(0, 0, 0, 0.8);
-  padding: 4px 12px;
-  border-radius: 16px;
-  text-align: center;
-}
-
-.asset-card.locked .asset-overlay {
-  opacity: 0;
-}
-
-.asset-card.locked:hover .asset-overlay {
-  opacity: 0;
+.delete-btn:hover {
+  background: #FEE2E2;
+  color: #DC2626;
 }

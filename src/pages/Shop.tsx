@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import './Shop.css';
@@ -122,53 +122,22 @@ const mockShopItems: ShopItem[] = [
 ];
 
 export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
-  const { authState, setAuthenticatedUser } = useAuth();
+  const { authState } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
   const user = authState.user;
   const userCoins = user?.coins || 0;
   const userOwnedItems = user?.ownedItems || [];
 
-  // 检查用户认证状态
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      if (user) {
-        const { apiService } = await import('../services/apiService');
-        const token = apiService.getToken();
-        if (!token) {
-          console.warn('用户已登录但没有有效的token，可能影响购买功能');
-        }
-      }
-    };
-    checkAuthStatus();
-  }, [user]);
+  // 根据用户拥有的物品设置商店物品状态
+  const initializeShopItems = () => {
+    return mockShopItems.map(item => ({
+      ...item,
+      owned: userOwnedItems.includes(item.id)
+    }));
+  };
 
-  const [shopItems, setShopItems] = useState<ShopItem[]>([]);
-
-  // 监听用户变化，智能更新商店物品状态
-  useEffect(() => {
-    const newItems = mockShopItems.map(item => {
-      const isOwned = userOwnedItems.includes(item.id);
-      // 查找当前状态中的对应物品
-      const currentItem = shopItems.find(si => si.id === item.id);
-      
-      return {
-        ...item,
-        // 优先保持已购买状态，防止后端同步延迟导致的状态回退
-        owned: currentItem?.owned || isOwned
-      };
-    });
-    
-    // 只有在实际有变化时才更新状态
-    const hasChanges = newItems.some((newItem, index) => {
-      const currentItem = shopItems[index];
-      return !currentItem || currentItem.owned !== newItem.owned;
-    });
-    
-    if (hasChanges || shopItems.length === 0) {
-      setShopItems(newItems);
-    }
-  }, [user?.id, userOwnedItems]); // 当用户ID或拥有物品发生变化时重新初始化
+  const [shopItems, setShopItems] = useState<ShopItem[]>(initializeShopItems());
 
   const categories = [
     { id: 'all', label: '全部', icon: '🛍️' },
@@ -201,7 +170,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
     return labels[rarity];
   };
 
-  const handlePurchase = async (item: ShopItem) => {
+  const handlePurchase = (item: ShopItem) => {
     if (item.owned) {
       alert('您已经拥有这个物品了！');
       return;
@@ -212,131 +181,25 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
       return;
     }
 
-    try {
-      // 获取API服务实例
-      const { apiService } = await import('../services/apiService');
+    // 更新商店物品状态
+    const updatedItems = shopItems.map(shopItem => 
+      shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
+    );
+    setShopItems(updatedItems);
 
-      // 所有物品都使用统一的API购买流程，包括拼图素材
-      // 根据物品类型映射到后端接受的类型
-      const itemTypeMapping: Record<string, string> = {
-        // 头像类
-        'avatar_cat': 'avatar',
-        'avatar_robot': 'avatar',
-        'avatar_wizard': 'avatar',
-        'avatar_knight': 'avatar',
-        'avatar_princess': 'avatar',
-        'avatar_ninja': 'avatar',
-        'avatar_unicorn': 'avatar',
+    // 更新用户数据
+    const currentUser = JSON.parse(localStorage.getItem('puzzle_current_user') || '{}');
+    const updatedUser = {
+      ...currentUser,
+      coins: currentUser.coins - item.price,
+      ownedItems: [...(currentUser.ownedItems || []), item.id]
+    };
+    localStorage.setItem('puzzle_current_user', JSON.stringify(updatedUser));
 
-        // 拼图素材类 - 使用后端支持的decoration类型
-        'puzzle_image_1': 'decoration',
-        'puzzle_image_2': 'decoration',
-        'puzzle_image_3': 'decoration',
-
-        // 头像框类
-        'frame_gold': 'avatar_frame',
-        'frame_silver': 'avatar_frame',
-        'frame_diamond': 'avatar_frame',
-        'frame_rainbow': 'avatar_frame',
-        'frame_fire': 'avatar_frame',
-        'frame_ice': 'avatar_frame',
-
-        // 装饰类
-        'decoration_star': 'decoration',
-        'decoration_crown': 'decoration',
-        'decoration_wing': 'decoration',
-        'decoration_halo': 'decoration',
-        'decoration_gem': 'decoration',
-        'decoration_frame': 'decoration',
-
-        // 主题类
-        'theme_classic': 'theme',
-        'theme_modern': 'theme',
-        'theme_fantasy': 'theme',
-        'theme_space': 'theme',
-        'theme_ocean': 'theme'
-      };
-
-      const backendItemType = itemTypeMapping[item.id] || 'decoration';
-      console.log(`购买物品: ${item.name} (ID: ${item.id})`);
-      console.log(`后端商品类型: ${backendItemType}, 价格: ${item.price}`);
-
-      const response = await apiService.acquireItem(backendItemType, item.id, item.price);
-
-      if (response.success) {
-        console.log('✅ 后端购买成功:', response.data);
-        alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
-
-        // 立即更新本地用户数据，确保购买的物品能立即在素材库中显示
-        if (user) {
-          const updatedUser = {
-            ...user,
-            coins: (user.coins || 0) - item.price,
-            ownedItems: [...(user.ownedItems || []), item.id]
-          };
-          console.log(`🔄 本地更新用户数据 - 添加物品: ${item.id}`);
-          console.log('📦 更新后的拥有物品:', updatedUser.ownedItems);
-          setAuthenticatedUser(updatedUser, apiService.getToken() || '');
-        }
-
-        // 更新商店物品状态，确保在不同账号间有正确的状态
-        const updatedItems = shopItems.map(shopItem =>
-          shopItem.id === item.id ? { ...shopItem, owned: true } : shopItem
-        );
-        setShopItems(updatedItems);
-
-        // 立即同步后端数据，确保购买记录正确保存
-        try {
-          console.log('🔄 开始同步后端数据...');
-          const userResponse = await apiService.getUserProfile();
-
-          if (userResponse.success && userResponse.data) {
-            // 转换API用户类型到内部用户类型
-            const convertedUser = {
-              ...userResponse.data.user,
-              createdAt: new Date(userResponse.data.user.createdAt),
-              lastLoginAt: new Date(userResponse.data.user.lastLoginAt),
-            };
-
-            // 确保本次购买的物品在后端数据中
-            const backendOwnedItems = convertedUser.ownedItems || [];
-            if (!backendOwnedItems.includes(item.id)) {
-              console.warn(`⚠️ 后端数据同步延迟，手动添加购买项目: ${item.id}`);
-              // 强制更新后端数据
-              const updateResponse = await apiService.updateUserProfile({
-                ownedItems: [...backendOwnedItems, item.id]
-              });
-
-              if (updateResponse.success) {
-                console.log('✅ 后端数据同步成功');
-                convertedUser.ownedItems = [...backendOwnedItems, item.id];
-              } else {
-                console.error('❌ 后端数据同步失败:', updateResponse.error);
-                // 即使同步失败，也要在本地保留购买状态
-                alert('购买成功！数据正在同步到服务器，请稍后刷新页面确认。');
-              }
-            } else {
-              console.log('✅ 后端数据已正确同步');
-            }
-
-            // 更新 AuthContext 中的用户数据
-            setAuthenticatedUser(convertedUser, apiService.getToken() || '');
-          } else {
-            console.error('❌ 获取用户数据失败:', userResponse.error);
-            alert('购买成功！但数据同步可能延迟，请稍后刷新页面。');
-          }
-        } catch (error) {
-          console.error('后端数据同步失败，但本地状态已更新:', error);
-          alert('购买成功！但数据同步遇到问题，请稍后刷新页面确认购买状态。');
-        }
-      } else {
-        console.error('❌ 后端购买失败:', response.error);
-        alert(`购买失败: ${response.error || '未知错误'}`);
-      }
-    } catch (error) {
-      console.error('购买物品时发生错误:', error);
-      alert(`购买失败：${error instanceof Error ? error.message : '网络错误，请稍后重试'}`);
-    }
+    alert(`成功购买 ${item.name}！消耗 ${item.price} 金币`);
+    
+    // 刷新页面以更新UI
+    window.location.reload();
   };
 
   return (
@@ -352,7 +215,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
         <div className="user-coins">
           <div className="coins-display">
             <span className="coins-icon">💰</span>
-            <span className="coins-amount">{(userCoins || 0).toLocaleString()}</span>
+            <span className="coins-amount">{userCoins.toLocaleString()}</span>
             <span className="coins-label">金币</span>
           </div>
         </div>
@@ -421,7 +284,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
                 <div className="item-footer">
                   <div className="price-section">
                     <span className="price-icon">💰</span>
-                    <span className="price-amount">{(item.price || 0).toLocaleString()}</span>
+                    <span className="price-amount">{item.price.toLocaleString()}</span>
                   </div>
                   
                   <button

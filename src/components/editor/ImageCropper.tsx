@@ -402,11 +402,11 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
               alt="待裁剪图片"
               className="display-image"
               style={{
-                transform: `scale(${scale})`,
                 left: `${imageOffset.x}px`,
                 top: `${imageOffset.y}px`,
-                width: `${imageRef.current?.naturalWidth}px`,
-                height: `${imageRef.current?.naturalHeight}px`
+                position: 'absolute',
+                width: imageRef.current ? imageRef.current.naturalWidth * scale : 'auto',
+                height: imageRef.current ? imageRef.current.naturalHeight * scale : 'auto',
               }}
               draggable={false}
             />

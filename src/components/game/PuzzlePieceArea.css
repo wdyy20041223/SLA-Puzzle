@@ -21,27 +21,14 @@
 
 .pieces-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
   margin-bottom: 20px;
   /* 添加以下属性确保网格布局稳定 */
-  grid-auto-rows: minmax(130px, auto);
-  align-items: start;
-  padding: 12px;
-}
-
-/* 俄罗斯方块的特殊网格布局 */
-.pieces-grid.tetris-grid {
-  grid-template-columns: repeat(2, 1fr);
-  gap: 40px;
-  grid-auto-rows: minmax(300px, auto);
-  justify-items: center;
-  align-items: center;
-  padding: 32px;
+  grid-auto-rows: minmax(120px, auto);
 }
 
 .puzzle-piece-item {
-  opacity: 1 !important;
   position: relative;
   aspect-ratio: 1;
   background: #f8fafc;
@@ -63,161 +50,6 @@
   border-color: #10b981;
   background: #ecfdf5;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-}
-
-/* 俄罗斯方块样式 */
-.puzzle-piece-item.tetris-piece {
-  aspect-ratio: auto;
-  min-width: 160px;
-  min-height: 100px;
-  max-width: 320px;
-  max-height: 320px;
-  width: auto;
-  height: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 8px;
-  padding: 16px;
-  overflow: visible;
-  border-radius: 12px;
-  border-width: 3px;
-  position: relative;
-}
-
-.puzzle-piece-item.tetris-piece:hover {
-  transform: scale(1.02);
-}
-
-.puzzle-piece-container {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 110px;
-}
-
-.puzzle-piece-container:has(.tetris-piece) {
-  min-height: 200px;
-  min-width: 240px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #e2e8f0;
-  border-radius: 12px;
-  background: #fafafa;
-  transition: all 0.2s ease;
-  margin: 8px;
-}
-
-.puzzle-piece-container:has(.tetris-piece):hover {
-  border-color: #3b82f6;
-  background: #f8faff;
-}
-
-.tetris-image {
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: none;
-  object-position: center;
-  display: block;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-.tetris-shape-label {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  background: rgba(59, 130, 246, 0.8);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  z-index: 1;
-}
-
-/* 不同俄罗斯方块形状的特殊样式 */
-.tetris-l,
-.tetris-j,
-.tetris-t,
-.tetris-s,
-.tetris-z,
-.tetris-i,
-.tetris-o {
-  border: 3px solid #3b82f6;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* I型俄罗斯方块特殊样式 - 垂直长条 */
-.tetris-i {
-  min-width: 100px;
-  min-height: 280px;
-  max-width: 120px;
-  max-height: 320px;
-}
-
-/* I3型俄罗斯方块特殊样式 - 3格长条 */
-.tetris-i3 {
-  min-width: 200px;
-  min-height: 80px;
-  max-width: 240px;
-  max-height: 100px;
-}
-
-.tetris-l {
-  border-color: #f97316;
-  background: linear-gradient(135deg, #fed7aa, #fdba74);
-}
-
-.tetris-j {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, #dbeafe, #93c5fd);
-}
-
-.tetris-t {
-  border-color: #8b5cf6;
-  background: linear-gradient(135deg, #ede9fe, #c4b5fd);
-}
-
-.tetris-s {
-  border-color: #10b981;
-  background: linear-gradient(135deg, #d1fae5, #6ee7b7);
-}
-
-.tetris-z {
-  border-color: #ef4444;
-  background: linear-gradient(135deg, #fee2e2, #fca5a5);
-}
-
-.tetris-i {
-  border-color: #06b6d4;
-  background: linear-gradient(135deg, #cffafe, #67e8f9);
-}
-
-.tetris-o {
-  border-color: #eab308;
-  background: linear-gradient(135deg, #fef3c7, #fde047);
-}
-
-/* 小型俄罗斯方块 */
-.tetris-l3,
-.tetris-i3,
-.tetris-i2 {
-  border: 2px solid #6b7280;
-  background: linear-gradient(135deg, #f3f4f6, #d1d5db);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.tetris-o1 {
-  border: 1px solid #9ca3af;
-  background: linear-gradient(135deg, #f9fafb, #e5e7eb);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 /* 拖拽相关样式 */
@@ -265,25 +97,6 @@
 .selection-indicator {
   position: absolute;
   bottom: 0;
-}
-
-.puzzle-piece-container {
-  position: relative;
-  display: inline-block;
-}
-
-.selected-label {
-  position: absolute;
-  bottom: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 3px 10px;
-  border-radius: 4px 4px 0 0;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 10;
   left: 0;
   right: 0;
   background: linear-gradient(135deg, #10b981, #059669);
@@ -300,7 +113,6 @@
   from {
     transform: translateY(100%);
   }
-
   to {
     transform: translateY(0);
   }
@@ -332,16 +144,16 @@
   .puzzle-piece-area {
     padding: 16px;
   }
-
+  
   .pieces-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
   }
-
+  
   .area-tips {
     padding: 12px;
   }
-
+  
   .area-tips p {
     font-size: 13px;
   }
@@ -352,87 +164,9 @@
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 8px;
   }
-
+  
   .piece-number {
     font-size: 10px;
     padding: 1px 4px;
   }
-}
-
-/* 三角形拼图块样式 */
-.puzzle-piece-item.triangle-piece {
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.puzzle-piece-item.triangle-upper {
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%);
-  /* 上三角形 */
-}
-
-.puzzle-piece-item.triangle-lower {
-  clip-path: polygon(0% 0%, 0% 100%, 100% 100%);
-  /* 下三角形 */
-}
-
-.triangle-piece .triangle-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* 三角形拼图块特殊效果 */
-.triangle-piece:hover {
-  transform: scale(1.03);
-  box-shadow: 0 6px 25px rgba(59, 130, 246, 0.2);
-}
-
-.triangle-piece.selected {
-  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
-  border-color: #fbbf24;
-}
-
-/* 三角形拼图块的选择指示器 */
-.triangle-piece .selection-indicator {
-  background: linear-gradient(135deg, #fbbf24, #f59e0b);
-  font-size: 10px;
-  padding: 2px;
-}
-
-/* 三角形拼图块的编号 */
-.triangle-piece .piece-number {
-  font-size: 10px;
-  padding: 1px 4px;
-  background: rgba(0, 0, 0, 0.8);
-}
-
-/* 为三角形添加视觉提示 */
-.triangle-piece::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 0;
-  height: 0;
-  z-index: 1;
-  opacity: 0.1;
-  transition: opacity 0.2s ease;
-}
-
-.triangle-upper::before {
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 12px solid #3b82f6;
-}
-
-.triangle-lower::before {
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 12px solid #3b82f6;
-}
-
-.triangle-piece:hover::before {
-  opacity: 0.3;
 }
