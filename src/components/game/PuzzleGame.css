@@ -109,6 +109,13 @@
   backdrop-filter: blur(4px);  /* 轻微模糊，保持背景可见 */
   position: relative;
   z-index: 1;  /* 确保在遮罩层之上 */
+  box-sizing: border-box;
+  overflow: visible;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 夜间模式下的内容区域 */
@@ -124,28 +131,53 @@
   font-size: 28px;
   font-family: 'Nunito', 'Quicksand', sans-serif;
   font-weight: 400;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  align-self: center;
 }
 
-.puzzle-info {
+.start-content .puzzle-info {
   background: var(--light-pink);
   padding: 20px;
   border-radius: 12px;
-  margin-bottom: 32px;
+  margin: 0 20px 32px 20px !important;
   border: 2px solid var(--primary-pink);
   box-shadow: 0 4px 12px rgba(248, 165, 194, 0.2);
+  width: auto !important;
+  max-width: 200px !important;
+  min-width: 180px;
+  box-sizing: border-box;
+  overflow: hidden;
+  word-wrap: break-word;
+  text-align: center;
+  align-self: center;
 }
 
-.puzzle-info p {
+.start-content .puzzle-info p {
   margin: 8px 0;
   color: var(--text-secondary);
   font-size: 16px;
   font-family: 'Nunito', 'Quicksand', sans-serif;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  overflow: hidden;
 }
 
 .start-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-wrap: wrap;
+  align-self: center;
 }
 
 /* 主要按钮 */
@@ -580,6 +612,33 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .start-content {
+    max-width: 350px;
+    padding: 30px 20px;
+  }
+  
+  .start-content h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .start-content .puzzle-info {
+    padding: 16px;
+    margin: 0 16px 24px 16px !important;
+    max-width: 180px !important;
+    min-width: 150px;
+    width: auto !important;
+  }
+  
+  .start-content .puzzle-info p {
+    font-size: 14px;
+    margin: 6px 0;
+  }
+  
+  .start-actions {
+    gap: 10px;
+  }
+  
   .game-header {
     flex-direction: column;
     gap: 16px;
@@ -611,5 +670,45 @@
   .preview-footer {
     padding: 15px;
   }
+}
 
+/* 小屏幕优化 */
+@media (max-width: 480px) {
+  .puzzle-game-start {
+    padding: 20px;
+  }
+  
+  .start-content {
+    max-width: 300px;
+    padding: 20px 16px;
+  }
+  
+  .start-content h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+  
+  .start-content .puzzle-info {
+    padding: 12px;
+    margin: 0 12px 20px 12px !important;
+    max-width: 160px !important;
+    min-width: 140px;
+    width: auto !important;
+  }
+  
+  .start-content .puzzle-info p {
+    font-size: 13px;
+    margin: 4px 0;
+  }
+  
+  .start-actions {
+    gap: 8px;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .start-actions button {
+    width: 100%;
+    max-width: 200px;
+  }
 }

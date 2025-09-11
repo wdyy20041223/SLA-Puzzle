@@ -206,7 +206,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
                 key={option.value}
                 className={`difficulty-card ${selectedDifficulty === option.value ? 'selected' : ''}`}
                 onClick={() => onDifficultyChange(option.value)}
-                style={{ '--accent-color': option.color, width: 180, minWidth: 0, padding: '8px 2px' } as React.CSSProperties}
+                style={{ '--accent-color': option.color, minWidth: 160, maxWidth: 200, width: 'auto', padding: '8px 4px', boxSizing: 'border-box' } as React.CSSProperties}
               >
                 <div className="card-header">
                   <span className="difficulty-icon">{option.icon}</span>

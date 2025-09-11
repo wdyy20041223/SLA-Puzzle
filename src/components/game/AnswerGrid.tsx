@@ -71,10 +71,11 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
     const maxCellHeight = Math.floor(availableHeight / gridSize.rows);
 
     // 取较小值确保所有单元格都能显示
-    const newSize = Math.min(maxCellWidth, maxCellHeight, 160); // 最大160px
+    const newSize = Math.min(maxCellWidth, maxCellHeight, 140); // 最大140px (降低以避免溢出)
 
-    // 确保单元格大小合理
-    const finalSize = Math.max(120, newSize); // 最小120px
+    // 确保单元格大小合理，但对于小网格(如3x3)允许更小的尺寸
+    const minSize = (gridSize.rows <= 3 && gridSize.cols <= 3) ? 80 : 100;
+    const finalSize = Math.max(minSize, newSize);
 
     setCellSize(finalSize);
   }, [gridSize.cols, gridSize.rows]);
