@@ -124,23 +124,8 @@
   100% { opacity: 1; }
 }
 
-/* 举步维艰特效：步数显示样式 */
-.double-steps-indicator {
-  position: relative;
-}
-
-.double-steps-indicator::after {
-  content: "×2";
-  position: absolute;
-  top: -5px;
-  right: -10px;
-  background: #ff5722;
-  color: white;
-  font-size: 10px;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-weight: bold;
-}
+/* 鱼目混珠特效：步数显示样式 */
+/* 步数显示已移除，此处保留注释说明 */
 
 /* 天旋地转特效：拼图块旋转动画 */
 .effect-rotate-pieces .puzzle-piece {

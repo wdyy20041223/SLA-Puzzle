@@ -30,6 +30,9 @@ interface PuzzleWorkspaceProps {
   hasCornerEffect?: boolean;
   // 颠倒世界特效相关
   hasUpsideDownEffect?: boolean;
+  // 鱼目混珠特效相关
+  fakePieces?: Set<string>;
+  hasFakePiecesEffect?: boolean;
 }
 
 export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
@@ -54,6 +57,8 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
   unlockedSlots,
   hasCornerEffect,
   hasUpsideDownEffect,
+  fakePieces,
+  hasFakePiecesEffect,
 }) => {
   // 获取处理区的拼图块（currentSlot 为 null 的拼图块）
   const processingAreaPieces = gameState.config.pieces.filter(piece => {
@@ -86,6 +91,8 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
           onDropToProcessingArea={onDropToProcessingArea}
+          fakePieces={fakePieces}
+          hasFakePiecesEffect={hasFakePiecesEffect}
         />
       </div>
 

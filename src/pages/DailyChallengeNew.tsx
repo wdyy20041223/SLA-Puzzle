@@ -74,7 +74,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, on
         { id: 'blur', name: '雾里看花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
         { id: 'partial', name: '管中窥豹', description: '本关卡答题区最开始只展示一半的拼图块', star: 3 as const },
         { id: 'upside_down', name: '颠倒世界', description: '本关卡中正确答案旋转180°后得到原图', star: 3 as const },
-        { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 as const }
+        { id: 'double_steps', name: '鱼目混珠', description: '混入3块该地图分割后的拼图块的复制体，复制体在被放入拼图时会直接消失，只有当本体放入空格才会显示正确', star: 3 as const }
       ],
       star4: [
         { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落', star: 4 as const },

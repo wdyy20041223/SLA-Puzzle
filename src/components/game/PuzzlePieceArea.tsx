@@ -14,6 +14,9 @@ interface PuzzlePieceAreaProps {
   onDragStart?: (pieceId: string) => void;
   onDragEnd?: () => void;
   onDropToProcessingArea?: () => void;
+  // 鱼目混珠特效相关
+  fakePieces?: Set<string>;
+  hasFakePiecesEffect?: boolean;
 }
 
 export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
@@ -27,6 +30,8 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
   onDragStart,
   onDragEnd,
   onDropToProcessingArea,
+  fakePieces,
+  hasFakePiecesEffect,
 }) => {
   const handlePieceClick = (pieceId: string) => {
     onPieceSelect(selectedPieceId === pieceId ? null : pieceId);
@@ -97,6 +102,7 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
                   } ${piece.shape === 'triangle' && piece.id.includes('_upper') ? 'triangle-upper' : ''
                   } ${piece.shape === 'triangle' && piece.id.includes('_lower') ? 'triangle-lower' : ''
                   } ${piece.tetrisShape ? `tetris-${piece.tetrisShape.toLowerCase()}` : ''
+                  } ${hasFakePiecesEffect && fakePieces?.has(piece.id) ? 'fake-piece' : ''
                   }`}
                 draggable={true}
                 onClick={() => handlePieceClick(piece.id)}
@@ -126,7 +132,7 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
                 }}
               >
                 {showAnswers && (
-                  <div className="piece-number">{piece.originalIndex + 1}</div>
+                  <div className="piece-number">{piece.originalIndex + 1}{hasFakePiecesEffect && fakePieces?.has(piece.id) ? ' (伪造)' : ''}</div>
                 )}
                 {piece.tetrisShape && (
                   <div className="tetris-shape-label">{piece.tetrisShape}</div>
