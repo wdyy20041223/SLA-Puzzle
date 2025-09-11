@@ -35,6 +35,8 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
   const [puzzles, setPuzzles] = useState(() => sortPuzzles(getSavedPuzzles()));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [highlighted, setHighlighted] = useState<string | null>(highlightId || null);
+  const [showApplyButton, setShowApplyButton] = useState(false);
+  const [selectedPuzzleRect, setSelectedPuzzleRect] = useState<DOMRect | null>(null);
 
   // 2秒后自动移除高亮
   React.useEffect(() => {
@@ -49,7 +51,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
   const handleDelete = (id: string) => {
     const puzzle = puzzles.find(p => p.id === id);
     const name = puzzle?.name || '该存档';
-    if (!window.confirm(`确定要删除“${name}”吗？此操作不可撤销。`)) return;
+    if (!window.confirm(`确定要删除"${name}"吗？此操作不可撤销。`)) return;
     const filtered = puzzles.filter(p => p.id !== id);
     const sorted = sortPuzzles(filtered);
     setPuzzles(sorted);
@@ -62,6 +64,31 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
       onBackToMenu();
     } else {
       window.history.length > 1 ? window.history.back() : window.location.reload();
+    }
+  };
+
+  // 处理存档选择
+  const handlePuzzleSelect = (puzzleId: string, event: React.MouseEvent) => {
+    const newSelectedId = selectedId === puzzleId ? null : puzzleId;
+    setSelectedId(newSelectedId);
+    
+    if (newSelectedId) {
+      // 获取选中存档容器的位置信息
+      const element = event.currentTarget as HTMLElement;
+      const rect = element.getBoundingClientRect();
+      setSelectedPuzzleRect(rect);
+      setShowApplyButton(true);
+    } else {
+      setShowApplyButton(false);
+      setSelectedPuzzleRect(null);
+    }
+  };
+
+  // 处理确认并应用
+  const handleApply = () => {
+    if (selectedId && onOpenEditor) {
+      const selected = puzzles.find(p => p.id === selectedId);
+      if (selected) onOpenEditor(selected);
     }
   };
 
@@ -132,7 +159,7 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
             {puzzles.map((puzzle) => (
               <div
                 key={puzzle.id}
-                onClick={() => setSelectedId(selectedId === puzzle.id ? null : puzzle.id)}
+                onClick={(e) => handlePuzzleSelect(puzzle.id, e)}
                 style={{
                   background: selectedId === puzzle.id ? '#e0f7e9' : '#fff',
                   borderRadius: 16,
@@ -250,26 +277,32 @@ const SavedPuzzlesPage: React.FC<SavedPuzzlesPageProps> = ({ onBackToMenu, onOpe
             ))}
           </div>
         )}
-        {/* 确认按钮区域 */}
-        {puzzles.length > 0 && typeof onOpenEditor === 'function' && (
-          <div style={{ width: '100%', maxWidth: 420, display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
+        {/* 确认按钮区域 - 只在选中存档时显示，且onOpenEditor存在（即从上传页面进入） */}
+        {onOpenEditor && showApplyButton && selectedPuzzleRect && (
+          <div
+            style={{
+              position: 'fixed',
+              top: selectedPuzzleRect.top + window.scrollY + (selectedPuzzleRect.height / 2) - 20,
+              left: selectedPuzzleRect.right + 20,
+              zIndex: 1000,
+              animation: 'fadeInScale 0.3s ease-out forwards',
+              opacity: 0,
+              transform: 'scale(0.9)',
+            }}
+          >
             <button
-              disabled={!selectedId}
-              onClick={() => {
-                const selected = puzzles.find(p => p.id === selectedId);
-                if (selected) onOpenEditor(selected);
-              }}
+              onClick={handleApply}
               style={{
-                background: selectedId ? 'linear-gradient(90deg,#22c55e,#16a34a)' : '#ccc',
+                background: 'linear-gradient(90deg,#22c55e,#16a34a)',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 8,
                 padding: '10px 28px',
                 fontWeight: 600,
                 fontSize: 16,
-                cursor: selectedId ? 'pointer' : 'not-allowed',
-                boxShadow: selectedId ? '0 2px 8px 0 rgba(34,197,94,0.08)' : 'none',
-                transition: 'background 0.2s',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px 0 rgba(34,197,94,0.3)',
+                transition: 'all 0.2s ease',
               }}
             >
               确认并应用

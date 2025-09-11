@@ -8,3 +8,14 @@
     box-shadow: 0 0 0 4px #fbbf2444;
   }
 }
+
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+}
