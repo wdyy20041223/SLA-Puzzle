@@ -393,14 +393,17 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
 
         <div className="game-controls">
           <GameHelpButton />
-          <Button
-            onClick={getHint}
-            variant="primary"
-            size="small"
-            className="hint-button"
-          >
-            💡 提示
-          </Button>
+          {/* 在多人模式下隐藏提示按钮 */}
+          {!isMultiplayer && (
+            <Button
+              onClick={getHint}
+              variant="primary"
+              size="small"
+              className="hint-button"
+            >
+              💡 提示
+            </Button>
+          )}
 
           <Button 
             onClick={() => setShowOriginalImage(true)} 
@@ -410,14 +413,17 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           >
             👀 查看原图
           </Button>
-          <Button 
-            onClick={() => setShowAnswers(!showAnswers)} 
-            variant="primary"
-            size="small"
-            className="answer-toggle"
-          >
-            {showAnswers ? '👁️ 隐藏答案' : '👁️‍🗨️ 显示答案'}
-          </Button>
+          {/* 在多人模式下隐藏显示答案按钮 */}
+          {!isMultiplayer && (
+            <Button 
+              onClick={() => setShowAnswers(!showAnswers)} 
+              variant="primary"
+              size="small"
+              className="answer-toggle"
+            >
+              {showAnswers ? '👁️ 隐藏答案' : '👁️‍🗨️ 显示答案'}
+            </Button>
+          )}
           <Button onClick={undo} variant="primary" size="small" disabled={!gameState || gameState.history.length === 0}>
             ↩️ 撤销
           </Button>
@@ -461,7 +467,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           <PuzzleWorkspace
             gameState={gameState}
             selectedPiece={selectedPiece}
-            showAnswers={showAnswers}
+            showAnswers={isMultiplayer ? false : showAnswers}
             onPieceSelect={setSelectedPiece}
             onPlacePiece={placePieceToSlot}
             onRemovePiece={removePieceFromSlot}
