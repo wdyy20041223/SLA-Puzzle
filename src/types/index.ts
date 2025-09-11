@@ -13,10 +13,23 @@ export interface PuzzlePiece {
   height: number;
   shape: PieceShape;
   triangleType?: 'upper' | 'lower'; // 三角形类型，仅当shape为triangle时有效
+
+  // 俄罗斯方块相关属性
+  tetrisShape?: TetrisShape; // 俄罗斯方块形状类型
+  occupiedPositions?: [number, number][]; // 在4x4网格中占据的相对位置坐标 [row, col]
+  correctSlots?: number[]; // 正确的槽位编号数组（多个格子对应多个槽位）
+  cellImages?: { [key: string]: string }; // 每个单元格的图片数据，格式为 "row-col": imageData
 }
 
 // 拼图形状类型
 export type PieceShape = 'square' | 'triangle' | 'irregular' | 'tetris';
+
+// 俄罗斯方块形状类型
+export type TetrisShape =
+  | 'I' | 'O' | 'T' | 'L' | 'J' | 'S' | 'Z'  // 经典7种4格形状
+  | 'I3' | 'L3'  // 3格形状：I型和L型
+  | 'I2'        // 2格形状：I型
+  | 'O1';       // 1格形状：方形
 
 // 拼图配置
 export interface PuzzleConfig {
