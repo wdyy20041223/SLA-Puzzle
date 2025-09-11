@@ -20,6 +20,9 @@ interface AnswerGridProps {
   onDragOver?: (slotIndex: number) => void;
   onDragLeave?: () => void;
   onDropToSlot?: (targetSlot: number) => void;
+  // 作茧自缚特效相关
+  unlockedSlots?: Set<number>;
+  hasCornerEffect?: boolean;
 }
 
 export const AnswerGrid: React.FC<AnswerGridProps> = ({
@@ -38,6 +41,8 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   onDragOver,
   onDragLeave,
   onDropToSlot,
+  unlockedSlots,
+  hasCornerEffect,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,7 +186,9 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
       {/* 网格槽位 */}
       <div
         ref={gridRef}
-        className={`answer-grid ${pieceShape === 'triangle' ? 'triangle-grid' : ''}`}
+        className={`answer-grid ${pieceShape === 'triangle' ? 'triangle-grid' : ''
+          } ${pieceShape === 'tetris' ? 'tetris-grid' : ''
+          }`}
         style={gridStyle}
       >
         {pieceShape === 'triangle' ? (
@@ -309,70 +316,183 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
               </div>
             );
           })
+        ) : pieceShape === 'tetris' ? (
+          // 俄罗斯方块拼图：每个槽位显示对应的图像片段
+          answerGrid.map((piece, index) => {
+            const row = Math.floor(index / gridSize.cols);
+            const col = index % gridSize.cols;
+
+            // 动态计算cellKey，考虑俄罗斯方块的移动
+            let cellKey = `${row}-${col}`;
+
+            if (piece && piece.occupiedPositions && piece.currentSlot !== null) {
+              // 检查当前俄罗斯方块是否在正确位置
+              const isInCorrectPosition = piece.correctSlots &&
+                piece.correctSlots.includes(index) &&
+                piece.currentSlot === piece.correctSlot;
+
+              if (isInCorrectPosition) {
+                // 如果在正确位置，直接使用原始相对坐标
+                cellKey = `${row}-${col}`;
+              } else {
+                // 如果不在正确位置，需要映射到原始相对坐标
+                const currentSlotRow = Math.floor(piece.currentSlot / gridSize.cols);
+                const currentSlotCol = piece.currentSlot % gridSize.cols;
+
+                // 计算原始锚点位置（最小行列）
+                const minRow = Math.min(...piece.occupiedPositions.map(pos => pos[0]));
+                const minCol = Math.min(...piece.occupiedPositions.map(pos => pos[1]));
+
+                // 计算当前槽位相对于当前锚点的偏移
+                const offsetRow = row - currentSlotRow;
+                const offsetCol = col - currentSlotCol;
+
+                // 映射回原始相对位置
+                const originalRow = minRow + offsetRow;
+                const originalCol = minCol + offsetCol;
+
+                cellKey = `${originalRow}-${originalCol}`;
+              }
+            }
+
+            return (
+              <div
+                key={`slot-${index}-${piece?.id || 'empty'}`}
+                className={`grid-slot tetris-slot ${piece ? 'occupied' : 'empty'
+                  } ${selectedPieceId && !piece ? 'highlight' : ''
+                  } ${piece && selectedPieceId === piece.id ? 'selected' : ''
+                  } ${dragOverSlot === index ? 'drag-over' : ''
+                  } ${draggedPiece === piece?.id ? 'dragging' : ''
+                  }`}
+                onClick={() => handleSlotClick(index)}
+                onDragOver={(e) => handleSlotDragOver(e, index)}
+                onDragLeave={handleSlotDragLeave}
+                onDrop={(e) => handleSlotDrop(e, index)}
+                style={{
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
+                }}
+              >
+                {/* 槽位编号 */}
+                <div className="slot-number">{getSlotNumber(index)}</div>
+
+                {/* 俄罗斯方块单元格图像 */}
+                {piece && piece.cellImages && piece.cellImages[cellKey] ? (
+                  <div
+                    className="tetris-cell"
+                    draggable={true}
+                    onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                    onDragEnd={handlePieceDragEnd}
+                  >
+                    <img
+                      src={piece.cellImages[cellKey]}
+                      alt={`俄罗斯方块单元格 ${cellKey}`}
+                      className="tetris-cell-image"
+                      draggable={false}
+                    />
+                    {/* 俄罗斯方块标识 */}
+                    {piece.tetrisShape && (
+                      <div className="tetris-block-indicator">
+                        {piece.tetrisShape}
+                      </div>
+                    )}
+                  </div>
+                ) : piece && !piece.cellImages ? (
+                  // 备用显示方式
+                  <div
+                    className="tetris-fallback"
+                    draggable={true}
+                    onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                    onDragEnd={handlePieceDragEnd}
+                  >
+                    <img
+                      src={piece.imageData}
+                      alt={`俄罗斯方块 ${piece.originalIndex + 1}`}
+                      className="piece-image"
+                      draggable={false}
+                    />
+                  </div>
+                ) : null}
+
+                {/* 拖拽提示 */}
+                {!piece && selectedPieceId && (
+                  <div className="drop-hint tetris-hint">
+                    点击放置俄罗斯方块
+                  </div>
+                )}
+              </div>
+            );
+          })
         ) : (
           // 方形拼图：原有的渲染逻辑
-          answerGrid.map((piece, index) => (
-            <div
-              key={`slot-${index}-${piece?.id || 'empty'}`}
-              className={`grid-slot ${piece ? 'occupied' : 'empty'} ${selectedPieceId && !piece ? 'highlight' : ''
-                } ${piece && selectedPieceId === piece.id ? 'selected' : ''
-                } ${dragOverSlot === index ? 'drag-over' : ''
-                } ${draggedPiece === piece?.id ? 'dragging' : ''
-                }`}
-              onClick={() => handleSlotClick(index)}
-              onDragOver={(e) => handleSlotDragOver(e, index)}
-              onDragLeave={handleSlotDragLeave}
-              onDrop={(e) => handleSlotDrop(e, index)}
-              style={{
-                width: `${cellSize}px`,
-                height: `${cellSize}px`,
-              }}
-            >
-              {/* 槽位编号 */}
-              <div className="slot-number">{getSlotNumber(index)}</div>
+          answerGrid.map((piece, index) => {
+            // 检查槽位是否锁定（作茧自缚特效）
+            const isLocked = hasCornerEffect && unlockedSlots && !unlockedSlots.has(index);
 
-              {/* 拼图块 */}
-              {piece !== null && piece !== undefined && (
-                <div
-                  className="placed-piece"
-                  draggable={true}
-                  onDragStart={(e) => handlePieceDragStart(e, piece.id)}
-                  onDragEnd={handlePieceDragEnd}
-                  style={{
-                    transform: `rotate(${piece.rotation}deg) ${piece.isFlipped ? 'scaleX(-1)' : ''
-                      }`,
-                  }}
-                >
-                  <img
-                    src={piece.imageData}
-                    alt={`拼图块 ${piece.originalIndex + 1}`}
-                    className="piece-image"
-                    draggable={false}
-                  />
-                  {showAnswers && (
-                    <div className="piece-info">
-                      {piece.originalIndex + 1}
-                    </div>
-                  )}
+            return (
+              <div
+                key={`slot-${index}-${piece?.id || 'empty'}`}
+                className={`grid-slot ${piece ? 'occupied' : 'empty'} ${selectedPieceId && !piece ? 'highlight' : ''
+                  } ${piece && selectedPieceId === piece.id ? 'selected' : ''
+                  } ${dragOverSlot === index ? 'drag-over' : ''
+                  } ${draggedPiece === piece?.id ? 'dragging' : ''
+                  } ${isLocked ? 'locked-slot' : hasCornerEffect && unlockedSlots?.has(index) ? 'unlocked-slot' : ''
+                  }`}
+                onClick={() => handleSlotClick(index)}
+                onDragOver={(e) => handleSlotDragOver(e, index)}
+                onDragLeave={handleSlotDragLeave}
+                onDrop={(e) => handleSlotDrop(e, index)}
+                style={{
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
+                }}
+              >
+                {/* 槽位编号 */}
+                <div className="slot-number">{getSlotNumber(index)}</div>
 
-                  {/* 正确性指示器 */}
-                  {showAnswers && (
-                    <div className={`correctness-indicator ${piece.correctSlot === index ? 'correct' : 'incorrect'
-                      }`}>
-                      {piece.correctSlot === index ? '✓' : '✗'}
-                    </div>
-                  )}
-                </div>
-              )}
+                {/* 拼图块 */}
+                {piece !== null && piece !== undefined && (
+                  <div
+                    className="placed-piece"
+                    draggable={true}
+                    onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                    onDragEnd={handlePieceDragEnd}
+                    style={{
+                      transform: `rotate(${piece.rotation}deg) ${piece.isFlipped ? 'scaleX(-1)' : ''
+                        }`,
+                    }}
+                  >
+                    <img
+                      src={piece.imageData}
+                      alt={`拼图块 ${piece.originalIndex + 1}`}
+                      className="piece-image"
+                      draggable={false}
+                    />
+                    {showAnswers && (
+                      <div className="piece-info">
+                        {piece.originalIndex + 1}
+                      </div>
+                    )}
 
-              {/* 空槽位提示 */}
-              {!piece && selectedPieceId && (
-                <div className="drop-hint">
-                  点击放置
-                </div>
-              )}
-            </div>
-          ))
+                    {/* 正确性指示器 */}
+                    {showAnswers && (
+                      <div className={`correctness-indicator ${piece.correctSlot === index ? 'correct' : 'incorrect'
+                        }`}>
+                        {piece.correctSlot === index ? '✓' : '✗'}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 空槽位提示 */}
+                {!piece && selectedPieceId && (
+                  <div className="drop-hint">
+                    点击放置
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
 

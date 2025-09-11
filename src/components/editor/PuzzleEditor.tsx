@@ -1,4 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
+import LZString from 'lz-string';
+import SavedPuzzlesPage from '../../pages/SavedPuzzles';
 import { Button } from '../common/Button';
 import { ImageCropper } from './ImageCropper';
 import { DifficultySettings } from './DifficultySettings';
@@ -6,8 +8,14 @@ import { PreviewModal } from './PreviewModal';
 import { DifficultyLevel, PieceShape } from '../../types';
 import './PuzzleEditor.css';
 
+import { PuzzleConfig } from '../../types';
+
 interface PuzzleEditorProps {
   onBackToMenu: () => void;
+  onStartGame?: (config: PuzzleConfig) => void;
+  initialStep?: 'upload' | 'crop' | 'settings' | 'preview';
+  /** 新增：异形拼图启动 */
+  onStartIrregularGame?: (imageData: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
 }
 
 type EditorStep = 'upload' | 'crop' | 'settings' | 'preview';
@@ -20,10 +28,12 @@ interface CustomPuzzleConfig {
   pieceShape: PieceShape;
   aspectRatio: AspectRatio;
   croppedImageData?: string;
+  customRows?: number;
+  customCols?: number;
 }
 
-export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
-  const [currentStep, setCurrentStep] = useState<EditorStep>('upload');
+export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStartGame, initialStep, onStartIrregularGame }) => {
+  const [currentStep, setCurrentStep] = useState<EditorStep>(initialStep || 'upload');
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<AspectRatio>('1:1');
   const [customPuzzleConfig, setCustomPuzzleConfig] = useState<CustomPuzzleConfig>({
@@ -34,8 +44,87 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
     aspectRatio: '1:1'
   });
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  
+  // 新增：用于实时记录设置页的难度和形状选择和自定义行列
+  const [tempDifficulty, setTempDifficulty] = useState<DifficultyLevel>('medium');
+  const [tempPieceShape, setTempPieceShape] = useState<PieceShape>('square');
+  const [tempCustomRows, setTempCustomRows] = useState<number>(3);
+  const [tempCustomCols, setTempCustomCols] = useState<number>(3);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // 新增：保存后跳转到存档页面
+  const [showSavedPage, setShowSavedPage] = useState(false);
+
+  // 导入分享代码弹窗相关状态
+
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importCode, setImportCode] = useState('');
+  const [importError, setImportError] = useState('');
+  const [importPreviewImage, setImportPreviewImage] = useState<string | null>(null);
+  const [importPreviewShape, setImportPreviewShape] = useState<string>('');
+  const [importPreviewGrid, setImportPreviewGrid] = useState<string>('');
+
+  // 监听分享代码输入，实时解析图片
+  const handleImportCodeChange = (val: string) => {
+    setImportCode(val);
+    setImportError('');
+    try {
+  const json = LZString.decompressFromBase64(val.trim());
+  const data = JSON.parse(json);
+      if (data.image) {
+        setImportPreviewImage(data.image);
+      } else {
+        setImportPreviewImage(null);
+      }
+      // 形状
+      let shapeText = '';
+      switch (data.pieceShape) {
+        case 'square': shapeText = '方形'; break;
+        case 'triangle': shapeText = '三角形'; break;
+        case 'irregular': shapeText = '异形'; break;
+        case 'tetris': shapeText = '俄罗斯方块'; break;
+        default: shapeText = data.pieceShape || '';
+      }
+      setImportPreviewShape(shapeText);
+      // 块数
+      if (data.gridSize && data.gridSize.rows && data.gridSize.cols) {
+        setImportPreviewGrid(`${data.gridSize.rows} × ${data.gridSize.cols}`);
+      } else {
+        setImportPreviewGrid('');
+      }
+    } catch {
+      setImportPreviewImage(null);
+      setImportPreviewShape('');
+      setImportPreviewGrid('');
+    }
+  };
+
+  // 导入分享代码逻辑
+  const handleImportShareCode = () => {
+    setImportError('');
+    try {
+  const json = LZString.decompressFromBase64(importCode.trim());
+  const data = JSON.parse(json);
+      if (!data.image || !data.pieceShape || !data.difficulty || !data.gridSize) {
+        setImportError('分享代码无效或缺少必要信息');
+        return;
+      }
+      setCustomPuzzleConfig(prev => ({
+        ...prev,
+        name: data.name || '',
+        image: data.image,
+        croppedImageData: data.image,
+        pieceShape: data.pieceShape,
+        difficulty: data.difficulty,
+        aspectRatio: data.aspectRatio || '1:1'
+      }));
+      setUploadedImage(data.image);
+      setCurrentStep('settings'); // 跳转到设置页
+      setImportDialogOpen(false);
+      setImportCode('');
+      setImportPreviewImage(null);
+    } catch (e) {
+      setImportError('分享代码解析失败，请检查内容是否完整');
+    }
+  };
 
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -95,35 +184,172 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
     setCurrentStep('settings');
   }, [selectedAspectRatio]);
 
+  // 传递给 DifficultySettings 的回调，确认时才写入主配置
   const handleDifficultySettingsComplete = useCallback((
     difficulty: DifficultyLevel,
-    pieceShape: PieceShape
+    pieceShape: PieceShape,
+    customRows?: number,
+    customCols?: number
   ) => {
     setCustomPuzzleConfig(prev => ({
       ...prev,
       difficulty,
-      pieceShape
+      pieceShape,
+      customRows: difficulty === 'custom' ? customRows : undefined,
+      customCols: difficulty === 'custom' ? customCols : undefined
     }));
     setCurrentStep('preview');
   }, []);
 
+  // 新增：用于 DifficultySettings 实时同步选择
+  const handleTempDifficultyChange = useCallback((difficulty: DifficultyLevel) => {
+    setTempDifficulty(difficulty);
+  }, []);
+  const handleTempPieceShapeChange = useCallback((shape: PieceShape) => {
+    setTempPieceShape(shape);
+  }, []);
+  // 新增：自定义行列同步
+  const handleTempCustomGrid = useCallback((rows: number, cols: number) => {
+    setTempCustomRows(rows);
+    setTempCustomCols(cols);
+  }, []);
+
   const handleSavePuzzle = useCallback(() => {
-    // 这里是预留功能，暂时只显示提示
-    alert('保存功能正在开发中！此拼图配置将保存到本地存储。');
-    console.log('保存拼图配置:', customPuzzleConfig);
+    if (!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name) {
+      alert('请先完成拼图设置并裁剪图片！');
+      return;
+    }
+    // 获取已有存档
+    const saved = localStorage.getItem('savedPuzzles');
+    let puzzles = [];
+    try {
+      puzzles = saved ? JSON.parse(saved) : [];
+    } catch {
+      puzzles = [];
+    }
+    // 生成唯一id
+    const id = Date.now().toString();
+    const newPuzzle = {
+      id,
+      name: customPuzzleConfig.name,
+      data: customPuzzleConfig,
+      date: new Date().toLocaleString(),
+    };
+    puzzles.push(newPuzzle);
+    localStorage.setItem('savedPuzzles', JSON.stringify(puzzles));
+    setShowSavedPage(true);
   }, [customPuzzleConfig]);
 
+  // 分享弹窗相关状态
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareCode, setShareCode] = useState('');
+
+  // 生成分享代码并弹窗展示
   const handleSharePuzzle = useCallback(() => {
-    // 这里是预留功能，暂时只显示提示
-    alert('分享功能正在开发中！将来可以导出配置文件或生成分享链接。');
-    console.log('分享拼图配置:', customPuzzleConfig);
+    if (!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name) {
+      alert('请先完成拼图设置并裁剪图片！');
+      return;
+    }
+    // 计算块数
+    let gridSize;
+    if (customPuzzleConfig.difficulty === 'custom' && customPuzzleConfig.customRows && customPuzzleConfig.customCols) {
+      gridSize = { rows: customPuzzleConfig.customRows, cols: customPuzzleConfig.customCols };
+    } else {
+      if (customPuzzleConfig.difficulty === 'easy') gridSize = { rows: 3, cols: 3 };
+      else if (customPuzzleConfig.difficulty === 'medium') gridSize = { rows: 4, cols: 4 };
+      else if (customPuzzleConfig.difficulty === 'hard') gridSize = { rows: 5, cols: 5 };
+      else gridSize = { rows: 6, cols: 6 };
+    }
+    // 分享内容
+    const shareData = {
+      name: customPuzzleConfig.name,
+      image: customPuzzleConfig.croppedImageData,
+      pieceShape: customPuzzleConfig.pieceShape,
+      difficulty: customPuzzleConfig.difficulty,
+      gridSize,
+      aspectRatio: customPuzzleConfig.aspectRatio
+    };
+    // 编码为 base64
+  const json = JSON.stringify(shareData);
+  const encoded = LZString.compressToBase64(json);
+  setShareCode(encoded);
+    setShareDialogOpen(true);
   }, [customPuzzleConfig]);
+  // 复制分享代码到剪贴板
+  const handleCopyShareCode = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareCode);
+      alert('分享代码已复制到剪贴板！');
+    } else {
+      // 兼容旧浏览器
+      const textarea = document.createElement('textarea');
+      textarea.value = shareCode;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      alert('分享代码已复制到剪贴板！');
+    }
+  };
 
-  const handleStartGame = useCallback(() => {
-    // 这里是预留功能，将来会集成到游戏系统中
-    alert('开始游戏功能正在开发中！此拼图将加载到游戏中。');
-    console.log('开始自定义拼图游戏:', customPuzzleConfig);
-  }, [customPuzzleConfig]);
+  const handleStartGame = useCallback(async () => {
+    const pieceShape = currentStep === 'settings' ? tempPieceShape : customPuzzleConfig.pieceShape;
+    const difficulty = currentStep === 'settings' ? tempDifficulty : customPuzzleConfig.difficulty;
+    const customRows = currentStep === 'settings' ? tempCustomRows : customPuzzleConfig.customRows;
+    const customCols = currentStep === 'settings' ? tempCustomCols : customPuzzleConfig.customCols;
+    
+    // 检查必要的配置是否完整
+    if (!customPuzzleConfig.croppedImageData) {
+      alert('请先裁剪图片！请返回裁剪步骤完成图片裁剪。');
+      setCurrentStep('crop');
+      return;
+    }
+    
+    if (!customPuzzleConfig.name) {
+      alert('请设置拼图名称！请返回上传步骤设置拼图名称。');
+      setCurrentStep('upload');
+      return;
+    }
+    let gridSize;
+    if (difficulty === 'custom' && customRows && customCols) {
+      gridSize = { rows: customRows, cols: customCols };
+    } else {
+      if (difficulty === 'easy') gridSize = { rows: 3, cols: 3 };
+      else if (difficulty === 'medium') gridSize = { rows: 4, cols: 4 };
+      else if (difficulty === 'hard') gridSize = { rows: 5, cols: 5 };
+      else gridSize = { rows: 6, cols: 6 };
+    }
+    try {
+      if (pieceShape === 'irregular') {
+        // 只允许 3x3/4x4/5x5/6x6，custom 非这几种时提示
+        const allowed = [3, 4, 5, 6];
+        if (gridSize && allowed.includes(gridSize.rows) && allowed.includes(gridSize.cols) && gridSize.rows === gridSize.cols) {
+          if (typeof onStartIrregularGame === 'function') {
+            const gridStr = `${gridSize.rows}x${gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
+            onStartIrregularGame(customPuzzleConfig.croppedImageData, gridStr);
+            return;
+          }
+        } else {
+          alert('异形拼图仅支持 3x3、4x4、5x5、6x6 的正方形网格');
+          return;
+        }
+      }
+      // 其它形状
+      const { PuzzleGenerator } = await import('../../utils/puzzleGenerator');
+      const puzzleConfig = await PuzzleGenerator.generatePuzzle({
+        imageData: customPuzzleConfig.croppedImageData,
+        gridSize,
+        pieceShape,
+        name: customPuzzleConfig.name || '自定义拼图',
+      });
+      if (typeof onStartGame === 'function') {
+        onStartGame(puzzleConfig);
+      }
+    } catch (e) {
+      alert('生成拼图失败！');
+      console.error(e);
+    }
+  }, [customPuzzleConfig, onStartGame, tempDifficulty, tempPieceShape, tempCustomRows, tempCustomCols, currentStep, onStartIrregularGame]);
 
   const handleRestart = useCallback(() => {
     setCurrentStep('upload');
@@ -144,9 +370,8 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
     <div className="editor-step">
       <div className="step-header">
         <h2>📸 上传图片</h2>
-        <p>选择您想要制作成拼图的图片</p>
+        <p>选择您想要制作成拼图的图片，或导入分享代码</p>
       </div>
-      
       <div className="upload-step">
         <div className="upload-area" onDragOver={handleDragOver} onDrop={handleDrop}>
           <div className="upload-content">
@@ -154,16 +379,24 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
             <h3>拖拽图片到此处</h3>
             <p>或者点击下方按钮选择文件</p>
             <p className="upload-hint">支持 JPG、PNG、GIF 等常见图片格式</p>
-            
-            <Button
-              onClick={() => fileInputRef.current?.click()}
-              variant="primary"
-              size="large"
-              className="upload-btn"
-            >
-              📁 选择图片文件
-            </Button>
-            
+            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                variant="primary"
+                size="large"
+                className="upload-btn same-size-btn"
+              >
+                📁 选择图片文件
+              </Button>
+              <Button
+                onClick={() => setImportDialogOpen(true)}
+                variant="secondary"
+                size="large"
+                className="import-btn same-size-btn"
+              >
+                🔽 导入分享代码
+              </Button>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -173,7 +406,6 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
             />
           </div>
         </div>
-        
         <div className="format-info">
           <h4>💡 推荐图片格式</h4>
           <ul>
@@ -184,6 +416,47 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
           </ul>
         </div>
       </div>
+      {/* 导入分享代码弹窗 */}
+      {importDialogOpen && (
+        <div style={{
+          position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
+          background: 'rgba(0,0,0,0.3)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 340, boxShadow: '0 2px 16px #0002', maxWidth: 420 }}>
+            <h2>导入分享代码</h2>
+            <textarea
+              style={{ width: '100%', height: 80, fontSize: 14, marginBottom: 12, resize: 'none' }}
+              value={importCode}
+              onChange={e => handleImportCodeChange(e.target.value)}
+              placeholder="请粘贴分享代码"
+              autoFocus
+            />
+            {importCode.trim() && (importPreviewImage || importPreviewShape || importPreviewGrid) && (
+              <div style={{ marginBottom: 12, textAlign: 'center', minHeight: 40, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ fontSize: 13, color: '#333', marginBottom: 4, fontWeight: 500 }}>预览</div>
+                {importPreviewImage && (
+                  <img src={importPreviewImage} alt="预览" style={{ maxWidth: 180, maxHeight: 120, borderRadius: 4, boxShadow: '0 1px 6px #0001', marginBottom: (importPreviewShape || importPreviewGrid) ? 6 : 0 }} />
+                )}
+                {(importPreviewShape || importPreviewGrid) && (
+                  <div style={{ fontSize: 13, color: '#333', marginBottom: 2 }}>
+                    {importPreviewShape && <span>形状：{importPreviewShape}</span>}
+                    {importPreviewShape && importPreviewGrid && <span style={{ margin: '0 6px' }}>|</span>}
+                    {importPreviewGrid && <span>块数：{importPreviewGrid}</span>}
+                  </div>
+                )}
+              </div>
+            )}
+            {importError && <div style={{ color: 'red', fontSize: 13, marginBottom: 8 }}>{importError}</div>}
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+              <button onClick={handleImportShareCode} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>导入</button>
+              <button onClick={() => { setImportDialogOpen(false); setImportError(''); setImportCode(''); setImportPreviewImage(null); }} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>取消</button>
+            </div>
+            <div style={{ fontSize: 12, color: '#888', marginTop: 8 }}>
+              分享代码可由好友生成，包含图片、形状、难度、块数等信息。
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -239,13 +512,18 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
         <h2>⚙️ 拼图设置</h2>
         <p>设置拼图的难度和拼块形状</p>
       </div>
-      
       <div className="settings-step-single">
         <DifficultySettings
           onComplete={handleDifficultySettingsComplete}
           onBack={() => setCurrentStep('crop')}
           onPreviewClick={() => setIsPreviewModalOpen(true)}
           hasPreviewImage={!!customPuzzleConfig.croppedImageData}
+          selectedDifficulty={tempDifficulty}
+          selectedShape={tempPieceShape}
+          onDifficultyChange={handleTempDifficultyChange}
+          onShapeChange={handleTempPieceShapeChange}
+          // 新增：自定义行列同步
+          onCustomGridChange={handleTempCustomGrid}
         />
       </div>
     </div>
@@ -296,6 +574,7 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
                   {customPuzzleConfig.pieceShape === 'square' && '⬜ 方形'}
                   {customPuzzleConfig.pieceShape === 'triangle' && '🔺 三角形'}
                   {customPuzzleConfig.pieceShape === 'irregular' && '🧩 异形'}
+                  {customPuzzleConfig.pieceShape === 'tetris' && '🟦 俄罗斯方块'}
                 </span>
               </div>
             </div>
@@ -329,6 +608,8 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
               variant="primary"
               size="large"
               className="start-game-btn"
+              disabled={!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name}
+              title={!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name ? "请先完成拼图设置并裁剪图片" : "开始游戏"}
             >
               🎮 开始游戏
             </Button>
@@ -361,46 +642,69 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu }) => {
     return steps.indexOf(currentStep) + 1;
   };
 
+  if (showSavedPage) {
+    return <SavedPuzzlesPage />;
+  }
   return (
     <div className="puzzle-editor">
-      <div className="editor-header">
-        <div className="header-left">
-          <Button onClick={onBackToMenu} variant="secondary" size="medium">
-            ← 返回菜单
-          </Button>
-          <h1>🎨 拼图编辑器</h1>
-        </div>
-        
-        <div className="header-progress">
+      <div className="editor-content">
+        <div className="editor-progress-side">
           <div className="progress-indicator">
             <span className="progress-text">步骤 {getStepProgress()}/4</span>
             <div className="progress-bar">
-              <div 
+              <div
                 className="progress-fill"
                 style={{ width: `${(getStepProgress() / 4) * 100}%` }}
               />
             </div>
           </div>
         </div>
-      </div>
-      
-      <div className="editor-content">
-              {currentStep === 'upload' && renderUploadStep()}
-      {currentStep === 'crop' && renderCropStep()}
-      {currentStep === 'settings' && renderSettingsStep()}
-      {currentStep === 'preview' && renderPreviewStep()}
-      
-      {/* 预览模态框 */}
-      <PreviewModal
-        isOpen={isPreviewModalOpen}
-        onClose={() => setIsPreviewModalOpen(false)}
-        imageSrc={customPuzzleConfig.croppedImageData || ''}
-        imageTitle={`${customPuzzleConfig.name} - 拼图预览`}
-        showPuzzleGrid={true}
-        gridSize={customPuzzleConfig.difficulty === 'easy' ? '3x3' : 
-                  customPuzzleConfig.difficulty === 'medium' ? '4x4' :
-                  customPuzzleConfig.difficulty === 'hard' ? '5x5' : '6x6'}
-      />
+        {currentStep === 'upload' && renderUploadStep()}
+        {currentStep === 'crop' && renderCropStep()}
+        {currentStep === 'settings' && renderSettingsStep()}
+        {currentStep === 'preview' && renderPreviewStep()}
+        {/* 预览模态框：设置页时用实时选择，否则用主配置 */}
+        <PreviewModal
+          isOpen={isPreviewModalOpen}
+          onClose={() => setIsPreviewModalOpen(false)}
+          imageSrc={customPuzzleConfig.croppedImageData || ''}
+          imageTitle={`${customPuzzleConfig.name} - 拼图预览`}
+          showPuzzleGrid={true}
+          gridSize={
+            currentStep === 'settings'
+              ? (tempDifficulty === 'easy' ? '3x3' : tempDifficulty === 'medium' ? '4x4' : tempDifficulty === 'hard' ? '5x5' : '6x6')
+              : (customPuzzleConfig.difficulty === 'easy' ? '3x3' : customPuzzleConfig.difficulty === 'medium' ? '4x4' : customPuzzleConfig.difficulty === 'hard' ? '5x5' : '6x6')
+          }
+          pieceShape={
+            currentStep === 'settings'
+              ? tempPieceShape
+              : customPuzzleConfig.pieceShape
+          }
+        />
+        {/* 分享代码弹窗 */}
+        {shareDialogOpen && (
+          <div style={{
+            position: 'fixed', left: 0, top: 0, width: '100vw', height: '100vh',
+            background: 'rgba(0,0,0,0.3)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div style={{ background: '#fff', borderRadius: 8, padding: 32, minWidth: 320, boxShadow: '0 2px 16px #0002' }}>
+              <h2>分享拼图代码</h2>
+              <textarea
+                style={{ width: '100%', height: 80, fontSize: 14, marginBottom: 16, resize: 'none' }}
+                value={shareCode}
+                readOnly
+                onFocus={e => e.target.select()}
+              />
+              <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
+                <button onClick={handleCopyShareCode} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>复制</button>
+                <button onClick={() => setShareDialogOpen(false)} style={{ padding: '6px 16px', fontSize: 14, cursor: 'pointer' }}>关闭</button>
+              </div>
+              <div style={{ fontSize: 12, color: '#888', marginTop: 8 }}>
+                分享代码包含图片、形状、难度、块数等信息，可粘贴给好友或在“导入拼图”中还原。
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

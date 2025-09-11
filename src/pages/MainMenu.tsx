@@ -21,6 +21,10 @@ interface MainMenuProps {
   onStartGame: (puzzleConfig: PuzzleConfig) => void;
   onLoadGame?: (saveId: string) => void;
   onStartIrregularGame: (imageData?: string, gridSize?: '3x3' | '4x4' | '5x5' | '6x6') => void;
+
+  onStartTetrisGame: (puzzleConfig: PuzzleConfig) => void;
+  onOpenEditor: () => void;
+
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
   onOpenShop: () => void;
@@ -33,6 +37,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onStartGame,
   onLoadGame,
   onStartIrregularGame,
+
+  onStartTetrisGame,
+  onOpenEditor,
+
   onOpenAchievements,
   onOpenDailyChallenge,
   onOpenShop,
@@ -69,7 +77,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       setShowLoadModal(false);
       return { success: true };
     }
-    
+
     return { success: false, error: '无法加载游戏' };
   };
 
@@ -91,7 +99,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       
       // 使用真实的图片数据
       const imageData = selectedAsset.filePath;
-      
+
       // 如果选择的是异形拼图，使用新的异形拼图系统
       if (pieceShape === 'irregular') {
         const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
@@ -100,10 +108,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         onStartIrregularGame(imageData, gridSizeStr);
         return;
       }
-      
+
+      // 如果选择的是俄罗斯方块拼图，使用俄罗斯方块拼图系统
+      if (pieceShape === 'tetris') {
+        const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
+
+        const puzzleConfig = await PuzzleGenerator.generatePuzzle({
+          imageData: imageData,
+          gridSize: difficultyConfig.gridSize,
+          pieceShape: pieceShape,
+          name: selectedAsset.name,
+        });
+
+        onStartTetrisGame(puzzleConfig);
+        return;
+      }
+
       // 传统方形拼图
       const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
-      
+
       const puzzleConfig = await PuzzleGenerator.generatePuzzle({
           allowRotation: isAllowPieceRotation,
         imageData: imageData,
@@ -118,11 +141,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       // 如果图片加载失败，使用备用的色块
       const fallbackImageData = `data:image/svg+xml;base64,${btoa(`
         <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
-          <rect width="400" height="400" fill="#${Math.floor(Math.random()*16777215).toString(16)}"/>
+          <rect width="400" height="400" fill="#${Math.floor(Math.random() * 16777215).toString(16)}"/>
           <text x="200" y="200" text-anchor="middle" fill="white" font-size="24">${selectedAsset.name}</text>
         </svg>
       `)}`;
-      
+
       const difficultyConfig = PuzzleGenerator.getDifficultyConfig(difficulty);
       const puzzleConfig = await PuzzleGenerator.generatePuzzle({
         imageData: fallbackImageData,
@@ -131,7 +154,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         name: selectedAsset.name,
         allowRotation: isAllowPieceRotation,
       });
-      
+
       onStartGame(puzzleConfig);
     } finally {
       setIsGenerating(false);
@@ -170,7 +193,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           <UserProfile onOpenShop={onOpenShop} onOpenProfile={onOpenProfile} />
         </div>
       </div>
-      
+
       {/* 数据同步面板 */}
       {showSyncPanel && (
         <div className="bg-white border-b shadow-sm">
@@ -179,7 +202,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </div>
         </div>
       )}
-      
+
       {/* 主要内容区域 */}
       <div className="flex justify-center items-start pt-[25px] px-5 pb-5 flex-1 bg-[#FFFDFA]">
         <div className="flex flex-col lg:flex-row gap-5 w-full max-w-6xl">

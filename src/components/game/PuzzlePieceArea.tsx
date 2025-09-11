@@ -14,6 +14,9 @@ interface PuzzlePieceAreaProps {
   onDragStart?: (pieceId: string) => void;
   onDragEnd?: () => void;
   onDropToProcessingArea?: () => void;
+  // 鱼目混珠特效相关
+  fakePieces?: Set<string>;
+  hasFakePiecesEffect?: boolean;
 }
 
 export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
@@ -27,6 +30,8 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
   onDragStart,
   onDragEnd,
   onDropToProcessingArea,
+  fakePieces,
+  hasFakePiecesEffect,
 }) => {
   const handlePieceClick = (pieceId: string) => {
     onPieceSelect(selectedPieceId === pieceId ? null : pieceId);
@@ -86,13 +91,18 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
           <p>🎉 所有拼图块都已放置！</p>
         </div>
       ) : (
-        <div className="pieces-grid">
+        <div className={`pieces-grid ${pieces.some(p => p.tetrisShape) ? 'tetris-grid' : ''}`}>
           {pieces.map((piece) => (
             <div key={piece.id} className="puzzle-piece-container">
               <div
-                className={`puzzle-piece-item ${piece.shape === 'triangle' ? 'triangle-piece' : ''} ${selectedPieceId === piece.id ? 'selected' : ''
-                  } ${draggedPiece === piece.id ? 'dragging' : ''} ${piece.shape === 'triangle' && piece.id.includes('_upper') ? 'triangle-upper' : ''
+                className={`puzzle-piece-item ${piece.shape === 'triangle' ? 'triangle-piece' : ''
+                  } ${piece.tetrisShape ? 'tetris-piece' : ''
+                  } ${selectedPieceId === piece.id ? 'selected' : ''
+                  } ${draggedPiece === piece.id ? 'dragging' : ''
+                  } ${piece.shape === 'triangle' && piece.id.includes('_upper') ? 'triangle-upper' : ''
                   } ${piece.shape === 'triangle' && piece.id.includes('_lower') ? 'triangle-lower' : ''
+                  } ${piece.tetrisShape ? `tetris-${piece.tetrisShape.toLowerCase()}` : ''
+                  } ${hasFakePiecesEffect && fakePieces?.has(piece.id) ? 'fake-piece' : ''
                   }`}
                 draggable={true}
                 onClick={() => handlePieceClick(piece.id)}
@@ -102,15 +112,37 @@ export const PuzzlePieceArea: React.FC<PuzzlePieceAreaProps> = ({
                 onDragEnd={handleDragEnd}
                 style={{
                   transform: `rotate(${piece.rotation}deg) ${piece.isFlipped ? 'scaleX(-1)' : ''}`,
+                  width: piece.tetrisShape
+                    ? piece.tetrisShape === 'I'
+                      ? '100px'
+                      : piece.tetrisShape === 'I3'
+                        ? '240px'
+                        : `${Math.min(Math.max(piece.width * 1.2, 120), 200)}px`
+                    : undefined,
+                  height: piece.tetrisShape
+                    ? piece.tetrisShape === 'I'
+                      ? '320px'
+                      : piece.tetrisShape === 'I3'
+                        ? '80px'
+                        : `${Math.min(Math.max(piece.height * 1.2, 120), 180)}px`
+                    : undefined,
+                  aspectRatio: piece.tetrisShape ? 'auto' : 1,
+                  minWidth: piece.tetrisShape ? undefined : undefined,
+                  minHeight: piece.tetrisShape ? undefined : undefined,
                 }}
               >
                 {showAnswers && (
-                  <div className="piece-number">{piece.originalIndex + 1}</div>
+                  <div className="piece-number">{piece.originalIndex + 1}{hasFakePiecesEffect && fakePieces?.has(piece.id) ? ' (伪造)' : ''}</div>
+                )}
+                {piece.tetrisShape && (
+                  <div className="tetris-shape-label">{piece.tetrisShape}</div>
                 )}
                 <img
                   src={piece.imageData}
                   alt={`拼图块 ${piece.originalIndex + 1}`}
-                  className={`piece-image ${piece.shape === 'triangle' ? 'triangle-image' : ''}`}
+                  className={`piece-image ${piece.shape === 'triangle' ? 'triangle-image' : ''
+                    } ${piece.tetrisShape ? 'tetris-image' : ''
+                    }`}
                   draggable={false}
                 />
               </div>

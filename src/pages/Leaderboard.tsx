@@ -7,11 +7,12 @@ import './Leaderboard.css';
 
 interface LeaderboardProps {
   onBackToMenu: () => void;
+  onOpenDailyChallengeHistory?: () => void;
 }
 
 type ViewMode = 'all' | 'puzzle' | 'daily';
 
-export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
+export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu, onOpenDailyChallengeHistory }) => {
   console.log('排行榜组件开始渲染...');
   
   const { authState } = useAuth();
@@ -106,14 +107,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
             break;
           
           case 'daily':
-            console.log('加载每日挑战排行榜...');
+            console.log('📅 加载每日挑战排行榜...', { selectedDate });
             const dailyData = LeaderboardService.getDailyChallengeRanking(selectedDate, 50);
-            console.log('每日挑战数据:', dailyData);
+            console.log('📊 每日挑战数据:', dailyData);
+            console.log('📈 数据长度:', dailyData.length);
             setDailyChallengeData(dailyData);
             
             if (authState.user) {
               const playerStats = LeaderboardService.getPlayerDailyChallengeStats(authState.user.username);
-              console.log('玩家每日统计:', playerStats);
+              console.log('👤 玩家每日统计:', playerStats);
               setPlayerDailyStats(playerStats);
             }
             break;
@@ -177,7 +179,13 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
           </button>
           <button
             className={`tab ${viewMode === 'daily' ? 'active' : ''}`}
-            onClick={() => setViewMode('daily')}
+            onClick={() => {
+              if (onOpenDailyChallengeHistory) {
+                onOpenDailyChallengeHistory();
+              } else {
+                setViewMode('daily');
+              }
+            }}
           >
             每日挑战排行
           </button>
@@ -360,9 +368,11 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
         )}
 
         {/* 每日挑战排行榜 */}
-        {viewMode === 'daily' && !loading && (
+        {viewMode === 'daily' && !loading && !onOpenDailyChallengeHistory && (
           <div className="daily-challenge-section">
-            <h2>📅 每日挑战排行榜</h2>
+            <div className="daily-challenge-header">
+              <h2>📅 每日挑战排行榜</h2>
+            </div>
             
             <div className="date-selector">
               <h3>选择日期</h3>

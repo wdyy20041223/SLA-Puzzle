@@ -7,6 +7,7 @@ import './DailyChallengeNew.css';
 
 interface DailyChallengeProps {
   onBackToMenu: () => void;
+  onOpenDailyChallengeHistory?: () => void;
 }
 
 export interface Challenge {
@@ -47,9 +48,9 @@ interface ChallengeHistory {
   rewards: string[];
 }
 
-export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) => {
+export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, onOpenDailyChallengeHistory }) => {
   const { authState } = useAuth();
-  const [activeTab, setActiveTab] = useState<'today' | 'history' | 'rewards'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
   const [todayChallenge, setTodayChallenge] = useState<Challenge | null>(null);
   const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
   const [dailyEffects, setDailyEffects] = useState<{
@@ -62,9 +63,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentGame, setCurrentGame] = useState<Challenge | null>(null);
   const [dailyStreak, setDailyStreak] = useState(0);
-  const [totalCoins, setTotalCoins] = useState(0);
-  const [totalExperience, setTotalExperience] = useState(0);
-  const [unlockedItems, setUnlockedItems] = useState<{name: string, icon: string, date: string}[]>([]);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -72,71 +70,47 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const getAllEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
     return {
       star3: [
-        { id: 'rotate', name: '天旋地转', description: '本关卡拼图块包含旋转与翻转', star: 3 as const },
-        { id: 'blur', name: '雾里探花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
+        { id: 'rotate', name: '天旋地转', description: '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', star: 3 as const },
+        { id: 'blur', name: '雾里看花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
         { id: 'partial', name: '管中窥豹', description: '本关卡答题区最开始只展示一半的拼图块', star: 3 as const },
-        { id: 'mirror', name: '镜中奇缘', description: '本关卡正确答案与原图块成镜像关系', star: 3 as const },
-        { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 as const }
+        { id: 'upside_down', name: '颠倒世界', description: '本关卡中正确答案旋转180°后得到原图', star: 3 as const },
+        { id: 'double_steps', name: '鱼目混珠', description: '混入3块该地图分割后的拼图块的复制体，复制体在被放入拼图时会直接消失，只有当本体放入空格才会显示正确', star: 3 as const }
       ],
       star4: [
         { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落', star: 4 as const },
-        { id: 'invisible', name: '一手遮天', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
+        { id: 'invisible', name: '深渊漫步', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
         { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 as const },
         { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 as const }
       ],
       star5: [
         { id: 'no_mistakes', name: '最终防线', description: '本关卡不允许任何一次放置失误', star: 5 as const },
         { id: 'step_limit', name: '精打细算', description: '本关卡必须在1.5*拼图块数量次步数内完成', star: 5 as const },
-        { id: 'brightness', name: '璀璨星河', description: '答题区拼图块亮度随时间呈正弦变化', star: 5 as const }
+        { id: 'brightness', name: '亦步亦趋', description: '仅能在上次放置的拼图块周围放置拼图块', star: 5 as const }
       ]
     };
   };
 
-  // 基于日期随机选择每日特效
+  // 基于日期生成每日特效（展示所有特效）
   const generateDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
-    const today = new Date().toISOString().split('T')[0];
-    const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-    
-    // 简单的伪随机函数
-    const pseudoRandom = (seed: number) => {
-      let state = seed;
-      return () => {
-        state = (state * 9301 + 49297) % 233280;
-        return state / 233280;
-      };
-    };
-
-    const random = pseudoRandom(seed);
     const allEffects = getAllEffects();
 
-    // 随机选择3个3星特效
-    const shuffled3Star = [...allEffects.star3].sort(() => random() - 0.5);
-    const selected3Star = shuffled3Star.slice(0, 3);
-
-    // 随机选择2个4星特效
-    const shuffled4Star = [...allEffects.star4].sort(() => random() - 0.5);
-    const selected4Star = shuffled4Star.slice(0, 2);
-
-    // 随机选择1个5星特效
-    const shuffled5Star = [...allEffects.star5].sort(() => random() - 0.5);
-    const selected5Star = shuffled5Star.slice(0, 1);
-
+    // 直接返回所有特效，不再进行随机选择
     return {
-      star3: selected3Star,
-      star4: selected4Star,
-      star5: selected5Star
+      star3: allEffects.star3, // 显示所有5个3星特效
+      star4: allEffects.star4, // 显示所有4个4星特效
+      star5: allEffects.star5  // 显示所有3个5星特效
     };
   };
 
   // 拼图图片库
   const puzzleImageLibrary = [
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '梦幻城堡', description: '一座隐藏在云端的神秘城堡，等待着勇敢的冒险者来探索' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '樱花飞舞', description: '春日樱花盛开的美景' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '星空之夜', description: '浩瀚星空下的宁静夜晚' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '草原之王', description: '非洲草原上的雄狮，展现王者风范' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '高山流水', description: '壮丽的山脉与清澈的溪流' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '动漫角色', description: '来自异世界的神秘角色' },
-    { path: '/src-tauri/icons/Square284x284Logo.png', title: '城市之巅', description: '现代化都市的摩天大楼' }
+    { path: '/images/nature/landscape1.svg', title: '梦幻城堡', description: '一座隐藏在云端的神秘城堡，等待着勇敢的冒险者来探索' },
+    { path: '/images/nature/landscape2.svg', title: '樱花飞舞', description: '春日樱花盛开的美景' },
+    { path: '/images/nature/landscape3.svg', title: '星空之夜', description: '浩瀚星空下的宁静夜晚' },
+    { path: '/images/animals/cat.svg', title: '草原之王', description: '非洲草原上的雄狮，展现王者风范' },
+    { path: '/images/nature/landscape1.svg', title: '高山流水', description: '壮丽的山脉与清澈的溪流' },
+    { path: '/images/anime/character.svg', title: '动漫角色', description: '来自异世界的神秘角色' },
+    { path: '/images/buildings/castle.svg', title: '城市之巅', description: '现代化都市的摩天大楼' }
   ];
 
   // 难度配置
@@ -247,8 +221,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
             // const userData = await cloudStorage.getUserData(authState.user.id);
             // if (userData) {
             //   setDailyStreak(userData.dailyStreak || 0);
-            //   setTotalCoins(userData.coins || 0);
-            //   setTotalExperience(userData.experience || 0);
             // }
           } catch (error) {
             console.warn('Failed to load cloud data:', error);
@@ -309,10 +281,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
           <div className="stat-value">{getTotalStars()}</div>
           <div className="stat-label">今日星级</div>
         </div>
-        <div className="stat-item">
-          <div className="stat-value">{totalCoins}</div>
-          <div className="stat-label">金币</div>
-        </div>
+
       </div>
 
       {todayChallenge && (
@@ -428,7 +397,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
               <Button
                 onClick={() => setShowAnswer(!showAnswer)}
                 variant="secondary"
-                disabled={selectedEffects.includes('no_mistakes')}
+                disabled={false}
               >
                 {showAnswer ? '隐藏' : '显示'}答案
               </Button>
@@ -460,63 +429,70 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
 
   const renderHistoryTab = () => (
     <div className="challenge-history">
-      <h3>挑战历史</h3>
+      <div className="history-header">
+        <h3>挑战历史</h3>
+        {onOpenDailyChallengeHistory && (
+          <Button 
+            onClick={onOpenDailyChallengeHistory}
+            variant="primary"
+            size="small"
+          >
+            📊 查看详细历史记录
+          </Button>
+        )}
+      </div>
+      
       {challengeHistory.length === 0 ? (
         <div className="empty-history">
           <p>还没有挑战记录</p>
           <p>完成每日挑战来解锁历史记录！</p>
+          {onOpenDailyChallengeHistory && (
+            <div className="empty-history-action">
+              <Button 
+                onClick={onOpenDailyChallengeHistory}
+                variant="secondary"
+                size="medium"
+              >
+                📊 查看全球挑战记录
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="history-list">
-          {challengeHistory.map((record, index) => (
-            <div key={index} className="history-item">
-              <div className="history-date">{record.date}</div>
-              <div className="history-challenge">{record.challenge.title}</div>
-              <div className="history-stars">{'★'.repeat(record.stars)}</div>
-              <div className="history-status">
-                {record.completed ? '✅ 已完成' : '❌ 未完成'}
+        <div className="history-container">
+          <div className="history-list">
+            {challengeHistory.slice(0, 5).map((record, index) => (
+              <div key={index} className="history-item">
+                <div className="history-date">{record.date}</div>
+                <div className="history-challenge">{record.challenge.title}</div>
+                <div className="history-stars">{'★'.repeat(record.stars)}</div>
+                <div className="history-status">
+                  {record.completed ? '✅ 已完成' : '❌ 未完成'}
+                </div>
               </div>
+            ))}
+          </div>
+          
+          {challengeHistory.length > 5 && (
+            <div className="history-footer">
+              <p className="history-more-text">显示最近5条记录，共{challengeHistory.length}条</p>
+              {onOpenDailyChallengeHistory && (
+                <Button 
+                  onClick={onOpenDailyChallengeHistory}
+                  variant="primary"
+                  size="medium"
+                >
+                  📊 查看全部历史记录
+                </Button>
+              )}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
   );
 
-  const renderRewardsTab = () => (
-    <div className="rewards-section">
-      <h3>成就与奖励</h3>
-      <div className="rewards-stats">
-        <div className="reward-stat">
-          <div className="reward-value">{totalCoins}</div>
-          <div className="reward-label">总金币</div>
-        </div>
-        <div className="reward-stat">
-          <div className="reward-value">{totalExperience}</div>
-          <div className="reward-label">总经验</div>
-        </div>
-        <div className="reward-stat">
-          <div className="reward-value">{unlockedItems.length}</div>
-          <div className="reward-label">解锁物品</div>
-        </div>
-      </div>
-      
-      {unlockedItems.length > 0 && (
-        <div className="unlocked-items">
-          <h4>已解锁物品</h4>
-          <div className="items-grid">
-            {unlockedItems.map((item, index) => (
-              <div key={index} className="item-card">
-                <div className="item-icon">{item.icon}</div>
-                <div className="item-name">{item.name}</div>
-                <div className="item-date">{item.date}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+
 
   return (
     <div className="daily-challenge-container">
@@ -544,18 +520,11 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         >
           挑战历史
         </button>
-        <button
-          className={`tab-button ${activeTab === 'rewards' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rewards')}
-        >
-          奖励收集
-        </button>
       </div>
 
       <div className="challenge-content">
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'history' && renderHistoryTab()}
-        {activeTab === 'rewards' && renderRewardsTab()}
       </div>
     </div>
   );

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>俄罗斯方块拼图显示测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .shape-preview {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .shape-label {
+            margin-top: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        canvas {
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>俄罗斯方块拼图生成测试</h1>
+
+    <div class="test-container">
+        <h2>3x3 网格 - 俄罗斯方块布局</h2>
+        <p>应该生成：L型(4格) + O型(4格) + 单格(1格)</p>
+        <div id="tetris-3x3"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>俄罗斯方块形状预览</h2>
+        <div id="shape-previews"></div>
+    </div>
+
+    <script>
+        // 模拟俄罗斯方块形状数据
+        const tetrisShapes = {
+            'L': [
+                [0, 0], [1, 0], [2, 0], [2, 1]
+            ],
+            'O': [
+                [0, 1], [0, 2], [1, 1], [1, 2]
+            ],
+            'T': [
+                [0, 1], [1, 0], [1, 1], [1, 2]
+            ],
+            'Z': [
+                [0, 0], [0, 1], [1, 1], [1, 2]
+            ],
+            'I': [
+                [0, 0], [1, 0], [2, 0], [3, 0]
+            ],
+            'J': [
+                [0, 1], [1, 1], [2, 1], [2, 0]
+            ],
+            'S': [
+                [0, 1], [0, 2], [1, 0], [1, 1]
+            ]
+        };
+
+        function drawShape(shapeName, positions, cellSize = 40) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // 计算边界
+            const rows = positions.map(p => p[0]);
+            const cols = positions.map(p => p[1]);
+            const minRow = Math.min(...rows);
+            const maxRow = Math.max(...rows);
+            const minCol = Math.min(...cols);
+            const maxCol = Math.max(...cols);
+
+            const padding = 8;
+            const width = (maxCol - minCol + 1) * cellSize + padding * 2;
+            const height = (maxRow - minRow + 1) * cellSize + padding * 2;
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // 绘制网格背景
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, width, height);
+
+            // 绘制形状
+            const colors = {
+                'L': '#f97316',
+                'J': '#3b82f6',
+                'T': '#8b5cf6',
+                'S': '#10b981',
+                'Z': '#ef4444',
+                'I': '#06b6d4',
+                'O': '#eab308'
+            };
+
+            ctx.fillStyle = colors[shapeName] || '#666';
+
+            positions.forEach(([row, col]) => {
+                const x = (col - minCol) * cellSize + padding;
+                const y = (row - minRow) * cellSize + padding;
+
+                ctx.fillRect(x, y, cellSize, cellSize);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, cellSize, cellSize);
+            });
+
+            return canvas;
+        }
+
+        // 绘制所有形状预览
+        const previewContainer = document.getElementById('shape-previews');
+        Object.keys(tetrisShapes).forEach(shapeName => {
+            const shapeDiv = document.createElement('div');
+            shapeDiv.className = 'shape-preview';
+
+            const canvas = drawShape(shapeName, tetrisShapes[shapeName]);
+            shapeDiv.appendChild(canvas);
+
+            const label = document.createElement('div');
+            label.className = 'shape-label';
+            label.textContent = `${shapeName} 型`;
+            shapeDiv.appendChild(label);
+
+            previewContainer.appendChild(shapeDiv);
+        });
+
+        // 绘制3x3布局
+        const grid3x3 = document.getElementById('tetris-3x3');
+        const layoutDescription = document.createElement('p');
+        layoutDescription.innerHTML = `
+            <strong>L型块位置:</strong> (0,0), (1,0), (2,0), (2,1)<br>
+            <strong>O型块位置:</strong> (0,1), (0,2), (1,1), (1,2)<br>
+            <strong>单格块位置:</strong> (2,2)
+        `;
+        grid3x3.appendChild(layoutDescription);
+
+        // 绘制3x3网格布局
+        const gridCanvas = document.createElement('canvas');
+        const gridCtx = gridCanvas.getContext('2d');
+        const gridCellSize = 50;
+        gridCanvas.width = 3 * gridCellSize + 20;
+        gridCanvas.height = 3 * gridCellSize + 20;
+
+        // 绘制网格线
+        gridCtx.strokeStyle = '#ccc';
+        gridCtx.lineWidth = 1;
+        for (let i = 0; i <= 3; i++) {
+            gridCtx.moveTo(10 + i * gridCellSize, 10);
+            gridCtx.lineTo(10 + i * gridCellSize, 10 + 3 * gridCellSize);
+            gridCtx.moveTo(10, 10 + i * gridCellSize);
+            gridCtx.lineTo(10 + 3 * gridCellSize, 10 + i * gridCellSize);
+        }
+        gridCtx.stroke();
+
+        // 标记L型块
+        gridCtx.fillStyle = '#f97316';
+        [[0, 0], [1, 0], [2, 0], [2, 1]].forEach(([row, col]) => {
+            gridCtx.fillRect(10 + col * gridCellSize + 1, 10 + row * gridCellSize + 1,
+                gridCellSize - 2, gridCellSize - 2);
+        });
+
+        // 标记O型块
+        gridCtx.fillStyle = '#eab308';
+        [[0, 1], [0, 2], [1, 1], [1, 2]].forEach(([row, col]) => {
+            gridCtx.fillRect(10 + col * gridCellSize + 1, 10 + row * gridCellSize + 1,
+                gridCellSize - 2, gridCellSize - 2);
+        });
+
+        // 标记单格块
+        gridCtx.fillStyle = '#9ca3af';
+        gridCtx.fillRect(10 + 2 * gridCellSize + 1, 10 + 2 * gridCellSize + 1,
+            gridCellSize - 2, gridCellSize - 2);
+
+        grid3x3.appendChild(gridCanvas);
+    </script>
+</body>
+
+</html>

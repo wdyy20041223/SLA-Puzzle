@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日挑战排行榜测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #fff;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #ffd700;
+            margin-top: 0;
+        }
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .leaderboard-table th {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: bold;
+        }
+        .leaderboard-table tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .rank-1 { color: #ffd700; font-weight: bold; }
+        .rank-2 { color: #c0c0c0; font-weight: bold; }
+        .rank-3 { color: #cd7f32; font-weight: bold; }
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success { background: rgba(46, 204, 113, 0.3); }
+        .status.error { background: rgba(231, 76, 60, 0.3); }
+        .status.info { background: rgba(52, 152, 219, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 每日挑战排行榜测试</h1>
+        
+        <div class="test-section">
+            <h2>📊 数据状态</h2>
+            <div id="dataStatus" class="status info">正在检查数据状态...</div>
+            <button onclick="checkDataStatus()">检查数据状态</button>
+            <button onclick="clearData()">清空数据</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 添加测试数据</h2>
+            <button onclick="addTestData()">添加测试数据</button>
+            <button onclick="addRandomData()">添加随机数据</button>
+            <button onclick="addTodayData()">添加今日数据</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🏆 排行榜显示</h2>
+            <button onclick="showTodayRanking()">显示今日排行榜</button>
+            <button onclick="showAllRanking()">显示所有排行榜</button>
+            <button onclick="validateSorting()">验证排序</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 排行榜数据</h2>
+            <div id="leaderboardContainer"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 调试日志</h2>
+            <div id="logContainer" class="log"></div>
+            <button onclick="clearLog()">清空日志</button>
+        </div>
+    </div>
+
+    <script>
+        // 模拟 LeaderboardService 类
+        class MockLeaderboardService {
+            static DAILY_CHALLENGE_STORAGE_KEY = 'daily_challenge_leaderboard';
+
+            static getDailyChallengeLeaderboard() {
+                try {
+                    const data = localStorage.getItem(this.DAILY_CHALLENGE_STORAGE_KEY);
+                    if (!data) return [];
+                    
+                    const entries = JSON.parse(data);
+                    return entries.map((entry) => ({
+                        ...entry,
+                        completedAt: new Date(entry.completedAt)
+                    }));
+                } catch (error) {
+                    console.error('获取每日挑战排行榜数据失败:', error);
+                    return [];
+                }
+            }
+
+            static saveDailyChallengeLeaderboard(entries) {
+                try {
+                    localStorage.setItem(this.DAILY_CHALLENGE_STORAGE_KEY, JSON.stringify(entries));
+                } catch (error) {
+                    console.error('保存每日挑战排行榜数据失败:', error);
+                }
+            }
+
+            static generateId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            static addDailyChallengeEntry(entry) {
+                log('📝 添加每日挑战记录:', entry);
+                
+                const newEntry = {
+                    ...entry,
+                    id: this.generateId(),
+                    completedAt: new Date()
+                };
+
+                const entries = this.getDailyChallengeLeaderboard();
+                log('📊 当前排行榜记录数:', entries.length);
+                
+                // 检查是否已存在同一天同一用户的记录
+                const existingIndex = entries.findIndex(e => 
+                    e.date === newEntry.date && e.playerName === newEntry.playerName
+                );
+
+                if (existingIndex >= 0) {
+                    // 如果新记录更好，则更新
+                    const existing = entries[existingIndex];
+                    log('🔄 发现同一天同一用户的记录，比较分数:', {
+                        existing: existing.score,
+                        new: newEntry.score,
+                        existingTime: existing.completionTime,
+                        newTime: newEntry.completionTime
+                    });
+                    
+                    if (newEntry.score > existing.score || 
+                        (newEntry.score === existing.score && newEntry.completionTime < existing.completionTime)) {
+                        entries[existingIndex] = newEntry;
+                        log('✅ 更新记录');
+                    } else {
+                        log('⏭️ 保持原记录');
+                    }
+                } else {
+                    entries.push(newEntry);
+                    log('➕ 添加新记录');
+                }
+
+                this.saveDailyChallengeLeaderboard(entries);
+                log('💾 保存完成，当前记录数:', entries.length);
+                return newEntry;
+            }
+
+            static getDailyChallengeRanking(date, limit = 50) {
+                log('📊 获取每日挑战排行榜:', { date, limit });
+                
+                const entries = this.getDailyChallengeLeaderboard();
+                log('📋 原始记录数:', entries.length);
+                
+                let filtered = entries;
+                if (date) {
+                    filtered = entries.filter(entry => entry.date === date);
+                    log('📅 按日期筛选后记录数:', filtered.length);
+                }
+
+                // 按得分降序排序，得分相同则按时间升序
+                const sorted = filtered
+                    .sort((a, b) => {
+                        if (a.score !== b.score) {
+                            return b.score - a.score; // 得分高的在前
+                        }
+                        return a.completionTime - b.completionTime; // 时间短的在前
+                    })
+                    .slice(0, limit);
+                
+                log('🏆 排序后记录数:', sorted.length);
+                log('📊 排行榜数据:', sorted);
+                
+                return sorted;
+            }
+        }
+
+        // 日志函数
+        function log(...args) {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const message = `[${timestamp}] ${args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ')}`;
+            
+            logContainer.innerHTML += message + '\n';
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            console.log(...args);
+        }
+
+        // 检查数据状态
+        function checkDataStatus() {
+            const data = MockLeaderboardService.getDailyChallengeLeaderboard();
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntries = data.filter(entry => entry.date === today);
+            
+            const status = document.getElementById('dataStatus');
+            status.innerHTML = `
+                <strong>数据状态:</strong><br>
+                总记录数: ${data.length}<br>
+                今日记录数: ${todayEntries.length}<br>
+                最后记录: ${data.length > 0 ? data[data.length - 1].playerName : '无'}<br>
+                存储键: ${MockLeaderboardService.DAILY_CHALLENGE_STORAGE_KEY}
+            `;
+            status.className = 'status success';
+            
+            log('✅ 数据状态检查完成');
+        }
+
+        // 清空数据
+        function clearData() {
+            localStorage.removeItem(MockLeaderboardService.DAILY_CHALLENGE_STORAGE_KEY);
+            log('🗑️ 数据已清空');
+            checkDataStatus();
+        }
+
+        // 添加测试数据
+        function addTestData() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            const testEntries = [
+                {
+                    date: today,
+                    playerName: '测试玩家A',
+                    score: 850,
+                    completionTime: 180,
+                    moves: 52,
+                    difficulty: 'medium',
+                    isPerfect: true,
+                    consecutiveDays: 5,
+                    totalChallengesCompleted: 25,
+                    averageScore: 780,
+                    totalStars: 3
+                },
+                {
+                    date: today,
+                    playerName: '测试玩家B',
+                    score: 920,
+                    completionTime: 160,
+                    moves: 48,
+                    difficulty: 'hard',
+                    isPerfect: true,
+                    consecutiveDays: 10,
+                    totalChallengesCompleted: 35,
+                    averageScore: 820,
+                    totalStars: 4
+                },
+                {
+                    date: today,
+                    playerName: '测试玩家C',
+                    score: 750,
+                    completionTime: 200,
+                    moves: 60,
+                    difficulty: 'easy',
+                    isPerfect: false,
+                    consecutiveDays: 3,
+                    totalChallengesCompleted: 15,
+                    averageScore: 720,
+                    totalStars: 2
+                }
+            ];
+
+            testEntries.forEach(entry => {
+                MockLeaderboardService.addDailyChallengeEntry(entry);
+            });
+            
+            log('✅ 测试数据添加完成');
+            checkDataStatus();
+        }
+
+        // 添加随机数据
+        function addRandomData() {
+            const today = new Date().toISOString().split('T')[0];
+            const players = ['玩家A', '玩家B', '玩家C', '玩家D', '玩家E', '玩家F', '玩家G', '玩家H'];
+            const difficulties = ['easy', 'medium', 'hard', 'expert'];
+            
+            for (let i = 0; i < 10; i++) {
+                const entry = {
+                    date: today,
+                    playerName: players[Math.floor(Math.random() * players.length)],
+                    score: Math.floor(Math.random() * 500) + 500,
+                    completionTime: Math.floor(Math.random() * 300) + 60,
+                    moves: Math.floor(Math.random() * 50) + 20,
+                    difficulty: difficulties[Math.floor(Math.random() * difficulties.length)],
+                    isPerfect: Math.random() > 0.5,
+                    consecutiveDays: Math.floor(Math.random() * 20) + 1,
+                    totalChallengesCompleted: Math.floor(Math.random() * 50) + 1,
+                    averageScore: Math.floor(Math.random() * 200) + 600,
+                    totalStars: Math.floor(Math.random() * 3) + 2
+                };
+                
+                MockLeaderboardService.addDailyChallengeEntry(entry);
+            }
+            
+            log('✅ 随机数据添加完成');
+            checkDataStatus();
+        }
+
+        // 添加今日数据
+        function addTodayData() {
+            const today = new Date().toISOString().split('T')[0];
+            const entry = {
+                date: today,
+                playerName: '当前用户',
+                score: Math.floor(Math.random() * 500) + 500,
+                completionTime: Math.floor(Math.random() * 300) + 60,
+                moves: Math.floor(Math.random() * 50) + 20,
+                difficulty: 'medium',
+                isPerfect: Math.random() > 0.5,
+                consecutiveDays: 1,
+                totalChallengesCompleted: 1,
+                averageScore: Math.floor(Math.random() * 200) + 600,
+                totalStars: Math.floor(Math.random() * 3) + 2
+            };
+            
+            MockLeaderboardService.addDailyChallengeEntry(entry);
+            log('✅ 今日数据添加完成');
+            checkDataStatus();
+        }
+
+        // 显示今日排行榜
+        function showTodayRanking() {
+            const today = new Date().toISOString().split('T')[0];
+            const ranking = MockLeaderboardService.getDailyChallengeRanking(today);
+            displayRanking(ranking, '今日排行榜');
+        }
+
+        // 显示所有排行榜
+        function showAllRanking() {
+            const ranking = MockLeaderboardService.getDailyChallengeRanking();
+            displayRanking(ranking, '所有排行榜');
+        }
+
+        // 显示排行榜
+        function displayRanking(ranking, title) {
+            const container = document.getElementById('leaderboardContainer');
+            
+            if (ranking.length === 0) {
+                container.innerHTML = '<div class="status info">📊 排行榜为空</div>';
+                return;
+            }
+
+            let html = `<h3>${title} (${ranking.length}条记录)</h3>`;
+            html += '<table class="leaderboard-table">';
+            html += '<thead><tr><th>排名</th><th>玩家</th><th>分数</th><th>用时</th><th>步数</th><th>难度</th><th>完美</th><th>星数</th></tr></thead>';
+            html += '<tbody>';
+            
+            ranking.forEach((entry, index) => {
+                const rankClass = index < 3 ? `rank-${index + 1}` : '';
+                html += `
+                    <tr>
+                        <td class="${rankClass}">${index + 1}</td>
+                        <td>${entry.playerName}</td>
+                        <td>${entry.score}</td>
+                        <td>${entry.completionTime}秒</td>
+                        <td>${entry.moves}</td>
+                        <td>${entry.difficulty}</td>
+                        <td>${entry.isPerfect ? '✨' : '❌'}</td>
+                        <td>${'★'.repeat(entry.totalStars || 0)}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            log(`📊 ${title}显示完成，共${ranking.length}条记录`);
+        }
+
+        // 验证排序
+        function validateSorting() {
+            const today = new Date().toISOString().split('T')[0];
+            const ranking = MockLeaderboardService.getDailyChallengeRanking(today);
+            
+            if (ranking.length <= 1) {
+                log('⚠️ 排行榜数据不足，无法验证排序');
+                return;
+            }
+
+            let isValid = true;
+            for (let i = 1; i < ranking.length; i++) {
+                if (ranking[i-1].score < ranking[i].score) {
+                    log(`❌ 排序错误: 第${i}位分数(${ranking[i-1].score}) < 第${i+1}位分数(${ranking[i].score})`);
+                    isValid = false;
+                }
+                
+                if (ranking[i-1].score === ranking[i].score && 
+                    ranking[i-1].completionTime > ranking[i].completionTime) {
+                    log(`❌ 排序错误: 分数相同时，第${i}位时间(${ranking[i-1].completionTime}) > 第${i+1}位时间(${ranking[i].completionTime})`);
+                    isValid = false;
+                }
+            }
+
+            if (isValid) {
+                log('✅ 排行榜排序验证通过');
+            } else {
+                log('❌ 排行榜排序验证失败');
+            }
+        }
+
+        // 清空日志
+        function clearLog() {
+            document.getElementById('logContainer').innerHTML = '';
+        }
+
+        // 页面加载时检查数据状态
+        window.onload = function() {
+            checkDataStatus();
+            log('🚀 每日挑战排行榜测试页面已加载');
+        };
+    </script>
+</body>
+</html>

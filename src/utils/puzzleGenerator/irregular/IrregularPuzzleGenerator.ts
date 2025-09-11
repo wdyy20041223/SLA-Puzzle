@@ -36,10 +36,29 @@ export class IrregularPuzzleGenerator {
     // 2. 加载图片
     const targetSize = 400;
     const imageUrl = imageData;
-    // 3. 切割图片为网格块
-    const pieces: IrregularPuzzlePiece[] = [];
     const totalPieces = gridSize.rows * gridSize.cols;
     const pieceSize = targetSize / gridSize.rows;
+
+    // 生成四边矩阵，保证边缘为0，内部随机-1/1，且相邻互补
+    function generateEdgeMatrix(m: number, n: number): number[][][] {
+      const matrix = Array.from({ length: m }, () => Array.from({ length: n }, () => [0, 0, 0, 0]));
+      for (let i = 0; i < m; i++) {
+        for (let j = 0; j < n; j++) {
+          // 上边
+          let up = i === 0 ? 0 : -matrix[i - 1][j][1];
+          // 左边
+          let left = j === 0 ? 0 : -matrix[i][j - 1][3];
+          // 下边
+          let down = i === m - 1 ? 0 : (Math.random() < 0.5 ? -1 : 1);
+          // 右边
+          let right = j === n - 1 ? 0 : (Math.random() < 0.5 ? -1 : 1);
+          matrix[i][j] = [up, down, left, right];
+        }
+      }
+      return matrix;
+    }
+
+    const edgeMatrix = generateEdgeMatrix(gridSize.rows, gridSize.cols);
 
     // 加载图片
     const img = new Image();
@@ -55,9 +74,12 @@ export class IrregularPuzzleGenerator {
 
     // 采集范围扩大比例
     const expandRatio = 0.3;
+    const pieces: IrregularPuzzlePiece[] = [];
     for (let i = 0; i < totalPieces; i++) {
       const row = Math.floor(i / gridSize.cols);
       const col = i % gridSize.cols;
+      // 获取本块四边
+      const [up, down, left, right] = edgeMatrix[row][col];
       // 采集区域宽高扩大1.3倍
       const srcW = (sourceSize / gridSize.cols);
       const srcH = (sourceSize / gridSize.rows);
@@ -116,52 +138,24 @@ export class IrregularPuzzleGenerator {
           pieceSize - destY - Math.round((expandH - imgCropH - (imgCropY - srcY)) * (pieceSize / expandH))
         );
       }
-      // 自动选择SVG蒙版路径，按3x3模板规律映射
-      let maskRow: number, maskCol: number;
-      if (row === 0) {
-        // 顶部
-        if (col === 0) {
-          maskRow = 0; maskCol = 0; // 左上角
-        } else if (col === gridSize.cols - 1) {
-          maskRow = 0; maskCol = 2; // 右上角
-        } else {
-          maskRow = 0; maskCol = 1; // 上边缘
-        }
-      } else if (row === gridSize.rows - 1) {
-        // 底部
-        if (col === 0) {
-          maskRow = 2; maskCol = 0; // 左下角
-        } else if (col === gridSize.cols - 1) {
-          maskRow = 2; maskCol = 2; // 右下角
-        } else {
-          maskRow = 2; maskCol = 1; // 下边缘
-        }
-      } else {
-        // 中间行
-        if (col === 0) {
-          maskRow = 1; maskCol = 0; // 左边缘
-        } else if (col === gridSize.cols - 1) {
-          maskRow = 1; maskCol = 2; // 右边缘
-        } else {
-          maskRow = 1; maskCol = 1; // 中间块
-        }
-      }
-      const svgMaskPath = `/svg/puzzle_piece_${maskRow}_${maskCol}.svg`;
+      // 生成svg mask路径，按你的命名规则
+      const svgMaskPath = `betterPuzzle/puzzle_${up}_${down}_${left}_${right}.svg`;
       // 合成图片和SVG mask
-  const pieceImageData = await applySvgMaskToImage(canvas, svgMaskPath, pieceSize, pieceSize, true);
+      const pieceImageData = await applySvgMaskToImage(canvas, svgMaskPath, pieceSize, pieceSize, true);
 
-
-      // 所有边缘都为平直
-      const up = 0;
-      const right = 0;
-      const down = 0;
-      const left = 0;
+      // 生成边缘类型对象
+      function edgeTypeFromNum(num: number): import('./types').EdgeType {
+        if (num === 1) return 'knob';
+        if (num === -1) return 'hole';
+        return 'flat';
+      }
       const edges = {
-        top: { type: 'flat' as import('./types').EdgeType, intensity: 0, seedValue: 0 },
-        right: { type: 'flat' as import('./types').EdgeType, intensity: 0, seedValue: 0 },
-        bottom: { type: 'flat' as import('./types').EdgeType, intensity: 0, seedValue: 0 },
-        left: { type: 'flat' as import('./types').EdgeType, intensity: 0, seedValue: 0 }
+        top: { type: edgeTypeFromNum(up), intensity: 0.5, seedValue: 0 },
+        right: { type: edgeTypeFromNum(right), intensity: 0.5, seedValue: 0 },
+        bottom: { type: edgeTypeFromNum(down), intensity: 0.5, seedValue: 0 },
+        left: { type: edgeTypeFromNum(left), intensity: 0.5, seedValue: 0 }
       };
+      // ...existing code...
 
       // 生成clipPath，遮盖扩展区域30%，只在原始方形边缘留出凹凸
       const expandedSize = { width: pieceSize * (1 + expandRatio), height: pieceSize * (1 + expandRatio) };

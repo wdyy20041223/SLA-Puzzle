@@ -1,0 +1,89 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'pnpm'
+        
+    - name: Install dependencies
+      run: pnpm install --no-frozen-lockfile
+      
+    - name: Build project
+      run: npx vite build
+      
+    - name: Create deployment archive
+      run: |
+        cd dist
+        tar -czf ../dist.tar.gz .
+        cd ..
+        
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        port: ${{ secrets.SSH_PORT }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Create backup timestamp
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          
+          # Create /srv/sla-front directory if it doesn't exist
+          mkdir -p /srv/sla-front
+          
+          # If current exists, rename it to backup
+          if [ -d "/srv/sla-front/current" ]; then
+            mv /srv/sla-front/current /srv/sla-front/backup_${TIMESTAMP}
+          fi
+          
+          # Create new current directory
+          mkdir -p /srv/sla-front/current
+          
+    - name: Upload files to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        port: ${{ secrets.SSH_PORT }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "dist.tar.gz"
+        target: "/tmp/"
+        
+    - name: Extract files on server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        port: ${{ secrets.SSH_PORT }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # Extract files to current directory
+          cd /srv/sla-front/current
+          tar -xzf /tmp/dist.tar.gz
+          
+          # Set proper permissions without sudo
+          chmod -R 755 /srv/sla-front/current
+          
+          # Clean up
+          rm /tmp/dist.tar.gz
+          
+          echo "Deployment completed successfully!"

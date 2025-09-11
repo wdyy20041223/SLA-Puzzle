@@ -395,38 +395,43 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
 
         <div className="game-controls">
           <GameHelpButton />
-          <Button
-            onClick={getHint}
-            variant="secondary"
-            size="small"
-            className="hint-button"
-          >
-            � 提示
-          </Button>
+          {/* 在多人模式下隐藏提示按钮 */}
+          {!isMultiplayer && (
+            <Button
+              onClick={getHint}
+              variant="primary"
+              size="small"
+              className="hint-button"
+            >
+              💡 提示
+            </Button>
+          )}
 
           <Button 
             onClick={() => setShowOriginalImage(true)} 
-            variant="secondary" 
+            variant="primary" 
             size="small"
             className="original-image-button"
           >
             👀 查看原图
           </Button>
-          <Button 
-            onClick={() => setShowAnswers(!showAnswers)} 
-            variant={showAnswers ? "primary" : "secondary"} 
-
-            size="small"
-            className="answer-toggle"
-          >
-            {showAnswers ? '👁️ 隐藏答案' : '👁️‍🗨️ 显示答案'}
-          </Button>
-          <Button onClick={undo} variant="secondary" size="small" disabled={!gameState || gameState.history.length === 0}>
+          {/* 在多人模式下隐藏显示答案按钮 */}
+          {!isMultiplayer && (
+            <Button 
+              onClick={() => setShowAnswers(!showAnswers)} 
+              variant="primary"
+              size="small"
+              className="answer-toggle"
+            >
+              {showAnswers ? '👁️ 隐藏答案' : '👁️‍🗨️ 显示答案'}
+            </Button>
+          )}
+          <Button onClick={undo} variant="primary" size="small" disabled={!gameState || gameState.history.length === 0}>
             ↩️ 撤销
           </Button>
           <Button
             onClick={handleSaveGame}
-            variant="secondary"
+            variant="primary"
             size="small"
             className="save-button"
             disabled={!canSaveGame()}
@@ -436,14 +441,14 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           {(puzzleConfig.pieceShape === 'square' || puzzleConfig.pieceShape === 'triangle') && (
             <Button
               onClick={handleShowLeaderboard}
-              variant="secondary"
+              variant="primary"
               size="small"
               className="leaderboard-button"
             >
               🏆 排行榜
             </Button>
           )}
-          <Button onClick={resetGame} variant="secondary" size="small">
+          <Button onClick={resetGame} variant="primary" size="small">
             🔄 重置游戏
           </Button>
           <Button onClick={onBackToMenu} variant="danger" size="small">
@@ -464,7 +469,7 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
           <PuzzleWorkspace
             gameState={gameState}
             selectedPiece={selectedPiece}
-            showAnswers={showAnswers}
+            showAnswers={isMultiplayer ? false : showAnswers}
             onPieceSelect={setSelectedPiece}
             onPlacePiece={placePieceToSlot}
             onRemovePiece={removePieceFromSlot}

@@ -382,6 +382,20 @@
   color: var(--accent-yellow);
 }
 
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.history-header h3 {
+  margin: 0;
+  text-align: left;
+}
+
 .empty-history {
   text-align: center;
   padding: 60px 20px;
@@ -391,6 +405,16 @@
 .empty-history p {
   font-size: 18px;
   margin: 10px 0;
+}
+
+.empty-history-action {
+  margin-top: 20px;
+}
+
+.history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .history-list {
@@ -424,6 +448,20 @@
 }
 
 .history-status {
+  font-size: 14px;
+}
+
+.history-footer {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.history-more-text {
+  margin: 0 0 15px 0;
+  opacity: 0.8;
   font-size: 14px;
 }
 

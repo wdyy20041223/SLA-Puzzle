@@ -4,6 +4,7 @@ import { HomePage } from './pages/HomePage';
 import { MainMenu } from './pages/MainMenu';
 import { PuzzleGame } from './components/game/PuzzleGame';
 import { LoadedPuzzleGame } from './components/game/LoadedPuzzleGame';
+import { TetrisPuzzleGame } from './pages/TetrisPuzzleGame';
 import { PuzzleEditor } from './components/editor/PuzzleEditor';
 import { IrregularPuzzleGame } from './pages/IrregularPuzzleGame';
 import { Achievements } from './pages/Achievements';
@@ -13,6 +14,7 @@ import { MultiplayerGame } from './pages/MultiplayerGame';
 import { Shop } from './pages/Shop';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
+import { DailyChallengeHistory } from './pages/DailyChallengeHistory';
 import { Settings } from './pages/Settings';
 import { Button } from './components/common/Button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -20,12 +22,17 @@ import { Auth } from './components/auth/Auth';
 import { MultiplayerRoom } from './services/apiService';
 import './App.css';
 
-type AppView = 'home' | 'singlePlayer' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'multiplayer-game' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+
+
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings' | 'home' | 'singlePlayer' | 'multiplayer-game' | 'dailyChallengeHistory';
+
+
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
   const [currentView, setCurrentView] = useState<AppView>('home');
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleConfig | null>(null);
+  const [currentTetrisPuzzle, setCurrentTetrisPuzzle] = useState<PuzzleConfig | null>(null);
   const [loadGameSaveId, setLoadGameSaveId] = useState<string | null>(null);
   const [irregularGameParams, setIrregularGameParams] = useState<{
     imageData?: string;
@@ -66,9 +73,15 @@ const AppContent: React.FC = () => {
     setCurrentView('irregular-game');
   };
 
+  const handleStartTetrisGame = (puzzleConfig: PuzzleConfig) => {
+    setCurrentTetrisPuzzle(puzzleConfig);
+    setCurrentView('tetris-game');
+  };
+
   const handleBackToMenu = () => {
     setCurrentView('singlePlayer');
     setCurrentPuzzle(null);
+    setCurrentTetrisPuzzle(null);
     setLoadGameSaveId(null);
     setIrregularGameParams({});
   };
@@ -110,6 +123,10 @@ const AppContent: React.FC = () => {
 
   const handleOpenLeaderboard = () => {
     setCurrentView('leaderboard');
+  };
+
+  const handleOpenDailyChallengeHistory = () => {
+    setCurrentView('dailyChallengeHistory');
   };
 
   const handleOpenSettings = () => {
@@ -155,6 +172,10 @@ const AppContent: React.FC = () => {
             onStartGame={handleStartGame}
             onLoadGame={handleLoadGame}
             onStartIrregularGame={handleStartIrregularGame}
+
+            onStartTetrisGame={handleStartTetrisGame}
+            onOpenEditor={handleOpenEditor}
+
             onOpenAchievements={handleOpenAchievements}
             onOpenDailyChallenge={handleOpenDailyChallenge}
             onOpenShop={handleOpenShop}
@@ -163,7 +184,7 @@ const AppContent: React.FC = () => {
             onBackToHome={handleBackToHome}
           />
         );
-      
+
       case 'game':
         if (loadGameSaveId) {
           // 加载保存的游戏
@@ -192,12 +213,12 @@ const AppContent: React.FC = () => {
             </div>
           );
         }
-      
+
       case 'editor':
         return (
-          <PuzzleEditor onBackToMenu={handleBackToMenu} />
+          <PuzzleEditor onBackToMenu={handleBackToMenu} onStartGame={handleStartGame} onStartIrregularGame={handleStartIrregularGame} />
         );
-      
+
       case 'irregular-game':
         return (
           <IrregularPuzzleGame
@@ -206,17 +227,39 @@ const AppContent: React.FC = () => {
             gridSize={irregularGameParams.gridSize}
           />
         );
-      
+
+      case 'tetris-game':
+        if (currentTetrisPuzzle) {
+          return (
+            <TetrisPuzzleGame
+              puzzleConfig={currentTetrisPuzzle}
+              onGameComplete={handleGameComplete}
+              onBackToMenu={handleBackToMenu}
+            />
+          );
+        } else {
+          return (
+            <div className="error-view">
+              <h2>错误</h2>
+              <p>俄罗斯方块拼图配置加载失败</p>
+              <Button onClick={handleBackToMenu}>返回菜单</Button>
+            </div>
+          );
+        }
+
       case 'achievements':
         return (
           <Achievements onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'dailyChallenge':
         return (
-          <DailyChallenge onBackToMenu={handleBackToMenu} />
+          <DailyChallenge 
+            onBackToMenu={handleBackToMenu} 
+            onOpenDailyChallengeHistory={handleOpenDailyChallengeHistory}
+          />
         );
-      
+
       case 'multiplayer':
         return (
           <Multiplayer 
@@ -242,27 +285,35 @@ const AppContent: React.FC = () => {
             onGameComplete={handleMultiplayerGameComplete}
           />
         );
-      
+
       case 'shop':
         return (
           <Shop onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'profile':
         return (
           <Profile onBackToMenu={handleBackToMenu} />
         );
-      
+
       case 'leaderboard':
         return (
-          <Leaderboard onBackToMenu={handleBackToMenu} />
+          <Leaderboard 
+            onBackToMenu={handleBackToMenu} 
+            onOpenDailyChallengeHistory={handleOpenDailyChallengeHistory}
+          />
         );
       
+      case 'dailyChallengeHistory':
+        return (
+          <DailyChallengeHistory onBackToMenu={handleBackToMenu} />
+        );
+
       case 'settings':
         return (
           <Settings onBackToHome={handleBackToHome} />
         );
-      
+
       default:
         return (
           <div className="error-view">
