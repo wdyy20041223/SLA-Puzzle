@@ -477,7 +477,40 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
         }
 
         // 放置俄罗斯方块到所有正确的槽位
-        const updatedPiece = { ...piece, currentSlot: piece.correctSlots[0], rotation: 0, isFlipped: false };
+        const updatedPiece = {
+          ...piece,
+          currentSlot: piece.correctSlots[0],
+          rotation: 0,
+          isFlipped: false
+        };
+
+        // 确保cellImages映射正确（恢复到原始状态）
+        if (piece.occupiedPositions && piece.cellImages) {
+          const originalCellImages: { [key: string]: string } = {};
+
+          // 直接复制所有已存在的cellImages，确保没有丢失
+          for (const [key, imageData] of Object.entries(piece.cellImages)) {
+            originalCellImages[key] = imageData;
+          }
+
+          // 如果某些原始键值不存在，尝试重建映射
+          const expectedKeys = piece.occupiedPositions.map(pos => `${pos[0]}-${pos[1]}`);
+          const existingKeys = Object.keys(piece.cellImages);
+
+          // 检查是否所有期望的键都存在
+          for (let i = 0; i < expectedKeys.length; i++) {
+            const expectedKey = expectedKeys[i];
+            if (!originalCellImages[expectedKey]) {
+              // 尝试从现有的键值中找到对应的图像
+              if (existingKeys[i] && piece.cellImages[existingKeys[i]]) {
+                originalCellImages[expectedKey] = piece.cellImages[existingKeys[i]];
+              }
+            }
+          }
+
+          updatedPiece.cellImages = originalCellImages;
+        }
+
         piece.correctSlots.forEach(slotIndex => {
           newAnswerGrid[slotIndex] = updatedPiece;
         });
