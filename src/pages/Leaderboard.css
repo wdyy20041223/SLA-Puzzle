@@ -96,6 +96,26 @@
 }
 
 /* 新增样式：日期选择器 */
+/* 每日挑战排行榜区域样式 */
+.daily-challenge-section {
+  margin-bottom: 30px;
+}
+
+.daily-challenge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.daily-challenge-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
 .date-selector {
   margin-bottom: 20px;
 }

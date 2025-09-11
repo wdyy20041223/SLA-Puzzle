@@ -7,6 +7,7 @@ import './DailyChallengeNew.css';
 
 interface DailyChallengeProps {
   onBackToMenu: () => void;
+  onOpenDailyChallengeHistory?: () => void;
 }
 
 export interface Challenge {
@@ -47,9 +48,9 @@ interface ChallengeHistory {
   rewards: string[];
 }
 
-export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) => {
+export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, onOpenDailyChallengeHistory }) => {
   const { authState } = useAuth();
-  const [activeTab, setActiveTab] = useState<'today' | 'history' | 'rewards'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
   const [todayChallenge, setTodayChallenge] = useState<Challenge | null>(null);
   const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
   const [dailyEffects, setDailyEffects] = useState<{
@@ -62,9 +63,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentGame, setCurrentGame] = useState<Challenge | null>(null);
   const [dailyStreak, setDailyStreak] = useState(0);
-  const [totalCoins, setTotalCoins] = useState(0);
-  const [totalExperience, setTotalExperience] = useState(0);
-  const [unlockedItems, setUnlockedItems] = useState<{name: string, icon: string, date: string}[]>([]);
   const [showAnswer, setShowAnswer] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -223,8 +221,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
             // const userData = await cloudStorage.getUserData(authState.user.id);
             // if (userData) {
             //   setDailyStreak(userData.dailyStreak || 0);
-            //   setTotalCoins(userData.coins || 0);
-            //   setTotalExperience(userData.experience || 0);
             // }
           } catch (error) {
             console.warn('Failed to load cloud data:', error);
@@ -285,10 +281,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
           <div className="stat-value">{getTotalStars()}</div>
           <div className="stat-label">今日星级</div>
         </div>
-        <div className="stat-item">
-          <div className="stat-value">{totalCoins}</div>
-          <div className="stat-label">金币</div>
-        </div>
+
       </div>
 
       {todayChallenge && (
@@ -436,63 +429,70 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
 
   const renderHistoryTab = () => (
     <div className="challenge-history">
-      <h3>挑战历史</h3>
+      <div className="history-header">
+        <h3>挑战历史</h3>
+        {onOpenDailyChallengeHistory && (
+          <Button 
+            onClick={onOpenDailyChallengeHistory}
+            variant="primary"
+            size="small"
+          >
+            📊 查看详细历史记录
+          </Button>
+        )}
+      </div>
+      
       {challengeHistory.length === 0 ? (
         <div className="empty-history">
           <p>还没有挑战记录</p>
           <p>完成每日挑战来解锁历史记录！</p>
+          {onOpenDailyChallengeHistory && (
+            <div className="empty-history-action">
+              <Button 
+                onClick={onOpenDailyChallengeHistory}
+                variant="secondary"
+                size="medium"
+              >
+                📊 查看全球挑战记录
+              </Button>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="history-list">
-          {challengeHistory.map((record, index) => (
-            <div key={index} className="history-item">
-              <div className="history-date">{record.date}</div>
-              <div className="history-challenge">{record.challenge.title}</div>
-              <div className="history-stars">{'★'.repeat(record.stars)}</div>
-              <div className="history-status">
-                {record.completed ? '✅ 已完成' : '❌ 未完成'}
+        <div className="history-container">
+          <div className="history-list">
+            {challengeHistory.slice(0, 5).map((record, index) => (
+              <div key={index} className="history-item">
+                <div className="history-date">{record.date}</div>
+                <div className="history-challenge">{record.challenge.title}</div>
+                <div className="history-stars">{'★'.repeat(record.stars)}</div>
+                <div className="history-status">
+                  {record.completed ? '✅ 已完成' : '❌ 未完成'}
+                </div>
               </div>
+            ))}
+          </div>
+          
+          {challengeHistory.length > 5 && (
+            <div className="history-footer">
+              <p className="history-more-text">显示最近5条记录，共{challengeHistory.length}条</p>
+              {onOpenDailyChallengeHistory && (
+                <Button 
+                  onClick={onOpenDailyChallengeHistory}
+                  variant="primary"
+                  size="medium"
+                >
+                  📊 查看全部历史记录
+                </Button>
+              )}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>
   );
 
-  const renderRewardsTab = () => (
-    <div className="rewards-section">
-      <h3>成就与奖励</h3>
-      <div className="rewards-stats">
-        <div className="reward-stat">
-          <div className="reward-value">{totalCoins}</div>
-          <div className="reward-label">总金币</div>
-        </div>
-        <div className="reward-stat">
-          <div className="reward-value">{totalExperience}</div>
-          <div className="reward-label">总经验</div>
-        </div>
-        <div className="reward-stat">
-          <div className="reward-value">{unlockedItems.length}</div>
-          <div className="reward-label">解锁物品</div>
-        </div>
-      </div>
-      
-      {unlockedItems.length > 0 && (
-        <div className="unlocked-items">
-          <h4>已解锁物品</h4>
-          <div className="items-grid">
-            {unlockedItems.map((item, index) => (
-              <div key={index} className="item-card">
-                <div className="item-icon">{item.icon}</div>
-                <div className="item-name">{item.name}</div>
-                <div className="item-date">{item.date}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+
 
   return (
     <div className="daily-challenge-container">
@@ -520,18 +520,11 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         >
           挑战历史
         </button>
-        <button
-          className={`tab-button ${activeTab === 'rewards' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rewards')}
-        >
-          奖励收集
-        </button>
       </div>
 
       <div className="challenge-content">
         {activeTab === 'today' && renderTodayTab()}
         {activeTab === 'history' && renderHistoryTab()}
-        {activeTab === 'rewards' && renderRewardsTab()}
       </div>
     </div>
   );
