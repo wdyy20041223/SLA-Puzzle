@@ -43,7 +43,7 @@
 
   /* 添加垂直滚动 */
   overflow-y: auto;
-  overflow-x: hidden;
+  overflow-x: auto;
   /* 确保网格布局正确 */
   justify-content: center;
   align-content: flex-start;
@@ -53,6 +53,10 @@
   scroll-behavior: smooth;
   /* 确保网格单元格不会重叠 */
   grid-auto-flow: row;
+  
+  /* 确保网格能够正确滚动 */
+  min-height: 0; /* 重要：允许内容收缩 */
+  min-width: 0;  /* 重要：允许内容收缩 */
 }
 
 /* 自定义滚动条样式 */

@@ -21,7 +21,7 @@ function transformPieceProps(piece: any, transform: { rotation?: number; flipX?:
     left: dirs[3],
     rotation: transform.rotation ?? 0,
     flipX: !!transform.flipX,
-  // 无flipY
+    // 无flipY
   };
 }
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -87,16 +87,29 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
     if (!gridRef.current || !containerRef.current) return;
     const containerWidth = containerRef.current.clientWidth;
     const containerHeight = containerRef.current.clientHeight;
+    
+    // 获取网格信息栏的高度（底部统计信息）
     const gridInfoElement = containerRef.current.querySelector('.grid-info');
-    const gridInfoHeight = gridInfoElement?.clientHeight || 60;
-    const horizontalPadding = 40;
-    const verticalPadding = 40;
-    const availableWidth = containerWidth - horizontalPadding;
-    const availableHeight = containerHeight - verticalPadding - gridInfoHeight;
+    const gridInfoHeight = gridInfoElement?.clientHeight || 50;
+    
+    // 考虑内边距和标题栏高度
+    const horizontalPadding = 20;
+    const verticalPadding = 20;
+    const headerHeight = 60; // 紫色标题栏高度
+    
+    // 可用高度需要减去标题栏、网格信息栏和内边距
+    const availableWidth = containerWidth - horizontalPadding * 2;
+    const availableHeight = containerHeight - verticalPadding * 2 - gridInfoHeight - headerHeight;
+    
     const maxCellWidth = Math.floor(availableWidth / gridSize.cols);
     const maxCellHeight = Math.floor(availableHeight / gridSize.rows);
-    const newSize = Math.min(maxCellWidth, maxCellHeight, 160);
-    const finalSize = Math.max(120, newSize);
+    
+    // 根据网格大小动态调整最大单元格尺寸
+    const maxSize = gridSize.rows * gridSize.cols > 16 ? 100 : 160;
+    const newSize = Math.min(maxCellWidth, maxCellHeight, maxSize);
+    
+    // 确保最小单元格尺寸
+    const finalSize = Math.max(80, newSize);
     setCellSize(finalSize);
   }, [gridSize.cols, gridSize.rows]);
 
@@ -183,8 +196,33 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
   }
 
   return (
-    <div className="answer-grid-container" ref={containerRef}>
-      <div ref={gridRef} className="answer-grid" style={{...gridStyle, position: 'relative'}}>
+    <div
+      className="answer-grid-container"
+      ref={containerRef}
+      style={{
+        width: '100%',
+        height: '100%',
+        maxWidth: '100vw',
+        // 移除 maxHeight 限制，使用 flex 布局自动调整
+        overflowX: 'auto',
+        overflowY: 'auto',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        ref={gridRef}
+        className="answer-grid"
+        style={{
+          ...gridStyle,
+          position: 'relative',
+          minWidth: `${gridSize.cols * cellSize}px`,
+          minHeight: `${gridSize.rows * cellSize}px`,
+          width: 'fit-content',
+          height: 'fit-content',
+        }}
+      >
         {/* 拼图块图片单独渲染一层，绝对定位，保证溢出不被遮挡 */}
         {answerGrid.map((piece, index) => {
           if (!piece) return null;
@@ -254,12 +292,12 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
           </div>
         ))}
       </div>
-      {/* 网格信息 */}
-      <div className="grid-info">
-        <div className="completion-status">
+      {/* 网格信息，分布两侧 */}
+      <div className="grid-info" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '0 16px', boxSizing: 'border-box' }}>
+        <div className="completion-status" style={{ textAlign: 'left' }}>
           已完成: {answerGrid.filter(slot => slot !== null).length} / {answerGrid.length}
         </div>
-        <div className="correctness-status">
+        <div className="correctness-status" style={{ textAlign: 'right' }}>
           正确: {
             answerGrid.filter((piece, idx) => {
               if (!piece) return false;

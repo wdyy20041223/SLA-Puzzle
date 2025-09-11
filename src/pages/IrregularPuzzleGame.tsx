@@ -401,7 +401,37 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
   // 拖拽离开处理
   const handleDragLeave = useCallback(() => {
     setDragOverSlot(null);
-  }, []);  // 获取统计信息
+  }, []);
+
+  // 提示功能：将一块待处理区的拼图块放到正确位置
+  const getHint = useCallback(() => {
+    if (!puzzleConfig) return;
+
+    // 筛选出未正确放置的拼图块（在待处理区）
+    const incorrectPieces = puzzleConfig.pieces.filter(piece => 
+      piece.isDraggable && !piece.isCorrect
+    );
+
+    if (incorrectPieces.length === 0) {
+      alert('所有拼图块都已正确放置！');
+      return;
+    }
+
+    // 随机选择一个未正确放置的拼图块
+    const randomPiece = incorrectPieces[Math.floor(Math.random() * incorrectPieces.length)];
+
+    // 计算该拼图块在答题网格中的正确位置
+    const slotIndex = randomPiece.gridRow * puzzleConfig.gridSize.cols + randomPiece.gridCol;
+
+    // 调用放置函数将拼图块放到正确位置
+    handlePiecePlacement(randomPiece.id, slotIndex);
+
+    // 高亮显示被提示的拼图块（可选）
+    setSelectedPiece(randomPiece.id);
+    setTimeout(() => setSelectedPiece(null), 2000);
+  }, [puzzleConfig, handlePiecePlacement]);
+
+  // 获取统计信息
   const stats = puzzleConfig ? IrregularPuzzleGenerator.getPuzzleStats(puzzleConfig) : null;
 
   // 加载状态
@@ -496,9 +526,7 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
         <div className="game-controls">
           <GameHelpButton />
           <Button
-            onClick={() => {
-              alert('提示功能正在开发中，敬请期待！');
-            }}
+            onClick={getHint}
             variant="secondary"
             size="small"
             className="hint-button"
