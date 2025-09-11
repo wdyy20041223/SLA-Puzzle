@@ -4,12 +4,6 @@ export interface CloudStorageResponse<T> {
   error?: string;
 }
 
-export interface CloudStorageResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
 // 增强的云存储服务 - 支持跨设备数据同步
 class CloudStorageService {
   private readonly STORAGE_KEY = 'puzzle_users';
@@ -132,6 +126,9 @@ class CloudStorageService {
       coins: user.coins ?? 100, // 如果没有金币字段，给默认值100
       achievements: user.achievements ?? [], // 如果没有成就字段，给空数组
       bestTimes: user.bestTimes ?? {}, // 如果没有最佳时间字段，给空对象
+      dailyStreak: user.dailyStreak ?? 0, // 如果没有连击天数字段，给默认值0
+      challengeHistory: user.challengeHistory ?? [], // 如果没有挑战历史字段，给空数组
+      lastDailyChallengeDate: user.lastDailyChallengeDate ?? null, // 如果没有上次挑战日期字段，给null
     };
   }
 
