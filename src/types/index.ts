@@ -235,6 +235,7 @@ export interface GameCompletionResult {
   difficulty: DifficultyLevel;
   isNewRecord: boolean;
   totalPieces?: number; // 总拼图块数，用于成就计算
+  perfectMoves?: number; // 理想步数，用于成就计算
   rewards: GameReward;
 }
 

@@ -24,7 +24,7 @@ import './App.css';
 
 
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'tetris-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'shop' | 'profile' | 'leaderboard' | 'dailyChallengeHistory' | 'settings';
 
 
 

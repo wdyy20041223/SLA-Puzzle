@@ -582,84 +582,126 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     }
     
     // 最终防线特效：检查拼图块是否放置正确
+    // 注意：这里需要获取最新的拼图块状态，而不是gameState中可能过时的状态
     if (challenge.effects?.includes('最终防线') || challenge.effects?.includes('no_mistakes')) {
-      const piece = gameState?.config.pieces.find(p => p.id === pieceId);
-      if (piece) {
-        // 检查是否放置在正确的位置且旋转、翻转状态正确
-        const isCorrectPlacement = piece.correctSlot === slotIndex && 
-                                   piece.rotation === piece.correctRotation && 
-                                   piece.isFlipped === (piece.correctIsFlipped || false);
-        
-        if (!isCorrectPlacement) {
-          // 错误放置，立即显示失败弹窗
-          if (challenge.effects?.includes('最终防线')) {
-            setFailureReason('您放置了一个错误的拼图块！"最终防线"特效不允许任何放置失误。');
-            setShowFailureModal(true);
-            return;
-          } else if (challenge.effects?.includes('no_mistakes')) {
-            // 其他no_mistakes特效直接失败
-            setEffectStates(prev => ({ ...prev, hasStepError: true }));
-            setIsFailed(true);
-            if (authState.isAuthenticated && authState.user) {
-              updateChallengeRecord(false, false);
+      // 为了解决天旋地转和最终防线特效冲突，我们需要在放置后检查状态
+      // 而不是在放置前检查可能过时的状态
+      
+      // 先执行正常的放置逻辑
+      placePieceToSlot(pieceId, slotIndex);
+      
+      // 延迟检查放置结果，确保状态已经更新
+      setTimeout(() => {
+        // 直接访问当前的gameState状态
+        if (gameState) {
+          const piece = gameState.config.pieces.find(p => p.id === pieceId);
+          if (piece) {
+            // 标准化旋转角度进行比较
+            const normalizeRotation = (rotation: number) => ((rotation % 360) + 360) % 360;
+            const currentRotation = normalizeRotation(piece.rotation);
+            const correctRotation = normalizeRotation(piece.correctRotation);
+            
+            // 检查是否放置在正确的位置且旋转、翻转状态正确
+            const isCorrectPlacement = piece.correctSlot === slotIndex && 
+                                       currentRotation === correctRotation && 
+                                       piece.isFlipped === (piece.correctIsFlipped || false);
+            
+            if (!isCorrectPlacement) {
+              // 错误放置，立即显示失败弹窗
+              if (challenge.effects?.includes('最终防线')) {
+                setFailureReason(`您放置了一个错误的拼图块！"最终防线"特效不允许任何放置失误。\n当前状态: 旋转${currentRotation}°, 翻转${piece.isFlipped ? '是' : '否'}\n正确状态: 旋转${correctRotation}°, 翻转${piece.correctIsFlipped ? '是' : '否'}`);
+                setShowFailureModal(true);
+              } else if (challenge.effects?.includes('no_mistakes')) {
+                // 其他no_mistakes特效直接失败
+                setEffectStates(prev => ({ ...prev, hasStepError: true }));
+                setIsFailed(true);
+                if (authState.isAuthenticated && authState.user) {
+                  updateChallengeRecord(false, false);
+                }
+              }
             }
-            return;
           }
         }
-      }
+      }, 100); // 增加延迟到100ms，确保状态完全更新
+      
+      // 继续执行其他特效逻辑，但跳过再次调用placePieceToSlot
+    } else {
+      // 没有最终防线特效，执行正常的放置逻辑
+      placePieceToSlot(pieceId, slotIndex);
     }
-    
-    // 执行正常的放置逻辑
-    placePieceToSlot(pieceId, slotIndex);
+
     
     // 管中窥豹特效：正确放置后补充新的拼图块
     if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
-      const piece = gameState?.config.pieces.find(p => p.id === pieceId);
-      if (piece && 
-          piece.correctSlot === slotIndex && 
-          piece.rotation === piece.correctRotation && 
-          piece.isFlipped === (piece.correctIsFlipped || false)) {
-        // 正确放置，从剩余拼图块中补充一个
-        setEffectStates(prev => {
-          if (prev.remainingPieces.length > 0) {
-            const newRemainingPieces = [...prev.remainingPieces];
-            const nextPieceId = newRemainingPieces.shift(); // 取出第一个
-            const newAvailablePieces = new Set(prev.availablePieces);
-            if (nextPieceId) {
-              newAvailablePieces.add(nextPieceId);
-              console.log('🔍 管中窥豹特效补充拼图块:', {
-                正确放置的拼图块: pieceId,
-                补充的拼图块: nextPieceId,
-                剩余待补充: newRemainingPieces.length
+      // 延迟检查，确保状态已更新
+      setTimeout(() => {
+        // 直接访问当前的gameState状态
+        if (gameState) {
+          const piece = gameState.config.pieces.find(p => p.id === pieceId);
+          if (piece) {
+            // 标准化旋转角度进行比较
+            const normalizeRotation = (rotation: number) => ((rotation % 360) + 360) % 360;
+            const currentRotation = normalizeRotation(piece.rotation);
+            const correctRotation = normalizeRotation(piece.correctRotation);
+            
+            if (piece.correctSlot === slotIndex && 
+                currentRotation === correctRotation && 
+                piece.isFlipped === (piece.correctIsFlipped || false)) {
+              // 正确放置，从剩余拼图块中补充一个
+              setEffectStates(prev => {
+                if (prev.remainingPieces.length > 0) {
+                  const newRemainingPieces = [...prev.remainingPieces];
+                  const nextPieceId = newRemainingPieces.shift(); // 取出第一个
+                  const newAvailablePieces = new Set(prev.availablePieces);
+                  if (nextPieceId) {
+                    newAvailablePieces.add(nextPieceId);
+                    console.log('🔍 管中窥豹特效补充拼图块:', {
+                      正确放置的拼图块: pieceId,
+                      补充的拼图块: nextPieceId,
+                      剩余待补充: newRemainingPieces.length
+                    });
+                  }
+                  return {
+                    ...prev,
+                    availablePieces: newAvailablePieces,
+                    remainingPieces: newRemainingPieces
+                  };
+                }
+                return prev;
               });
             }
-            return {
-              ...prev,
-              availablePieces: newAvailablePieces,
-              remainingPieces: newRemainingPieces
-            };
           }
-          return prev;
-        });
-      }
+        }
+      }, 100);
     }
     
     // 作茧自缚特效：只有正确放置才会解锁相邻槽位
     if (challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) {
-      // 检查拼图块是否被正确放置（位置、旋转、翻转都正确）
-      const piece = gameState?.config.pieces.find(p => p.id === pieceId);
-      if (piece && 
-          piece.correctSlot === slotIndex && 
-          piece.rotation === piece.correctRotation && 
-          piece.isFlipped === (piece.correctIsFlipped || false)) {
-        // 只有完全正确放置时才解锁相邻槽位
-        const adjacentSlots = getAdjacentSlots(slotIndex);
-        setEffectStates(prev => {
-          const newUnlockedSlots = new Set(prev.unlockedSlots);
-          adjacentSlots.forEach(slot => newUnlockedSlots.add(slot));
-          return { ...prev, unlockedSlots: newUnlockedSlots };
-        });
-      }
+      // 延迟检查，确保状态已更新
+      setTimeout(() => {
+        // 直接访问当前的gameState状态
+        if (gameState) {
+          const piece = gameState.config.pieces.find(p => p.id === pieceId);
+          if (piece) {
+            // 标准化旋转角度进行比较
+            const normalizeRotation = (rotation: number) => ((rotation % 360) + 360) % 360;
+            const currentRotation = normalizeRotation(piece.rotation);
+            const correctRotation = normalizeRotation(piece.correctRotation);
+            
+            if (piece.correctSlot === slotIndex && 
+                currentRotation === correctRotation && 
+                piece.isFlipped === (piece.correctIsFlipped || false)) {
+              // 只有完全正确放置时才解锁相邻槽位
+              const adjacentSlots = getAdjacentSlots(slotIndex);
+              setEffectStates(prev => {
+                const newUnlockedSlots = new Set(prev.unlockedSlots);
+                adjacentSlots.forEach(slot => newUnlockedSlots.add(slot));
+                return { ...prev, unlockedSlots: newUnlockedSlots };
+              });
+            }
+          }
+        }
+      }, 100);
     }
     
     // 亦步亦趋特效：更新上次放置位置和当前可放置槽位
@@ -916,6 +958,20 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           : 0;
 
         // 添加到每日挑战排行榜
+        console.log('🏆 准备添加到每日挑战排行榜:', {
+          date: today.toISOString().split('T')[0],
+          playerName: authState.user.username,
+          score: score,
+          completionTime: elapsedTime,
+          moves: moves,
+          difficulty: challenge.difficulty,
+          isPerfect: isPerfect,
+          consecutiveDays: consecutiveDays,
+          totalChallengesCompleted: totalChallengesCompleted,
+          averageScore: averageScore,
+          totalStars: challengeStars
+        });
+        
         LeaderboardService.addDailyChallengeEntry({
           date: today.toISOString().split('T')[0],
           playerName: authState.user.username,
@@ -929,6 +985,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           averageScore: averageScore,
           totalStars: challengeStars // 使用计算出的星数字段
         });
+        
+        console.log('✅ 每日挑战记录已添加到排行榜');
       }
       
       // 如果完成，更新连续挑战天数
