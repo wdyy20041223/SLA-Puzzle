@@ -30,10 +30,11 @@ export const ShapeSelector: React.FC<ShapeSelectorProps> = ({
         {SHAPE_OPTIONS.map(option => (
           <button
             key={option.value}
-            className={`px-2 py-4 flex flex-col items-center gap-1 rounded-lg border-2 transition-all duration-200 ${selectedShape === option.value
-                ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
-                : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
-              }`}
+            className={`px-2 py-4 flex flex-col items-center gap-1 rounded-lg border-2 transition-all duration-200 ${
+              selectedShape === option.value
+                ? 'border-[var(--lavender)] bg-[var(--lavender)] text-[var(--text-primary)]'
+                : 'border-[var(--border-color)] bg-[var(--light-pink-1)] text-[var(--text-secondary)] hover:border-[var(--primary-pink)] hover:bg-[var(--light-pink-2)]'
+            }`}
             onClick={() => onShapeChange(option.value)}
           >
             <span className="text-2xl">{option.icon}</span>

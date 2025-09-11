@@ -32,7 +32,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #667eea;
+  background: var(--primary-pink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,7 +182,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   border-radius: 3px;
   transition: width 0.3s ease;
 }

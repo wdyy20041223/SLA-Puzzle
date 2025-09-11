@@ -1,11 +1,12 @@
-/* 每日挑战主容器 */
+/* 每日挑战主容器 - 慵懒夏日淡粉色主题 */
 .daily-challenge-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--light-pink-1);
   min-height: 100vh;
-  color: white;
+  color: var(--text-color);
+  font-family: 'Nunito', 'Quicksand', 'Comfortaa', sans-serif;
 }
 
 .daily-challenge-container.loading {
@@ -25,33 +26,38 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   padding: 20px;
   border-radius: 15px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .daily-challenge-header h1 {
   margin: 0;
   font-size: 32px;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: 300;
+  color: var(--text-color);
+  text-shadow: 0 2px 8px rgba(138, 127, 142, 0.3);
 }
 
 .header-stats {
   display: flex;
   gap: 15px;
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
 /* 标签页 */
 .challenge-tabs {
   display: flex;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   border-radius: 12px;
   padding: 5px;
   margin-bottom: 30px;
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .tab-button {
@@ -59,29 +65,36 @@
   padding: 15px 20px;
   border: none;
   background: transparent;
-  color: white;
+  color: var(--text-light);
   font-size: 16px;
   font-weight: 500;
+  font-family: 'Nunito', 'Quicksand', 'Comfortaa', sans-serif;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .tab-button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 221, 220, 0.4);
+  color: var(--text-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 221, 220, 0.3);
 }
 
 .tab-button.active {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  background: var(--primary-pink);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 221, 220, 0.4);
+  transform: translateY(-2px);
 }
 
 /* 内容区域 */
 .challenge-content {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--neutral-color);
   border-radius: 15px;
   padding: 30px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 /* 今日挑战页面 */
@@ -100,22 +113,29 @@
 
 .stat-item {
   text-align: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   padding: 20px;
   border-radius: 12px;
   min-width: 120px;
+  border: 1px solid var(--primary-pink);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 221, 220, 0.4);
 }
 
 .stat-value {
   font-size: 28px;
   font-weight: bold;
-  color: #FFD700;
+  color: var(--accent-yellow);
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 14px;
-  opacity: 0.8;
+  color: var(--text-light);
 }
 
 /* 拼图预览区域 */
@@ -123,16 +143,19 @@
   font-size: 24px;
   margin-bottom: 20px;
   text-align: center;
-  color: #FFD700;
+  color: var(--text-color);
+  text-shadow: 0 2px 8px rgba(138, 127, 142, 0.3);
 }
 
 .puzzle-preview {
   display: flex;
   gap: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   padding: 20px;
   border-radius: 12px;
   margin-bottom: 30px;
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .puzzle-preview img {
@@ -140,6 +163,8 @@
   height: 120px;
   border-radius: 8px;
   object-fit: cover;
+  border: 2px solid var(--primary-pink);
+  box-shadow: 0 4px 15px rgba(255, 221, 220, 0.3);
 }
 
 .puzzle-info {
@@ -149,7 +174,7 @@
 .puzzle-info h4 {
   font-size: 20px;
   margin: 0 0 10px 0;
-  color: #FFD700;
+  color: var(--text-color);
 }
 
 .puzzle-info p {
@@ -162,12 +187,15 @@
   display: flex;
   gap: 15px;
   font-size: 14px;
+  flex-wrap: wrap;
 }
 
 .puzzle-details span {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--neutral-color);
   padding: 5px 10px;
   border-radius: 6px;
+  border: 1px solid var(--primary-pink);
+  color: var(--text-color);
 }
 
 /* 特效选择区域 */
@@ -178,7 +206,7 @@
 .effect-selection-section h4 {
   font-size: 18px;
   margin-bottom: 15px;
-  color: #FFD700;
+  color: var(--text-color);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -206,16 +234,18 @@
 }
 
 .effect-card.selected {
-  border-color: #FFD700;
-  background: rgba(255, 215, 0, 0.2);
-  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+  border-color: var(--accent-yellow);
+  background: rgba(255, 242, 216, 0.2);
+  box-shadow: 0 4px 20px rgba(255, 242, 216, 0.3);
 }
 
 .effect-name {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 800;
   margin-bottom: 8px;
-  color: #FFD700;
+  color: var(--accent-yellow);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .effect-description {
@@ -227,8 +257,9 @@
 
 .effect-star {
   font-size: 14px;
-  color: #FFD700;
+  color: var(--accent-yellow);
   text-align: right;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 /* 挑战操作区域 */
@@ -242,14 +273,15 @@
 .selected-effects-summary {
   font-size: 16px;
   margin-bottom: 15px;
-  color: #FFD700;
-  font-weight: 500;
+  color: var(--accent-yellow);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .no-effects-hint {
   display: block;
   font-size: 14px;
-  color: #90EE90;
+  color: var(--accent-green);
   font-weight: normal;
   margin-top: 5px;
 }
@@ -306,7 +338,7 @@
 
 .preview-section h4,
 .answer-section h4 {
-  color: #FFD700;
+  color: var(--accent-yellow);
   margin-bottom: 15px;
   font-size: 16px;
   display: flex;
@@ -336,7 +368,7 @@
 }
 
 .answer-hint {
-  color: #90EE90;
+  color: var(--accent-green);
   font-style: italic;
   text-align: center;
   line-height: 1.5;
@@ -347,7 +379,7 @@
   font-size: 24px;
   margin-bottom: 20px;
   text-align: center;
-  color: #FFD700;
+  color: var(--accent-yellow);
 }
 
 .history-header {

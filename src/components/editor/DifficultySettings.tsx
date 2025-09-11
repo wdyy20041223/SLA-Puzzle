@@ -52,7 +52,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
       label: '中等',
       grid: '4×4',
       pieces: 16,
-      color: '#3b82f6',
+      color: 'var(--primary-pink)',
       icon: '🤔'
     },
     {

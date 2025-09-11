@@ -170,7 +170,7 @@ export const IrregularPuzzlePiece: React.FC<IrregularPuzzlePieceProps> = ({
     filter: isSelected ? 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.8))' : 
             piece.isCorrect ? 'drop-shadow(0 0 5px rgba(34, 197, 94, 0.6))' : 
             isInWaitingArea ? 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1))' : 'none',
-    border: isInWaitingArea && isSelected ? '2px solid #3b82f6' : 'none',
+    border: isInWaitingArea && isSelected ? '2px solid var(--primary-pink)' : 'none',
     borderRadius: isInWaitingArea ? '4px' : '0'
   };
 

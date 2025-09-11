@@ -1,4 +1,3 @@
-/* 慵懒夏日淡粉色主题 - 首页样式 */
 .home-page {
   min-height: 100vh;
   width: 100%;
@@ -6,6 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--background-main);
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjZmZmIj48L3JlY3Q+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiNmM2Q0ZTYiPjwvcmVjdD4KPC9zdmc+');
 }
 
 .home-overlay {
@@ -16,16 +17,17 @@
   bottom: 0;
   background: linear-gradient(
     135deg, 
-    rgba(255, 192, 203, 0.7) 0%,    /* 淡粉色 */
-    rgba(255, 182, 193, 0.6) 25%,   /* 浅粉色 */
-    rgba(255, 228, 225, 0.7) 50%,   /* 薄荷粉 */
-    rgba(255, 218, 224, 0.6) 75%,   /* 玫瑰粉 */
-    rgba(255, 192, 203, 0.7) 100%   /* 回到淡粉色 */
+    var(--primary-pink) 0%,    /* 主色调 */
+    var(--secondary-pink) 25%,   /* 辅助色1 */
+    var(--light-pink) 50%,   /* 辅助色2 */
+    var(--secondary-pink) 75%,   /* 辅助色1 */
+    var(--primary-pink) 100%   /* 主色调 */
   );
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(0.3px);
+  backdrop-filter: blur(1px);
+  opacity: 0.7;
 }
 
 /* 用户头像区域 */
@@ -41,11 +43,11 @@
   width: 90%;
   text-align: center;
   padding: 2rem;
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--light-pink);
   border-radius: 24px;
   backdrop-filter: blur(8px);
-  border: 2px solid rgba(255, 192, 203, 0.5);
-  box-shadow: 0 12px 40px rgba(255, 192, 203, 0.4);
+  border: 2px solid var(--primary-pink);
+  box-shadow: 0 12px 40px var(--shadow-pink);
 }
 
 /* 标题区域 */
@@ -56,24 +58,25 @@
 .home-title {
   font-size: 3.5rem;
   font-weight: 300;
-  color: #8B5A6B;
+  color: var(--text-primary);
   margin: 0;
   letter-spacing: 2px;
-  text-shadow: 0 2px 8px rgba(255, 192, 203, 0.3);
+  text-shadow: 0 2px 8px var(--shadow-pink);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .home-icon {
   font-size: 4rem;
-  filter: drop-shadow(0 4px 8px rgba(255, 192, 203, 0.4));
+  filter: drop-shadow(0 4px 8px var(--shadow-pink));
 }
 
 .home-subtitle {
   font-size: 1.2rem;
-  color: #A0758D;
+  color: var(--text-secondary);
   margin: 1rem 0 0 0;
   font-weight: 300;
   opacity: 0.9;
@@ -93,16 +96,12 @@
 }
 
 .menu-item {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 192, 203, 0.2) 0%,
-    rgba(255, 182, 193, 0.15) 100%
-  );
-  border: 2px solid rgba(255, 192, 203, 0.3);
+  background: var(--secondary-pink);
+  border: 2px solid var(--primary-pink);
   border-radius: 16px;
   padding: 2rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1.000);
   display: flex;
   align-items: center;
   gap: 1.5rem;
@@ -111,6 +110,8 @@
   backdrop-filter: blur(8px);
   position: relative;
   overflow: hidden;
+  opacity: 1;
+  box-shadow: 0 8px 20px var(--shadow-pink);
 }
 
 .menu-item::before {
@@ -123,7 +124,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 192, 203, 0.1),
+    rgba(255, 214, 224, 0.1),  /* 使用primary-pink的RGB值 */
     transparent
   );
   transition: left 0.5s ease;
@@ -134,24 +135,21 @@
 }
 
 .menu-item:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255, 192, 203, 0.6);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 192, 203, 0.3) 0%,
-    rgba(255, 182, 193, 0.25) 100%
-  );
-  box-shadow: 0 12px 24px rgba(255, 192, 203, 0.2);
+  transform: translateY(-4px) scale(1.02);
+  border-color: var(--primary-pink);
+  background: var(--primary-pink);
+  box-shadow: 0 12px 24px rgba(255, 214, 224, 0.4);
 }
 
 .menu-item:active {
-  transform: translateY(-2px);
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 3px 8px var(--shadow-pink);
 }
 
 .menu-icon {
   font-size: 3rem;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 4px rgba(255, 192, 203, 0.3));
+  filter: drop-shadow(0 2px 4px var(--shadow-pink));
 }
 
 .menu-text {
@@ -160,17 +158,21 @@
 
 .menu-text h3 {
   font-size: 1.4rem;
-  color: #8B5A6B;
+  color: var(--text-primary);
   margin: 0 0 0.5rem 0;
-  font-weight: 500;
+  font-weight: 600;
+  opacity: 1;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .menu-text p {
   font-size: 0.95rem;
-  color: #A0758D;
+  color: var(--text-primary);
   margin: 0;
-  opacity: 0.8;
+  opacity: 1;
   line-height: 1.4;
+  font-weight: 500;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 /* 底部装饰 */
@@ -188,7 +190,7 @@
 .summer-icon {
   font-size: 1.5rem;
   animation: gentle-float 3s ease-in-out infinite;
-  filter: drop-shadow(0 2px 4px rgba(255, 192, 203, 0.3));
+  filter: drop-shadow(0 2px 4px var(--shadow-pink));
 }
 
 .summer-icon:nth-child(2) {
@@ -201,10 +203,16 @@
 
 @keyframes gentle-float {
   0%, 100% {
-    transform: translateY(0px);
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(1deg);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-10px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-5px) rotate(-1deg);
   }
 }
 

@@ -184,7 +184,7 @@ export const Shop: React.FC<ShopPageProps> = ({ onBackToMenu }) => {
   const getRarityColor = (rarity: ShopItem['rarity']) => {
     const colors = {
       common: '#6b7280',
-      rare: '#3b82f6',
+      rare: 'var(--primary-pink)',
       epic: '#8b5cf6',
       legendary: '#f59e0b'
     };

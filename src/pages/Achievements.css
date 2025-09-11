@@ -1,10 +1,11 @@
-/* 成就页面样式 */
+/* 成就页面样式 - 慵懒夏日淡粉色主题 */
 .achievements-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--light-pink-1);
   padding: 20px;
   display: flex;
   flex-direction: column;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .achievements-header {
@@ -13,9 +14,10 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .header-left {
@@ -26,16 +28,17 @@
 
 .header-left h1 {
   margin: 0;
-  color: white;
+  color: var(--text-color);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 300;
+  text-shadow: 0 2px 8px rgba(232, 205, 214, 0.3);
 }
 
 .achievements-stats {
   display: flex;
   align-items: center;
   gap: 16px;
-  color: white;
+  color: var(--text-color);
 }
 
 .stat-item {
@@ -65,7 +68,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, #4ade80 var(--progress), rgba(255, 255, 255, 0.2) var(--progress));
+  background: conic-gradient(from 0deg, var(--accent-yellow) var(--progress), rgba(255, 230, 181, 0.2) var(--progress));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,8 +80,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(5px);
+  background: var(--neutral-color);
 }
 
 .progress-text {
@@ -99,9 +101,10 @@
   display: flex;
   gap: 8px;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   border-radius: 12px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
   overflow-x: auto;
 }
 
@@ -113,22 +116,25 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-light);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
   min-width: fit-content;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .category-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--light-pink-1);
+  color: var(--text-color);
+  transform: translateY(-1px);
 }
 
 .category-tab.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--primary-pink);
   color: white;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(232, 205, 214, 0.5);
 }
 
 .tab-icon {
@@ -140,11 +146,12 @@
 }
 
 .tab-count {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--accent-green);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  color: white;
 }
 
 .achievements-grid {
@@ -155,43 +162,44 @@
 }
 
 .achievement-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   border-radius: 16px;
   padding: 20px;
-  backdrop-filter: blur(10px);
   border: 2px solid transparent;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   transform: scale(1);
+  border: 1px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .achievement-card.unlocked {
-  border-color: var(--rarity-color);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 0 20px var(--rarity-color, rgba(255, 255, 255, 0.3));
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+  border-color: var(--accent-yellow);
+  box-shadow: 0 8px 32px rgba(232, 205, 214, 0.2), 0 0 20px var(--accent-yellow, rgba(255, 230, 181, 0.3));
+  background: linear-gradient(135deg, var(--neutral-color), var(--light-pink-2));
   transform: scale(1.02);
   /* 移除动画效果，保持静态显示 */
 }
 
 .achievement-card.unlocked:hover {
   transform: scale(1.05);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 30px var(--rarity-color, rgba(255, 255, 255, 0.4));
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+  box-shadow: 0 12px 40px rgba(232, 205, 214, 0.3), 0 0 30px var(--accent-yellow, rgba(255, 230, 181, 0.4));
+  background: linear-gradient(135deg, var(--light-pink-2), var(--neutral-color));
 }
 
 .achievement-card.locked {
   opacity: 0.9;
   filter: grayscale(0.3) brightness(0.9);
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.4);
+  background: var(--light-pink-2);
+  border-color: rgba(255, 221, 220, 0.4);
 }
 
 .achievement-card.locked:hover {
   opacity: 1;
   filter: grayscale(0.2) brightness(1);
   transform: scale(1.01);
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--neutral-color);
 }
 
 .achievement-card::before {
@@ -414,7 +422,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   border-radius: 4px;
   transition: width 0.4s ease-in-out;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);

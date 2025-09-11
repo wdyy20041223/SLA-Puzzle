@@ -37,7 +37,7 @@ export const GameCompletionModal: React.FC<GameCompletionModalProps> = ({
   const getDifficultyColor = (difficulty: string) => {
     const colorMap = {
       easy: '#22c55e',
-      medium: '#3b82f6',
+      medium: 'var(--primary-pink)',
       hard: '#f59e0b',
       expert: '#ef4444'
     };

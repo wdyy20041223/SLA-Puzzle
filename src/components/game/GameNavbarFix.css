@@ -1,0 +1,102 @@
+/* 游戏导航栏文字可读性修复 - 确保所有导航栏文字都显示为深色 */
+
+/* 全局游戏头部导航栏样式 */
+.puzzle-game .game-header {
+  background: var(--card-background) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  box-shadow: 0 2px 4px var(--shadow-pink) !important;
+}
+
+/* 游戏信息区域文字 */
+.puzzle-game .game-header .game-info h3 {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* 游戏统计区域文字 */
+.puzzle-game .game-header .game-stats {
+  color: var(--text-primary) !important;
+}
+
+.puzzle-game .game-header .game-stats .timer {
+  color: var(--text-primary) !important;
+  background-color: var(--light-pink) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.puzzle-game .game-header .game-stats .timer.timer-running {
+  color: var(--text-primary) !important;
+  background-color: var(--soft-blue) !important;
+}
+
+.puzzle-game .game-header .game-stats .timer .timer-text {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+}
+
+.puzzle-game .game-header .game-stats .moves-counter {
+  color: var(--text-secondary) !important;
+  background-color: var(--light-pink) !important;
+  border: 1px solid var(--border-color) !important;
+  font-weight: 600 !important;
+}
+
+/* 游戏控制按钮文字 */
+.puzzle-game .game-header .game-controls button {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+  padding: 8px 16px !important;
+  margin: 0 4px !important;
+  border-radius: 8px !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  transition: all 0.3s ease !important;
+}
+
+.puzzle-game .game-header .game-controls button.btn-primary {
+  color: var(--text-primary) !important;
+}
+
+.puzzle-game .game-header .game-controls button.btn-secondary {
+  color: var(--text-primary) !important;
+}
+
+.puzzle-game .game-header .game-controls button.btn-danger {
+  color: var(--text-primary) !important;
+  background-color: var(--secondary-pink) !important;
+}
+
+.puzzle-game .game-header .game-controls button.btn-success {
+  color: var(--text-primary) !important;
+}
+
+/* 确保按钮在各种状态下的文字都可见 */
+.puzzle-game .game-header .game-controls button:hover:not(:disabled) {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+  background-color: var(--light-pink) !important;
+  border: 1px solid var(--primary-pink) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(255, 114, 140, 0.3) !important;
+}
+
+.puzzle-game .game-header .game-controls button:active:not(:disabled) {
+  color: var(--text-primary) !important;
+  opacity: 1 !important;
+}
+
+.puzzle-game .game-header .game-controls button:disabled {
+  color: var(--text-light) !important;
+  opacity: 0.7 !important;
+}
+
+/* 应用到所有游戏页面的导航栏 */
+.game-header {
+  background: var(--card-background) !important;
+}
+
+.game-header * {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}

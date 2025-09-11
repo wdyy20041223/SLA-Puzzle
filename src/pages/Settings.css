@@ -1,4 +1,4 @@
-/* 设置页面样式 - 慵懒夏日淡粉色主题 */
+/* 设置页面样式 - 温馨舒适色彩主题 */
 .settings-page {
   min-height: 100vh;
   width: 100%;
@@ -17,11 +17,11 @@
 .settings-container {
   max-width: 800px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--card-background);
   border-radius: 24px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 192, 203, 0.3);
-  box-shadow: 0 8px 32px rgba(255, 192, 203, 0.2);
+  border: 2px solid var(--border-color);
+  box-shadow: 0 8px 32px var(--shadow-pink);
   overflow: hidden;
 }
 
@@ -30,7 +30,7 @@
   background: linear-gradient(
     135deg,
     var(--primary-pink) 0%,
-    var(--accent-pink) 100%
+    var(--secondary-pink) 100%
   );
   padding: 2rem;
   display: flex;
@@ -46,14 +46,16 @@
   padding: 0.75rem 1.5rem;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.215, 0.610, 0.355, 1.000);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 400;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .back-button:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateX(-2px);
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
 }
 
 .settings-title {
@@ -64,7 +66,8 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  text-shadow: 0 2px 8px rgba(255, 192, 203, 0.3);
+  text-shadow: 0 2px 8px var(--shadow-pink);
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .settings-icon {
@@ -80,7 +83,7 @@
 .settings-section {
   margin-bottom: 2.5rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 192, 203, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .settings-section:last-of-type {
@@ -90,11 +93,12 @@
 .settings-section h2 {
   color: var(--text-primary);
   font-size: 1.3rem;
-  font-weight: 500;
+  font-weight: 400;
   margin: 0 0 1.5rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .setting-item {
@@ -110,8 +114,9 @@
 
 .setting-item label {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1rem;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .setting-control {
@@ -125,6 +130,7 @@
   font-size: 0.85rem;
   margin: 0;
   font-style: italic;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 /* 主题预览 */
@@ -133,9 +139,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  background: rgba(255, 192, 203, 0.1);
+  background: var(--light-pink);
   border-radius: 12px;
-  border: 1px solid rgba(255, 192, 203, 0.2);
+  border: 1px solid var(--border-color);
 }
 
 .theme-color {
@@ -155,12 +161,13 @@
 }
 
 .theme-color.accent {
-  background: var(--warm-pink);
+  background: var(--accent-pink);
 }
 
 .theme-preview span {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 /* 滑块样式 */
@@ -168,7 +175,7 @@ input[type="range"] {
   flex: 1;
   height: 6px;
   border-radius: 3px;
-  background: rgba(255, 192, 203, 0.3);
+  background: rgba(255, 194, 209, 0.2);
   outline: none;
   -webkit-appearance: none;
 }
@@ -181,7 +188,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: var(--primary-pink);
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(255, 192, 203, 0.4);
+  box-shadow: 0 2px 4px var(--shadow-pink);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -191,7 +198,7 @@ input[type="range"]::-moz-range-thumb {
   background: var(--primary-pink);
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 4px rgba(255, 192, 203, 0.4);
+  box-shadow: 0 2px 4px var(--shadow-pink);
 }
 
 /* 开关样式 */
@@ -215,7 +222,7 @@ input[type="range"]::-moz-range-thumb {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 192, 203, 0.3);
+  background-color: rgba(255, 194, 209, 0.2);
   transition: .4s;
   border-radius: 24px;
 }
@@ -245,10 +252,10 @@ input:checked + .slider:before {
 .settings-notice {
   background: linear-gradient(
     135deg,
-    rgba(255, 192, 203, 0.1) 0%,
-    rgba(255, 182, 193, 0.1) 100%
+    rgba(255, 194, 209, 0.1) 0%,
+    rgba(255, 194, 209, 0.05) 100%
   );
-  border: 1px solid rgba(255, 192, 203, 0.3);
+  border: 1px solid var(--border-color);
   border-radius: 16px;
   padding: 2rem;
   text-align: center;
@@ -276,7 +283,7 @@ input:checked + .slider:before {
 /* 底部 */
 .settings-footer {
   padding: 2rem;
-  border-top: 1px solid rgba(255, 192, 203, 0.2);
+  border-top: 1px solid var(--border-color);
   text-align: center;
 }
 

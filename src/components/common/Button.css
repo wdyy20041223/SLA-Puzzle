@@ -1,3 +1,4 @@
+/* 基础按钮样式 */
 .btn {
   border: none;
   border-radius: 8px;
@@ -32,11 +33,11 @@
 }
 
 .btn:focus {
-  outline: 2px solid #4F46E5;
+  outline: 2px solid var(--primary-pink);
   outline-offset: 2px;
 }
 
-/* Size variants */
+/* 尺寸变体 */
 .btn-small {
   padding: 6px 12px;
   font-size: 14px !important;
@@ -55,41 +56,51 @@
   min-height: 48px;
 }
 
-/* Color variants */
+/* 颜色变体 - 马卡龙色系 */
 .btn-primary {
-  background-color: #4F46E5;
-  color: white !important;
+  background-color: var(--primary-pink);
+  color: var(--text-primary);
+  opacity: 1;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #4338CA;
+  background-color: var(--secondary-pink);
+  opacity: 1;
 }
 
 .btn-secondary {
-  background-color: #6B7280;
-  color: white !important;
+  background-color: var(--accent-pink);
+  color: var(--text-primary);
+  opacity: 1;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #4B5563;
+  background-color: var(--secondary-pink);
+  opacity: 1;
 }
 
 .btn-danger {
-  background-color: #EF4444;
-  color: white !important;
+  background-color: var(--secondary-pink);
+  color: var(--text-primary);
+  opacity: 1;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #DC2626;
+  background-color: var(--primary-pink);
+  opacity: 1;
 }
 
 .btn-success {
-  background-color: #10B981;
-  color: white !important;
+  background-color: var(--light-pink);
+  color: var(--text-primary);
+  border: 2px solid var(--primary-pink);
+  opacity: 1;
 }
 
 .btn-success:hover:not(:disabled) {
-  background-color: #059669;
+  background-color: var(--accent-green);
+  border-color: var(--accent-green);
+  opacity: 1;
 }
 
 /* 额外的样式保护，防止第三方样式库覆盖 */

@@ -1,35 +1,44 @@
 .leaderboard-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--light-pink-1);
   padding: 20px;
   display: flex;
   flex-direction: column;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .page-header {
   text-align: center;
-  color: white;
+  color: var(--text-color);
   margin-bottom: 30px;
+  padding: 20px;
+  background: var(--light-pink-2);
+  border-radius: 16px;
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .page-header h1 {
   font-size: 2.5em;
   margin: 0 0 10px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 2px 2px 4px rgba(232, 205, 214, 0.3);
+  font-weight: 300;
 }
 
 .page-header p {
   font-size: 1.1em;
   margin: 0;
   opacity: 0.9;
+  color: var(--text-light);
 }
 
 .leaderboard-content {
-  background: white;
+  background: var(--neutral-color);
   border-radius: 12px;
   padding: 30px;
   flex: 1;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-pink);
+  border: 2px solid var(--primary-pink);
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -39,7 +48,7 @@
   display: flex;
   gap: 8px;
   margin-bottom: 30px;
-  border-bottom: 2px solid #f0f0f0;
+  border-bottom: 2px solid rgba(255, 221, 220, 0.2);
 }
 
 .tab {
@@ -49,20 +58,21 @@
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  color: #666;
+  color: var(--text-light);
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .tab:hover {
-  color: #333;
-  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-color);
+  background: var(--light-pink-1);
 }
 
 .tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--text-color);
+  border-bottom-color: var(--primary-pink);
+  background: var(--light-pink-1);
 }
 
 .shape-selector,
@@ -75,7 +85,7 @@
 .difficulty-selector h3,
 .puzzle-selector h3 {
   margin: 0 0 12px 0;
-  color: #333;
+  color: var(--text-color);
   font-size: 1.1em;
   text-align: center;
 }
@@ -86,13 +96,14 @@
   margin: 0 auto;
   display: block;
   padding: 12px 16px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--primary-pink);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   background: white;
-  color: #333;
+  color: var(--text-color);
   transition: all 0.2s;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 /* 新增样式：日期选择器 */
@@ -122,7 +133,7 @@
 
 .date-selector h3 {
   margin: 0 0 12px 0;
-  color: #333;
+  color: var(--text-color);
   font-size: 1.1em;
   text-align: center;
 }
@@ -133,17 +144,19 @@
   margin: 0 auto;
   display: block;
   padding: 12px 16px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--primary-pink);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   background: white;
-  color: #333;
+  color: var(--text-color);
   transition: all 0.2s;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .date-select:hover {
-  border-color: #667eea;
+  border-color: var(--accent-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 230, 181, 0.2);
 }
 
 /* 单拼图排行榜样式 */
@@ -153,7 +166,7 @@
 
 .section-description {
   text-align: center;
-  color: #666;
+  color: var(--text-light);
   font-size: 14px;
   margin-bottom: 24px;
   font-style: italic;
@@ -167,19 +180,20 @@
 }
 
 .puzzle-card {
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-  border: 2px solid #e8ecff;
+  background: linear-gradient(135deg, var(--light-pink-2) 0%, var(--neutral-color) 100%);
+  border: 2px solid var(--primary-pink);
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-pink);
 }
 
 .puzzle-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
-  border-color: #667eea;
+  box-shadow: 0 8px 25px rgba(232, 205, 214, 0.3);
+  border-color: var(--accent-yellow);
 }
 
 .puzzle-card-header {
@@ -192,7 +206,7 @@
 .puzzle-rank {
   font-size: 1.5em;
   font-weight: bold;
-  color: #667eea;
+  color: var(--text-color);
   min-width: 40px;
   text-align: center;
 }
@@ -204,13 +218,13 @@
 .puzzle-name {
   margin: 0 0 4px 0;
   font-size: 1.2em;
-  color: #333;
+  color: var(--text-color);
   font-weight: 600;
 }
 
 .puzzle-shape {
   display: inline-block;
-  background: #667eea;
+  background: var(--primary-pink);
   color: white;
   padding: 2px 8px;
   border-radius: 12px;
@@ -228,12 +242,12 @@
   background: rgba(255, 255, 255, 0.7);
   border-radius: 8px;
   padding: 16px;
-  border-left: 4px solid #ffd700;
+  border-left: 4px solid var(--accent-yellow);
 }
 
 .best-record h5 {
   margin: 0 0 8px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 0.9em;
   font-weight: 600;
 }
@@ -247,14 +261,14 @@
 
 .player-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .record-details {
   display: flex;
   gap: 16px;
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .record-details .time,
@@ -278,13 +292,13 @@
 
 .meta-item .label {
   font-size: 0.8em;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .meta-item .value {
   font-size: 0.9em;
-  color: #333;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -294,8 +308,8 @@
 }
 
 .player-daily-stats {
-  background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
-  border: 2px solid #ffcc99;
+  background: linear-gradient(135deg, var(--light-pink-2) 0%, var(--accent-pink) 100%);
+  border: 2px solid var(--accent-pink);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 24px;
@@ -303,7 +317,7 @@
 
 .player-daily-stats h3 {
   margin: 0 0 16px 0;
-  color: #cc6600;
+  color: var(--text-primary);
   text-align: center;
 }
 
@@ -330,7 +344,7 @@
 
 .stat-label {
   font-size: 0.8em;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -339,7 +353,7 @@
   flex: 0 0 80px;
   text-align: center;
   font-weight: 600;
-  color: #667eea;
+  color: var(--text-primary);
 }
 
 .leaderboard-table .difficulty-col {
@@ -357,7 +371,7 @@
   flex: 0 0 80px;
   text-align: center;
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .difficulty-badge {
@@ -367,7 +381,7 @@
   font-size: 0.7em;
   font-weight: 500;
   color: white;
-  background: #666;
+  background: var(--text-secondary);
 }
 
 /* 响应式设计 */
@@ -400,8 +414,8 @@
 
 .puzzle-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-pink);
+  box-shadow: 0 0 0 3px rgba(248, 181, 215, 0.1);
 }
 
 .selector-buttons {
@@ -414,7 +428,7 @@
 .difficulty-btn,
 .shape-btn {
   padding: 10px 20px;
-  border: 2px solid #ddd;
+  border: 2px solid var(--border-color);
   background: white;
   cursor: pointer;
   border-radius: 8px;
@@ -426,23 +440,23 @@
 
 .difficulty-btn:hover,
 .shape-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--primary-pink);
+  color: var(--text-primary);
   transform: translateY(-1px);
 }
 
 .difficulty-btn.active,
 .shape-btn.active {
-  background: #667eea;
+  background: var(--primary-pink);
   color: white;
-  border-color: #667eea;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  border-color: var(--primary-pink);
+  box-shadow: 0 4px 12px rgba(248, 181, 215, 0.3);
 }
 
 .shape-btn.active {
-  background: #28a745;
-  border-color: #28a745;
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  background: var(--accent-green);
+  border-color: var(--accent-green);
+  box-shadow: 0 4px 12px rgba(214, 245, 226, 0.5);
 }
 
 .leaderboard-section,
@@ -451,7 +465,7 @@
 }
 
 .puzzle-leaderboard-section h2 {
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 30px 0;
   font-size: 1.4em;
   text-align: center;
@@ -463,19 +477,19 @@
 }
 
 .difficulty-section {
-  background: #f8f9fa;
-  border: 1px solid #e5e5e5;
+  background: var(--light-pink-1);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
 }
 
 .difficulty-section h3 {
   margin: 0 0 16px 0;
-  color: #667eea;
+  color: var(--text-primary);
   font-size: 1.2em;
   text-align: center;
   padding: 8px 16px;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(248, 181, 215, 0.1);
   border-radius: 6px;
 }
 
@@ -491,7 +505,7 @@
 }
 
 .leaderboard-section h2 {
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 20px 0;
   font-size: 1.4em;
   text-align: center;
@@ -510,11 +524,11 @@
   grid-template-columns: 80px 1fr 100px 100px 140px;
   gap: 16px;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  background: linear-gradient(135deg, var(--light-pink-1) 0%, var(--light-pink-2) 100%);
   font-weight: 600;
   font-size: 14px;
-  color: #666;
-  border-bottom: 2px solid #e5e5e5;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
 }
 
 .table-row {
@@ -522,13 +536,13 @@
   grid-template-columns: 80px 1fr 100px 100px 140px;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
   transition: all 0.2s;
   align-items: center;
 }
 
 .table-row:hover {
-  background: #f8f9fa;
+  background: var(--light-pink-1);
   transform: translateX(2px);
 }
 
@@ -537,12 +551,12 @@
 }
 
 .table-row.current-player {
-  background: rgba(102, 126, 234, 0.1);
-  border-left: 4px solid #667eea;
+  background: rgba(248, 181, 215, 0.1);
+  border-left: 4px solid var(--primary-pink);
 }
 
 .table-row.current-player:hover {
-  background: rgba(102, 126, 234, 0.15);
+  background: rgba(248, 181, 215, 0.15);
 }
 
 .rank-col {
@@ -560,7 +574,7 @@
 }
 
 .you-badge {
-  background: #667eea;
+  background: var(--primary-pink);
   color: white;
   font-size: 10px;
   padding: 3px 8px;
@@ -612,16 +626,16 @@
 }
 
 .record-card {
-  background: #f8f9fa;
-  border: 2px solid #e5e5e5;
+  background: var(--light-pink-1);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s;
 }
 
 .record-card:hover {
-  border-color: #667eea;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+  border-color: var(--primary-pink);
+  box-shadow: 0 6px 20px rgba(248, 181, 215, 0.15);
   transform: translateY(-2px);
 }
 
@@ -638,7 +652,7 @@
 }
 
 .shape-badge {
-  background: #28a745;
+  background: var(--accent-green);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -647,7 +661,7 @@
 }
 
 .difficulty-badge {
-  background: #667eea;
+  background: var(--primary-pink);
   color: white;
   padding: 4px 8px;
   border-radius: 4px;
@@ -662,14 +676,14 @@
 
 .record-title h4 {
   margin: 0 0 4px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
 .grid-size {
-  background: #f0f0f0;
-  color: #666;
+  background: var(--light-pink-2);
+  color: var(--text-secondary);
   padding: 2px 6px;
   border-radius: 3px;
   font-size: 10px;
@@ -677,7 +691,7 @@
 }
 
 .rank-badge {
-  background: #28a745;
+  background: var(--accent-green);
   color: white;
   padding: 6px 12px;
   border-radius: 6px;
@@ -700,7 +714,7 @@
 
 .stat .label {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -740,22 +754,22 @@
 }
 
 .stat-card:hover {
-  border-color: #667eea;
+  border-color: var(--primary-pink);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 6px 20px rgba(248, 181, 215, 0.15);
 }
 
 .stat-value {
   font-size: 32px;
   font-weight: 600;
-  color: #667eea;
+  color: var(--text-primary);
   margin-bottom: 8px;
   display: block;
 }
 
 .stat-label {
   font-size: 13px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -764,7 +778,7 @@
 }
 
 .difficulty-details h3 {
-  color: #333;
+  color: var(--text-primary);
   margin: 0 0 20px 0;
   font-size: 1.2em;
   text-align: center;
@@ -777,8 +791,8 @@
 }
 
 .difficulty-stat {
-  background: #f8f9fa;
-  border: 1px solid #e5e5e5;
+  background: var(--light-pink-1);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -786,14 +800,14 @@
 
 .difficulty-stat h4 {
   margin: 0 0 12px 0;
-  color: #667eea;
+  color: var(--text-primary);
   font-size: 1.1em;
 }
 
 .difficulty-stat p {
   margin: 4px 0;
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .page-footer {
@@ -896,25 +910,25 @@
 .puzzle-card-with-top3 {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-pink);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
 }
 
 .puzzle-card-with-top3:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(255, 214, 224, 0.3);
 }
 
 .top-players-section {
   padding: 20px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .top-players-section h5 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.1em;
 }
 
@@ -929,43 +943,43 @@
   align-items: center;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .top-player-card.rank-1 {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-  border-color: #d4af37;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+  background: linear-gradient(135deg, var(--accent-yellow) 0%, #fff5e6 100%);
+  border-color: var(--accent-yellow);
+  box-shadow: 0 2px 8px rgba(255, 242, 216, 0.3);
 }
 
 .top-player-card.rank-2 {
-  background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
-  border-color: #a0a0a0;
-  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+  background: linear-gradient(135deg, var(--lavender) 0%, #f0e6ff 100%);
+  border-color: var(--lavender);
+  box-shadow: 0 2px 8px rgba(228, 217, 255, 0.3);
 }
 
 .top-player-card.rank-3 {
-  background: linear-gradient(135deg, #cd7f32 0%, #deb887 100%);
-  border-color: #b8860b;
-  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
+  background: linear-gradient(135deg, var(--soft-blue) 0%, #e6f0fa 100%);
+  border-color: var(--soft-blue);
+  box-shadow: 0 2px 8px rgba(221, 235, 247, 0.3);
 }
 
 .top-player-card.empty-slot {
-  background: #f8f9fa;
-  border-color: #dee2e6;
+  background: var(--light-pink-1);
+  border-color: var(--border-color);
   opacity: 0.6;
 }
 
 .top-player-card.empty-slot.no-records {
-  background: #fff8e1;
-  border-color: #ffcc02;
+  background: var(--light-pink-1);
+  border-color: var(--accent-yellow);
   opacity: 0.8;
 }
 
 .no-records-badge {
-  background: #ff9800;
-  color: white;
+  background: var(--accent-yellow);
+  color: var(--text-primary);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.8em;
@@ -988,13 +1002,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6c757d;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 .player-name {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 5px;
   display: flex;
   align-items: center;
@@ -1006,7 +1020,7 @@
   gap: 15px;
   flex-wrap: wrap;
   font-size: 0.9em;
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 3px;
 }
 
@@ -1018,12 +1032,12 @@
 
 .completion-date {
   font-size: 0.8em;
-  color: #888;
+  color: var(--text-tertiary);
 }
 
 .you-badge {
-  background: #007bff;
-  color: white;
+  background: var(--soft-blue);
+  color: var(--text-primary);
   font-size: 0.7em;
   padding: 2px 6px;
   border-radius: 10px;
@@ -1032,7 +1046,7 @@
 
 /* 新增：同一玩家多成绩相关样式 */
 .record-number {
-  background: #6c757d;
+  background: var(--text-secondary);
   color: white;
   font-size: 0.7em;
   padding: 2px 6px;
@@ -1042,12 +1056,12 @@
 }
 
 .top-player-card.current-user {
-  border: 2px solid #007bff;
-  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+  border: 2px solid var(--soft-blue);
+  box-shadow: 0 4px 12px rgba(197, 220, 245, 0.4);
 }
 
 .top-player-card.current-user .record-number {
-  background: #28a745;
+  background: var(--accent-green);
 }
 
 /* 同一玩家多个成绩的视觉区分 */
@@ -1062,7 +1076,7 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+  background: linear-gradient(45deg, var(--primary-pink), var(--accent-blue));
   border-radius: 2px 0 0 2px;
 }
 

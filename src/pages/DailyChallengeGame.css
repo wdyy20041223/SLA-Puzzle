@@ -1,16 +1,17 @@
-/* 每日挑战特效样式 */
+/* 每日挑战特效样式 - 慵懒夏日淡粉色主题 */
 
 /* 雾里看花特效：未选中的拼图块模糊 */
 .effect-blur-unselected .puzzle-piece-item:not(.selected) {
   filter: blur(8px);
   transition: filter 0.3s ease;
+  opacity: 0.7;
 }
 
 .effect-blur-unselected .puzzle-piece-item.selected {
   filter: none;
 }
 
-/* 一手遮天特效：放置后的拼图块变黑 */
+/* 一手遮天特效：放置后的拼图块变黑（保持功能性）但添加美化样式 */
 .effect-invisible-placed .placed-piece {
   background: #000000 !important;
 }
@@ -30,16 +31,22 @@
   font-weight: bold;
 }
 
+/* 一手遮天特效：美化版本，也支持拼图块在答案槽位中的样式 */
+.effect-invisible-placed .answer-slot .puzzle-piece {
+  background: var(--primary-pink) !important;
+  filter: opacity(0.3) !important;
+}
+
 /* 管中窥豹特效：隐藏的槽位样式 */
 .grid-slot.hidden-slot {
   opacity: 0.3;
   pointer-events: none;
   background: repeating-linear-gradient(
     45deg,
-    #f0f0f0,
-    #f0f0f0 10px,
-    #e0e0e0 10px,
-    #e0e0e0 20px
+    var(--primary-pink),
+    var(--primary-pink) 10px,
+    var(--secondary-pink) 10px,
+    var(--secondary-pink) 20px
   );
 }
 
@@ -62,10 +69,10 @@
   pointer-events: none;
   background: repeating-linear-gradient(
     45deg,
-    #ffcccc,
-    #ffcccc 10px,
-    #ffaaaa 10px,
-    #ffaaaa 20px
+    var(--secondary-pink),
+    var(--secondary-pink) 10px,
+    var(--primary-pink) 10px,
+    var(--primary-pink) 20px
   );
 }
 
@@ -92,6 +99,18 @@
   box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
 }
 
+/* 美化版本：角落槽位的可用状态 */
+.corner-slot.available {
+  box-shadow: 0 0 10px var(--primary-pink);
+  animation: pulse-corner 1.5s infinite;
+}
+
+@keyframes pulse-corner {
+  0% { box-shadow: 0 0 10px var(--primary-pink); }
+  50% { box-shadow: 0 0 20px var(--primary-pink); }
+  100% { box-shadow: 0 0 10px var(--primary-pink); }
+}
+
 /* 最终防线特效：错误提示 */
 .effect-error-overlay {
   position: absolute;
@@ -99,7 +118,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 0, 0, 0.2);
+  background: var(--primary-pink);
   z-index: 1000;
   pointer-events: none;
   animation: error-flash 0.5s ease-out;
@@ -112,8 +131,8 @@
 
 /* 精打细算特效：步数警告 */
 .step-limit-warning {
-  background: linear-gradient(45deg, #ff9800, #ff5722);
-  color: white;
+  background: linear-gradient(45deg, var(--accent-yellow), var(--accent-yellow));
+  color: var(--text-color);
   font-weight: bold;
   animation: warning-pulse 1s infinite;
 }
@@ -134,13 +153,16 @@
   position: absolute;
   top: -5px;
   right: -10px;
-  background: #ff5722;
-  color: white;
+  background: var(--accent-yellow);
+  color: var(--text-primary);
   font-size: 10px;
   padding: 2px 4px;
   border-radius: 3px;
   font-weight: bold;
 }
+
+/* 鱼目混珠特效：步数显示样式 */
+/* 步数显示已移除，此处保留注释说明 */
 
 /* 天旋地转特效：拼图块旋转动画 */
 .effect-rotate-pieces .puzzle-piece {
@@ -208,12 +230,13 @@
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(33, 150, 243, 0.9);
-  color: white;
+  background: var(--accent-green);
+  color: var(--text-color);
   padding: 5px 10px;
   border-radius: 5px;
   font-size: 12px;
   z-index: 100;
+  border: 1px solid var(--accent-green);
 }
 
 /* 生死时速特效：时间紧急提示 */
@@ -222,9 +245,9 @@
 }
 
 @keyframes time-urgent {
-  0% { color: #ff0000; }
-  50% { color: #ff6600; }
-  100% { color: #ff0000; }
+  0% { color: var(--primary-pink); }
+  50% { color: var(--accent-pink); }
+  100% { color: var(--primary-pink); }
 }
 
 /* 亦步亦趋特效：限制放置位置的槽位样式 */

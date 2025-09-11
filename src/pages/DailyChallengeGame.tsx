@@ -13,6 +13,7 @@ import { LeaderboardService } from '../services/leaderboardService';
 import { Challenge } from './DailyChallenge';
 import { GameFailureModal } from '../components/game/GameFailureModal';
 import './DailyChallengeGame.css';
+import '../components/game/GameNavbarFix.css';
 
 interface DailyChallengeGameProps {
   onBackToMenu: () => void;
@@ -71,9 +72,10 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     unlockedSlots: new Set<number>(), // 作茧自缚特效解锁的槽位
     cornerOnlyMode: false, // 作茧自缚特效是否只能在角落放置
     hasStepError: false, // 最终防线特效是否已有错误
-    actualMoves: 0, // 举步维艰特效的实际步数（显示会翻倍）
+    actualMoves: 0, // 鱼目混珠特效的实际步数
     lastPlacedSlot: -1, // 亦步亦趋特效：上次放置的槽位索引
     stepFollowSlots: new Set<number>(), // 亦步亦趋特效：当前可放置的槽位
+    fakePieces: new Set<string>(), // 鱼目混珠特效：伪造的拼图块ID
   });
 
   // 检查是否只能在角落放置（作茧自缚特效）
@@ -161,7 +163,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     if (!challenge.effects) return 0;
     return challenge.effects.reduce((total, effectId) => {
       // 基于特效ID计算星数
-      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
+      if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '鱼目混珠'].includes(effectId)) {
         return total + 3;
       } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
         return total + 4;
@@ -179,7 +181,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       'blur': '雾里看花', '雾里看花': '雾里看花',
       'partial': '管中窥豹', '管中窥豹': '管中窥豹',
       'upside_down': '颠倒世界', '颠倒世界': '颠倒世界',
-      'double_steps': '举步维艰', '举步维艰': '举步维艰',
+      'double_steps': '鱼目混珠', '鱼目混珠': '鱼目混珠',
       'corner_start': '作茧自缚', '作茧自缚': '作茧自缚',
       'invisible': '深渊漫步', '深渊漫步': '深渊漫步',
       'no_preview': '一叶障目', '一叶障目': '一叶障目',
@@ -198,7 +200,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       'blur': '本关卡拼图块在鼠标选中前模糊化', '雾里看花': '本关卡拼图块在鼠标选中前模糊化',
       'partial': '本关卡初始只提供一半数量的拼图块，正确放置后自动补充新的拼图块', '管中窥豹': '本关卡初始只提供一半数量的拼图块，正确放置后自动补充新的拼图块',
       'upside_down': '本关卡中正确答案旋转180°后得到原图', '颠倒世界': '本关卡中正确答案旋转180°后得到原图',
-      'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
+      'double_steps': '混入3块该地图分割后的拼图块的复制体，复制体在被放入拼图时会直接消失，只有当本体放入空格才会显示正确', '鱼目混珠': '混入3块该地图分割后的拼图块的复制体，复制体在被放入拼图时会直接消失，只有当本体放入空格才会显示正确',
       'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位',
       'invisible': '本关卡放置后的拼图块为纯黑色不可见', '深渊漫步': '本关卡放置后的拼图块为纯黑色不可见',
       'no_preview': '本关卡不允许查看原图', '一叶障目': '本关卡不允许查看原图',
@@ -212,7 +214,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
 
   // 获取特效星级
   const getEffectStars = useCallback((effectId: string) => {
-    if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
+    if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '鱼目混珠'].includes(effectId)) {
       return 3;
     } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
       return 4;
@@ -243,6 +245,29 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           upsideDown: challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')
         });
         
+        // 鱼目混珠特效：生成额外的3个伪造拼图块
+        let finalConfig = config;
+        if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('鱼目混珠')) {
+          // 复制3个随机拼图块作为伪造拼图块
+          const piecesToCopy = [...config.pieces].sort(() => Math.random() - 0.5).slice(0, 3);
+          const fakePieces = piecesToCopy.map((piece, index) => ({
+            ...piece,
+            id: `fake_${piece.id}_${index}`,
+            originalIndex: piece.originalIndex,
+            correctSlot: piece.correctSlot,
+            // 伪造拼图块的其他属性保持不变
+          }));
+          
+          // 合并原始拼图块和伪造拼图块，并随机打乱顺序
+          const allPieces = [...config.pieces, ...fakePieces];
+          const shuffledPieces = allPieces.sort(() => Math.random() - 0.5);
+          
+          finalConfig = {
+            ...config,
+            pieces: shuffledPieces
+          };
+        }
+        
         // 应用特效：天旋地转 - 等同于启用翻转模式，拼图块会随机旋转和翻转
         // 玩家需要通过按键旋转到正确位置才能正确放置
         const hasRotateEffect = challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转');
@@ -257,15 +282,39 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
             upsideDown: challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')
           });
           
+          // 鱼目混珠特效：生成额外的3个伪造拼图块
+          let finalRotatedConfig = rotatedConfig;
+          if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('鱼目混珠')) {
+            // 复制3个随机拼图块作为伪造拼图块
+            const piecesToCopy = [...rotatedConfig.pieces].sort(() => Math.random() - 0.5).slice(0, 3);
+            const fakePieces = piecesToCopy.map((piece, index) => ({
+              ...piece,
+              id: `fake_${piece.id}_${index}`,
+              originalIndex: piece.originalIndex,
+              correctSlot: piece.correctSlot,
+              // 伪造拼图块的其他属性保持不变
+            }));
+            
+            // 合并原始拼图块和伪造拼图块，并随机打乱顺序
+            const allPieces = [...rotatedConfig.pieces, ...fakePieces];
+            const shuffledPieces = allPieces.sort(() => Math.random() - 0.5);
+            
+            // 合并原始拼图块和伪造拼图块
+            finalRotatedConfig = {
+              ...rotatedConfig,
+              pieces: shuffledPieces
+            };
+          }
+          
           // 使用启用了旋转的配置
-          setPuzzleConfig(rotatedConfig);
-          setProgress({ correct: 0, total: rotatedConfig.pieces.length, percentage: 0 });
-          initializeGame(rotatedConfig);
+          setPuzzleConfig(finalRotatedConfig);
+          setProgress({ correct: 0, total: finalRotatedConfig.pieces.length, percentage: 0 });
+          initializeGame(finalRotatedConfig);
         } else {
           // 没有天旋地转特效，使用正常配置
-          setPuzzleConfig(config);
-          setProgress({ correct: 0, total: config.pieces.length, percentage: 0 });
-          initializeGame(config);
+          setPuzzleConfig(finalConfig);
+          setProgress({ correct: 0, total: finalConfig.pieces.length, percentage: 0 });
+          initializeGame(finalConfig);
         }
         
       } else {
@@ -274,8 +323,12 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           challenge.gridSize
         );
         
-        setPuzzleConfig(config);
-        setProgress({ correct: 0, total: config.pieces.length, percentage: 0 });
+        // 鱼目混珠特效：生成额外的3个伪造拼图块（仅适用于方形拼图）
+        let finalConfig = config;
+        // 异形拼图暂不支持鱼目混珠特效
+        
+        setPuzzleConfig(finalConfig);
+        setProgress({ correct: 0, total: finalConfig.pieces.length, percentage: 0 });
       }
       
       // 设置时间限制（生死时速特效）
@@ -305,6 +358,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         actualMoves: 0,
         lastPlacedSlot: -1,
         stepFollowSlots: new Set(),
+        fakePieces: new Set(),
       });
       
     } catch (err) {
@@ -378,6 +432,23 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       } else {
         newStates.lastPlacedSlot = -1;
         newStates.stepFollowSlots = new Set();
+      }
+      
+      // 鱼目混珠特效：初始化伪造拼图块
+      if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('鱼目混珠')) {
+        // 识别所有伪造拼图块（ID以fake_开头的拼图块）
+        const fakePieces = puzzleConfig.pieces
+          .filter(piece => piece.id.startsWith('fake_'))
+          .map(piece => piece.id);
+        
+        newStates.fakePieces = new Set(fakePieces);
+        
+        console.log('🐟 鱼目混珠特效初始化:', {
+          伪造拼图块数量: fakePieces.length,
+          伪造拼图块: fakePieces
+        });
+      } else {
+        newStates.fakePieces = new Set();
       }
       
       return newStates;
@@ -481,13 +552,12 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           return Math.floor(1.5 * totalPieces);
         })()
       : null;
-    const actualMoves = challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') 
-      ? effectStates.actualMoves : moves;
+    const actualMoves = moves;
     const isPerfect = stepLimit ? actualMoves <= stepLimit : actualMoves <= challenge.perfectMoves;
     
     // 更新用户挑战记录
     if (authState.isAuthenticated && authState.user) {
-      updateChallengeRecord(true, isPerfect);
+      updateChallengeRecord(true, elapsedTime, moves);
     }
   }, [moves, challenge.perfectMoves, challenge.effects, challenge.gridSize, effectStates.actualMoves, authState]);
 
@@ -581,14 +651,39 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       return; // 不能放置在该位置，直接返回
     }
     
+    // 鱼目混珠特效：检查是否是伪造拼图块
+    const isFakePiece = effectStates.fakePieces.has(pieceId);
+    
+    // 如果是伪造拼图块，无论放在哪里都直接游戏结束
+    if (isFakePiece) {
+      // 伪造拼图块放入任意位置都直接游戏结束
+      console.log('🐟 鱼目混珠：放入了伪造拼图块，游戏结束', pieceId);
+      
+      // 设置失败原因
+      setFailureReason('放入了伪造的拼图块，挑战失败！');
+      
+      // 显示失败弹窗
+      setShowFailureModal(true);
+      
+      // 设置游戏为失败状态
+      setIsFailed(true);
+      
+      // 更新挑战记录
+      if (authState.isAuthenticated && authState.user) {
+        updateChallengeRecord(false, elapsedTime, moves);
+      }
+      
+      return;
+    }
+    
+    // 不是伪造拼图块，执行正常的放置逻辑
+    placePieceToSlot(pieceId, slotIndex);
+
     // 最终防线特效：检查拼图块是否放置正确
     // 注意：这里需要获取最新的拼图块状态，而不是gameState中可能过时的状态
     if (challenge.effects?.includes('最终防线') || challenge.effects?.includes('no_mistakes')) {
       // 为了解决天旋地转和最终防线特效冲突，我们需要在放置后检查状态
       // 而不是在放置前检查可能过时的状态
-      
-      // 先执行正常的放置逻辑
-      placePieceToSlot(pieceId, slotIndex);
       
       // 延迟检查放置结果，确保状态已经更新
       setTimeout(() => {
@@ -616,20 +711,14 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
                 setEffectStates(prev => ({ ...prev, hasStepError: true }));
                 setIsFailed(true);
                 if (authState.isAuthenticated && authState.user) {
-                  updateChallengeRecord(false, false);
+                  updateChallengeRecord(false, elapsedTime, moves);
                 }
               }
             }
           }
         }
       }, 100); // 增加延迟到100ms，确保状态完全更新
-      
-      // 继续执行其他特效逻辑，但跳过再次调用placePieceToSlot
-    } else {
-      // 没有最终防线特效，执行正常的放置逻辑
-      placePieceToSlot(pieceId, slotIndex);
     }
-
     
     // 管中窥豹特效：正确放置后补充新的拼图块
     if (challenge.effects?.includes('partial') || challenge.effects?.includes('管中窥豹')) {
@@ -727,25 +816,20 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       });
     }
     
-    // 更新步数（考虑举步维艰特效）
-    if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰')) {
-      setEffectStates(prev => ({ ...prev, actualMoves: prev.actualMoves + 1 }));
-      setMoves(prev => prev + 2); // 显示为2步
-    } else {
-      setMoves(prev => prev + 1);
-    }
+    // 更新步数（鱼目混珠特效不再显示×2步数）
+    setEffectStates(prev => ({ ...prev, actualMoves: prev.actualMoves + 1 }));
+    setMoves(prev => prev + 1);
     
     // 检查精打细算特效的步数限制
     if (challenge.effects?.includes('step_limit') || challenge.effects?.includes('精打细算')) {
       const gridParts = challenge.gridSize.split('x');
       const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
       const stepLimit = Math.floor(1.5 * totalPieces);
-      const currentActualMoves = challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') 
-        ? effectStates.actualMoves + 1 : moves + 1;
+      const currentActualMoves = effectStates.actualMoves + 1;
       if (currentActualMoves > stepLimit) {
         setIsFailed(true);
         if (authState.isAuthenticated && authState.user) {
-          updateChallengeRecord(false, false);
+          updateChallengeRecord(false, elapsedTime, moves);
         }
         return;
       }
@@ -756,7 +840,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       checkStepFollowFailure();
     }, 100);
     
-  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState, getAdjacentSlots, gameState, checkStepFollowFailure]);
+  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, effectStates.fakePieces, moves, authState, getAdjacentSlots, gameState, checkStepFollowFailure, setFailureReason, setShowFailureModal, setIsFailed]);
 
   // 监听亦步亦趋特效的失败条件
   useEffect(() => {
@@ -776,7 +860,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     
     // 更新用户挑战记录
     if (authState.isAuthenticated && authState.user) {
-      updateChallengeRecord(false, false);
+      updateChallengeRecord(false, elapsedTime, moves);
     }
   }, [authState]);
 
@@ -798,7 +882,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     // 标记为失败并返回菜单
     setIsFailed(true);
     if (authState.isAuthenticated && authState.user) {
-      updateChallengeRecord(false, false);
+      updateChallengeRecord(false, elapsedTime, moves);
     }
     onBackToMenu();
   }, [authState, onBackToMenu]);
@@ -1097,10 +1181,10 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               </div>
               <div className="text-xs text-gray-500">剩余时间</div>
             </div>
-            <div className={`text-center ${challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? 'double-steps-indicator' : ''}`}>
+            <div className="text-center">
               <div className="text-lg font-semibold text-gray-700">{moves}</div>
               <div className="text-xs text-gray-500">
-                {challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? '显示步数' : '当前步数'}
+                当前步数
               </div>
             </div>
           </div>
@@ -1125,7 +1209,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
                 const gridParts = challenge.gridSize.split('x');
                 const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
                 const stepLimit = Math.floor(1.5 * totalPieces);
-                const currentMoves = challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰') ? effectStates.actualMoves : moves;
+                const currentMoves = moves;
                 return (
                   <div className={`text-center ${currentMoves > stepLimit * 0.8 ? 'step-limit-warning' : ''}`}>
                     <div className="text-sm font-semibold text-orange-600">
@@ -1236,6 +1320,12 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
                 👨‍💼 亦步亦趋：仅能在上次放置的拼图块周围放置！当前可放置: {effectStates.stepFollowSlots.size}个位置
               </div>
             )}
+            {/* 鱼目混珠特效提示 */}
+            {(challenge.effects?.includes('double_steps') || challenge.effects?.includes('鱼目混珠')) && (
+              <div className="step-follow-effect-hint">
+                🐟 鱼目混珠：混入了3块拼图块的复制体，复制体放入错误位置时会显示错误，放入正确位置时会直接消失！
+              </div>
+            )}
             {/* 天旋地转特效提示 */}
             {(challenge.effects?.includes('rotate') || challenge.effects?.includes('天旋地转')) && (
               <div className="rotate-effect-hint">
@@ -1323,6 +1413,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               unlockedSlots={effectStates.unlockedSlots}
               hasCornerEffect={challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')}
               hasUpsideDownEffect={challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')}
+              fakePieces={effectStates.fakePieces}
+              hasFakePiecesEffect={challenge.effects?.includes('double_steps') || challenge.effects?.includes('鱼目混珠')}
             />
           ) : (
             <IrregularPuzzleWorkspace

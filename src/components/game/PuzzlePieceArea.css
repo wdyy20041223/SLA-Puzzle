@@ -54,9 +54,9 @@
 }
 
 .puzzle-piece-item:hover {
-  border-color: #3b82f6;
+  border-color: var(--primary-pink);
   transform: scale(1.05);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 20px rgba(248, 181, 215, 0.15);
 }
 
 .puzzle-piece-item.selected {
@@ -310,7 +310,7 @@
   background: #f1f5f9;
   border-radius: 8px;
   padding: 16px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--primary-pink);
 }
 
 .area-tips p {
@@ -424,15 +424,57 @@
 .triangle-upper::before {
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-bottom: 12px solid #3b82f6;
+  border-bottom: 12px solid var(--primary-pink);
 }
 
 .triangle-lower::before {
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 12px solid #3b82f6;
+  border-top: 12px solid var(--primary-pink);
 }
 
 .triangle-piece:hover::before {
   opacity: 0.3;
+}
+
+/* 鱼目混珠特效：伪造拼图块样式 */
+.fake-piece {
+  position: relative;
+  border: 2px dashed #ef4444 !important;
+  background: repeating-linear-gradient(
+    45deg,
+    #fee2e2,
+    #fee2e2 10px,
+    #fecaca 10px,
+    #fecaca 20px
+  ) !important;
+}
+
+.fake-piece::after {
+  content: "🐟";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 16px;
+  z-index: 3;
+  background: rgba(239, 68, 68, 0.8);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.fake-piece:hover {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+.fake-piece .piece-number::after {
+  content: " (伪造)";
+  color: #ef4444;
+  font-weight: bold;
 }

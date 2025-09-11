@@ -1,10 +1,11 @@
-/* 每日挑战页面样式 */
+/* 每日挑战页面样式 - 慵懒夏日淡粉色主题 */
 .daily-challenge-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff9ff3 100%);
+  background: var(--light-pink-1);
   padding: 20px;
   display: flex;
   flex-direction: column;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .challenge-header-main {
@@ -13,9 +14,10 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .header-left {
@@ -26,17 +28,20 @@
 
 .header-left h1 {
   margin: 0;
-  color: white;
+  color: var(--text-color);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 300;
+  text-shadow: 0 2px 8px rgba(232, 205, 214, 0.3);
 }
 
 .challenge-tabs {
   display: flex;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   border-radius: 12px;
   padding: 8px;
+  border: 1px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .tab-button {
@@ -47,21 +52,24 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-light);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .tab-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--light-pink-1);
+  color: var(--text-color);
+  transform: translateY(-1px);
 }
 
 .tab-button.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--primary-pink);
   color: white;
   font-weight: 600;
+  box-shadow: 0 2px 8px rgba(232, 205, 214, 0.5);
 }
 
 .tab-icon {
@@ -74,15 +82,16 @@
 
 .challenge-content {
   flex: 1;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   border-radius: 16px;
   padding: 24px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 /* 今日挑战样式 */
 .today-challenge {
-  color: white;
+  color: var(--text-color);
 }
 
 .challenge-header {
@@ -112,9 +121,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--accent-yellow);
   border-radius: 12px;
   padding: 8px 16px;
+  color: var(--text-color);
+  border: 1px solid rgba(255, 242, 216, 0.5);
 }
 
 .streak-icon {
@@ -129,18 +140,22 @@
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
+  border: 1px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .challenge-image {
   position: relative;
   border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   aspect-ratio: 1;
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .image-placeholder {
@@ -151,7 +166,8 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
+  color: var(--text-color);
 }
 
 .placeholder-icon {
@@ -171,7 +187,9 @@
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
-  color: white;
+  color: var(--text-color);
+  background: var(--accent-green);
+  border: 1px solid rgba(180, 242, 216, 0.5);
 }
 
 .challenge-info {
@@ -183,7 +201,8 @@
 .challenge-title {
   margin: 0;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 500;
+  color: var(--text-color);
 }
 
 .challenge-description {
@@ -191,6 +210,7 @@
   opacity: 0.8;
   line-height: 1.6;
   font-size: 1.1rem;
+  color: var(--text-light);
 }
 
 .challenge-stats {
@@ -204,7 +224,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 16px;
 }
@@ -239,7 +259,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 16px 12px;
   text-align: center;
@@ -270,7 +290,7 @@
 }
 
 .challenge-tips {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 20px;
 }
@@ -304,7 +324,7 @@
 
 /* 历史记录样式 */
 .challenge-history {
-  color: white;
+  color: var(--text-primary);
 }
 
 .history-header {
@@ -350,7 +370,7 @@
 .history-item {
   display: flex;
   gap: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 20px;
   align-items: center;
@@ -391,17 +411,16 @@
   gap: 8px;
 }
 
-.difficulty-tag,
-.grid-tag {
+.difficulty-tag, .grid-tag {
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: white;
+  color: var(--text-primary);
 }
 
 .grid-tag {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-2);
 }
 
 .history-result {
@@ -442,7 +461,7 @@
 
 /* 奖励总览样式 */
 .rewards-summary {
-  color: white;
+  color: var(--text-primary);
 }
 
 .rewards-header {
@@ -467,7 +486,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 16px 24px;
 }
@@ -494,7 +513,7 @@
 }
 
 .reward-category {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 20px;
 }
@@ -515,7 +534,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 8px;
 }
 
@@ -554,14 +573,14 @@
 .progress-bar {
   width: 100%;
   height: 8px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-2);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4ade80, #22c55e);
+  background: linear-gradient(90deg, var(--accent-green), var(--mint-green));
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -573,7 +592,7 @@
 }
 
 .next-rewards {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 20px;
 }
@@ -595,7 +614,7 @@
   gap: 12px;
   align-items: center;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 8px;
 }
 
@@ -615,9 +634,10 @@
 .upcoming-progress {
   font-size: 0.875rem;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-2);
   border-radius: 6px;
   padding: 4px 8px;
+  color: var(--text-primary);
 }
 
 /* 响应式设计 */
