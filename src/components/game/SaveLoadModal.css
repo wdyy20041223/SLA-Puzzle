@@ -40,7 +40,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   color: white;
 }
 
@@ -148,8 +148,8 @@
 
 .save-input-section input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-pink);
+  box-shadow: 0 0 0 3px rgba(248, 181, 215, 0.1);
 }
 
 .save-input-section input:disabled {
@@ -212,14 +212,14 @@
 }
 
 .save-item:hover {
-  border-color: #c7d2fe;
-  background: #f8fafc;
+  border-color: var(--primary-pink);
+  background: #fff5f8;
 }
 
 .save-item.selected {
-  border-color: #667eea;
-  background: #f0f4ff;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-pink);
+  background: #fff5f8;
+  box-shadow: 0 0 0 3px rgba(248, 181, 215, 0.1);
 }
 
 .save-info {
@@ -281,7 +281,7 @@
 
 .save-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(90deg, var(--primary-pink), var(--secondary-pink));
   transition: width 0.3s ease;
 }
 

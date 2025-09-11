@@ -310,24 +310,24 @@
 }
 
 .play-again-btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--primary-pink), var(--secondary-pink));
   border: none;
-  color: white;
+  color: var(--text-primary);
 }
 
 .play-again-btn:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--secondary-pink), var(--accent-pink));
   transform: translateY(-2px);
 }
 
 .back-menu-btn {
-  background: linear-gradient(135deg, #64748b, #475569);
+  background: linear-gradient(135deg, var(--light-pink), var(--warm-pink));
   border: none;
-  color: white;
+  color: var(--text-secondary);
 }
 
 .back-menu-btn:hover {
-  background: linear-gradient(135deg, #475569, #334155);
+  background: linear-gradient(135deg, var(--warm-pink), var(--accent-pink));
   transform: translateY(-2px);
 }
 

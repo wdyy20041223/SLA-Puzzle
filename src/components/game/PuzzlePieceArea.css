@@ -41,9 +41,9 @@
 }
 
 .puzzle-piece-item:hover {
-  border-color: #3b82f6;
+  border-color: var(--primary-pink);
   transform: scale(1.05);
-  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 20px rgba(248, 181, 215, 0.15);
 }
 
 .puzzle-piece-item.selected {
@@ -141,7 +141,7 @@
   background: #f1f5f9;
   border-radius: 8px;
   padding: 16px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--primary-pink);
 }
 
 .area-tips p {
@@ -253,13 +253,13 @@
 .triangle-upper::before {
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-bottom: 12px solid #3b82f6;
+  border-bottom: 12px solid var(--primary-pink);
 }
 
 .triangle-lower::before {
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 12px solid #3b82f6;
+  border-top: 12px solid var(--primary-pink);
 }
 
 .triangle-piece:hover::before {

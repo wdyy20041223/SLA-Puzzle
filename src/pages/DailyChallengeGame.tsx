@@ -12,6 +12,7 @@ import { cloudStorage } from '../services/cloudStorage';
 import { LeaderboardService } from '../services/leaderboardService';
 import { Challenge } from './DailyChallenge';
 import './DailyChallengeGame.css';
+import '../components/game/GameNavbarFix.css';
 
 interface DailyChallengeGameProps {
   onBackToMenu: () => void;

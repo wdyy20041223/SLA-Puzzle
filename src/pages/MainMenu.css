@@ -1,19 +1,21 @@
+/* 主菜单样式 - 慵懒夏日淡粉色主题 */
 .main-menu {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--background-main);
-  color: var(--text-primary);
+  background: var(--light-pink-1);
+  color: var(--text-color);
+  font-family: 'Nunito', 'Quicksand', 'Comfortaa', sans-serif;
 }
 
 .menu-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30px 20px;
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  background: var(--light-pink-1);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px var(--shadow-pink);
 }
 
 .header-content {
@@ -28,15 +30,16 @@
 
 .menu-header h1 {
   margin: 0 0 8px 0;
-  font-size: 36px;
-  font-weight: 600;
-  color: #2c3e50;
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--text-primary);
+  text-shadow: 0 2px 4px rgba(255, 214, 224, 0.2);
 }
 
 .menu-header p {
   margin: 0;
   font-size: 16px;
-  color: #666;
+  color: var(--text-light);
 }
 
 .menu-content {
@@ -53,10 +56,11 @@
 
 .asset-section {
   flex: 1;
-  background: white;
-  border-radius: 8px;
+  background: var(--card-background);
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px var(--shadow-pink);
+  border: 1px solid var(--border-color);
   min-height: 500px;
   display: flex;
   flex-direction: column;
@@ -66,10 +70,11 @@
 
 .config-section {
   width: 350px;
-  background: white;
-  border-radius: 8px;
+  background: var(--card-background);
+  border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px var(--shadow-pink);
+  border: 1px solid var(--border-color);
   flex-shrink: 0;
   overflow-y: auto;
   max-height: calc(100vh - 160px);
@@ -77,23 +82,25 @@
 
 .config-panel h3 {
   margin: 0 0 24px 0;
-  color: #1F2937;
+  color: var(--text-primary);
   font-size: 24px;
+  font-weight: 300;
   text-align: center;
+  text-shadow: 0 1px 4px rgba(255, 214, 224, 0.2);
 }
 
 .selected-asset {
   margin-bottom: 24px;
   padding: 20px;
-  background: #F8FAFC;
+  background: var(--light-pink);
   border-radius: 12px;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px var(--shadow-pink);
 }
 
 .selected-asset h4 {
   margin: 0 0 12px 0;
-  color: #374151;
+  color: var(--text-color);
   font-size: 16px;
 }
 
@@ -108,31 +115,32 @@
   height: 120px;
   border-radius: 8px;
   overflow: hidden;
-  background: #E2E8F0;
+  background: var(--neutral-color);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   flex-shrink: 0;
+  border: 2px solid var(--primary-pink);
 }
 
 .selected-asset-image {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .placeholder-preview {
   width: 100%;
   height: 100%;
-  background: linear-gradient(45deg, #f0f0f0 25%, #e0e0e0 25%, #e0e0e0 50%, #f0f0f0 50%, #f0f0f0 75%, #e0e0e0 75%, #e0e0e0);
+  background: linear-gradient(45deg, var(--light-pink-1) 25%, var(--primary-pink) 25%, var(--primary-pink) 50%, var(--light-pink-1) 50%, var(--light-pink-1) 75%, var(--primary-pink) 75%, var(--primary-pink));
   background-size: 20px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: #6B7280;
+  color: var(--text-light);
   text-align: center;
 }
 
@@ -143,7 +151,7 @@
 .asset-details p {
   margin: 4px 0;
   font-size: 14px;
-  color: #4B5563;
+  color: var(--text-color);
 }
 
 .difficulty-selector,
@@ -154,7 +162,7 @@
 .difficulty-selector h4,
 .shape-selector h4 {
   margin: 0 0 12px 0;
-  color: #374151;
+  color: var(--text-color);
   font-size: 16px;
 }
 
@@ -166,26 +174,31 @@
 
 .difficulty-btn {
   padding: 12px 16px;
-  border: 2px solid #E5E7EB;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  background: white;
+  background: var(--light-pink-1);
   cursor: pointer;
   text-align: left;
   font-size: 14px;
   font-weight: 500;
-  color: #6B7280;
-  transition: all 0.2s ease;
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  font-family: 'Nunito', 'Quicksand', 'Comfortaa', sans-serif;
 }
 
 .difficulty-btn:hover {
-  border-color: #D1D5DB;
-  background: #F9FAFB;
+  border-color: var(--primary-pink);
+  background: var(--light-pink-2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px var(--shadow-pink);
 }
 
 .difficulty-btn.active {
-  border-color: var(--active-color, #3B82F6);
-  background: var(--active-color, #3B82F6);
-  color: white;
+  border-color: var(--accent-green);
+  background: var(--accent-green);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(214, 245, 226, 0.3);
 }
 
 .shape-options {
@@ -196,9 +209,9 @@
 
 .shape-btn {
   padding: 16px 8px;
-  border: 2px solid #E5E7EB;
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  background: white;
+  background: var(--light-pink-1);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -208,14 +221,14 @@
 }
 
 .shape-btn:hover {
-  border-color: #D1D5DB;
-  background: #F9FAFB;
+  border-color: var(--primary-pink);
+  background: var(--light-pink-2);
 }
 
 .shape-btn.active {
-  border-color: #4F46E5;
-  background: #EEF2FF;
-  color: #4F46E5;
+  border-color: var(--lavender);
+  background: var(--lavender);
+  color: var(--text-primary);
 }
 
 .shape-icon {
@@ -263,23 +276,23 @@
 .selection-hint {
   text-align: center;
   padding: 16px;
-  background: #FEF3C7;
+  background: var(--accent-yellow);
   border-radius: 8px;
   margin-top: 16px;
 }
 
 .selection-hint p {
   margin: 0;
-  color: #92400E;
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .menu-footer {
   text-align: center;
   padding: 15px 20px;
-  background: white;
-  border-top: 1px solid #e0e0e0;
-  color: #666;
+  background: var(--light-pink-1);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
   font-size: 12px;
 }
 

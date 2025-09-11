@@ -8,6 +8,7 @@ import { GameHelpButton } from '../components/common/GameHelp';
 import { musicManager } from '../services/musicService';
 import '../components/game/PuzzleGame.css';
 import '../components/game/PuzzleWorkspace.css';
+import '../components/game/GameNavbarFix.css';
 
 interface IrregularPuzzleGameProps {
   onBackToMenu: () => void;

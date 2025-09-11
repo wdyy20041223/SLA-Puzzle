@@ -15,6 +15,8 @@ import { validateGameReward } from '../../utils/rewardDebugger';
 import { HybridLeaderboardService } from '../../services/hybridLeaderboardService';
 import { musicManager } from '../../services/musicService';
 import './PuzzleGame.css';
+import './PuzzleWorkspace.css';
+import './GameNavbarFix.css';
 
 interface PuzzleGameProps {
   puzzleConfig: PuzzleConfig;

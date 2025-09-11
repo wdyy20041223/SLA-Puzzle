@@ -52,8 +52,8 @@
 
 .search-input:focus {
   outline: none;
-  border-color: #4F46E5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: var(--primary-pink);
+  box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
 }
 
 .category-tabs {
@@ -83,7 +83,7 @@
 
 .tab.active {
   background: white;
-  color: #4F46E5;
+  color: var(--primary-pink);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 

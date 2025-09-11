@@ -391,7 +391,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const getDifficultyColor = (difficulty: Challenge['difficulty']) => {
     const colors = {
       easy: '#10b981',
-      medium: '#3b82f6',
+      medium: 'var(--primary-pink)',
       hard: '#f59e0b',
       expert: '#ef4444'
     };

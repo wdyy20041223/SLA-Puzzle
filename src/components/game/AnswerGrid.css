@@ -117,8 +117,8 @@
 }
 
 .grid-slot.occupied:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  border-color: var(--primary-pink);
+  box-shadow: 0 2px 8px rgba(248, 181, 215, 0.15);
 }
 
 .grid-slot.selected {
@@ -128,10 +128,10 @@
 
 /* 拖拽相关样式 */
 .grid-slot.drag-over {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
+  background: rgba(248, 181, 215, 0.1);
+  border-color: var(--primary-pink);
   border-style: dashed;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 0 0 2px rgba(248, 181, 215, 0.3);
   animation: pulse 1s infinite;
 }
 
@@ -273,7 +273,7 @@
 }
 
 .completion-status {
-  color: #3b82f6;
+  color: var(--primary-pink);
 }
 
 .correctness-status {
@@ -372,8 +372,8 @@
 }
 
 .triangle-slot.empty:hover {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
+  background: rgba(248, 181, 215, 0.1);
+  border-color: var(--primary-pink);
 }
 
 .triangle-slot.highlight {

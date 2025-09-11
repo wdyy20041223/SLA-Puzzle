@@ -1,7 +1,9 @@
+/* 慵懒夏日淡粉色主题 - 个人资料页面 */
 .profile-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--light-pink-1);
   padding: 20px;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .profile-header {
@@ -9,6 +11,11 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  padding: 20px;
+  background: var(--light-pink-2);
+  border-radius: 16px;
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .header-left {
@@ -18,10 +25,11 @@
 }
 
 .header-left h1 {
-  color: white;
+  color: var(--text-color);
   font-size: 2rem;
-  font-weight: bold;
+  font-weight: 300;
   margin: 0;
+  text-shadow: 0 2px 8px rgba(232, 205, 214, 0.3);
 }
 
 .profile-content {
@@ -33,10 +41,11 @@
 }
 
 .profile-card {
-  background: white;
+  background: var(--neutral-color);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-pink);
+  border: 2px solid var(--primary-pink);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -52,7 +61,7 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-pink) 0%, var(--light-pink-1) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -68,12 +77,12 @@
 
 .profile-avatar:hover {
   transform: scale(1.05);
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 30px rgba(232, 205, 214, 0.4);
 }
 
 .profile-avatar.with-frame {
-  border: 4px solid #ffd700;
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  border: 4px solid var(--light-pink-1);
+  box-shadow: 0 0 20px rgba(232, 205, 214, 0.4);
 }
 
 .profile-avatar img {
@@ -95,8 +104,8 @@
 }
 
 .change-avatar-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--accent-green);
+  color: var(--text-color);
   border: none;
   padding: 10px 20px;
   border-radius: 25px;
@@ -104,11 +113,13 @@
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.3s ease;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .change-avatar-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 5px 15px rgba(180, 224, 216, 0.5);
+  filter: brightness(0.95);
 }
 
 .user-info-section {
@@ -117,8 +128,8 @@
 
 .username {
   font-size: 2rem;
-  font-weight: bold;
-  color: #333;
+  font-weight: 500;
+  color: var(--text-color);
   margin: 0 0 30px 0;
 }
 
@@ -134,14 +145,15 @@
   align-items: center;
   gap: 15px;
   padding: 20px;
-  background: #f8f9fa;
+  background: var(--light-pink-2);
   border-radius: 15px;
+  border: 1px solid var(--primary-pink);
   transition: all 0.3s ease;
 }
 
 .stat-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-pink);
 }
 
 .stat-icon {
@@ -151,9 +163,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--primary-pink);
   border-radius: 50%;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(232, 205, 214, 0.3);
+  color: white;
 }
 
 .stat-content {
@@ -163,20 +176,21 @@
 
 .stat-value {
   font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
+  font-weight: 500;
+  color: var(--text-color);
   margin-bottom: 5px;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-light);
 }
 
 .level-progress-section {
-  background: #f8f9fa;
+  background: var(--light-pink-2);
   padding: 25px;
   border-radius: 15px;
+  border: 1px solid var(--primary-pink);
 }
 
 .progress-info {
@@ -188,7 +202,7 @@
 
 .progress-label {
   font-weight: 500;
-  color: #333;
+  color: var(--text-color);
 }
 
 .progress-text {
@@ -206,7 +220,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(90deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   border-radius: 5px;
   transition: width 0.3s ease;
 }

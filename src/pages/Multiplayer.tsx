@@ -219,7 +219,7 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
   const getDifficultyColor = (difficulty: string) => {
     const colors = {
       easy: '#10b981',
-      medium: '#3b82f6',
+      medium: 'var(--primary-pink)',
       hard: '#f59e0b',
       expert: '#ef4444'
     };
@@ -241,7 +241,7 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
     const colors = {
       waiting: '#f59e0b',
       ready: '#10b981',
-      playing: '#3b82f6',
+      playing: 'var(--primary-pink)',
       finished: '#6b7280',
       closed: '#ef4444'
     };

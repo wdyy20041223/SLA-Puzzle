@@ -143,27 +143,27 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col">
       {/* 顶部导航栏 */}
-      <div className="bg-gradient-to-r from-pink-400 to-rose-400 shadow-md px-5 py-3 flex justify-between items-center">
+      <div className="bg-gradient-to-r from-[#FFD6E0] to-[#FFEEE6] shadow-md px-5 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <button
             onClick={onBackToHome}
-            className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-full transition-colors text-sm flex items-center gap-2"
+            className="text-[#5D5B6A] hover:bg-white hover:bg-opacity-20 px-3 py-2 rounded-full transition-colors text-sm flex items-center gap-2"
           >
             ← 返回首页
           </button>
           <span className="text-2xl">🎯</span>
-          <h1 className="text-xl font-bold text-white">单人游戏</h1>
+          <h1 className="text-xl font-bold text-[#5D5B6A]">单人游戏</h1>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowPuzzleTest(!showPuzzleTest)}
-            className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
+            className="text-[#5D5B6A] hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
           >
             🧪 测试
           </button>
           <button
             onClick={() => setShowSyncPanel(!showSyncPanel)}
-            className="text-white hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
+            className="text-[#5D5B6A] hover:bg-white hover:bg-opacity-20 px-3 py-1 rounded-full transition-colors text-sm"
           >
             🌐 数据同步
           </button>
@@ -181,10 +181,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       )}
       
       {/* 主要内容区域 */}
-      <div className="flex justify-center items-start pt-[25px] px-5 pb-5 flex-1">
+      <div className="flex justify-center items-start pt-[25px] px-5 pb-5 flex-1 bg-[#FFFDFA]">
         <div className="flex flex-col lg:flex-row gap-5 w-full max-w-6xl">
           {/* 素材选择区域 */}
-          <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg flex flex-col h-[800px]">
+          <div className="flex-1 bg-white rounded-lg overflow-hidden shadow-lg flex flex-col h-[800px] border-2 border-[#FFD6E0]">
             <AssetLibrary
               onAssetSelect={handleAssetSelect}
               showUpload={true}
@@ -218,12 +218,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             <PuzzleAssetDebug />
             
             {/* 拼图素材持久化调试按钮 */}
-            <div style={{ 
-              margin: '10px 0', 
-              padding: '10px', 
-              backgroundColor: '#fff3cd', 
+            <div style={{
+              margin: '10px 0',
+              padding: '10px',
+              backgroundColor: '#fff3cd',
               borderRadius: '8px',
-              border: '1px solid #ffeaa7' 
+              border: '1px solid #ffeaa7'
             }}>
               <h4>🔧 拼图素材持久化调试</h4>
               <button
@@ -231,8 +231,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 style={{
                   padding: '8px 16px',
                   marginRight: '10px',
-                  backgroundColor: '#007bff',
-                  color: 'white',
+                  backgroundColor: 'var(--soft-blue)',
+                  color: 'var(--text-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer'
@@ -245,8 +245,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 style={{
                   padding: '8px 16px',
                   marginRight: '10px',
-                  backgroundColor: '#28a745',
-                  color: 'white',
+                  backgroundColor: 'var(--accent-green)',
+                  color: 'var(--text-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer'
@@ -263,8 +263,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 style={{
                   padding: '8px 16px',
                   marginRight: '10px',
-                  backgroundColor: '#ffc107',
-                  color: 'black',
+                  backgroundColor: 'var(--accent-yellow)',
+                  color: 'var(--text-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer'
@@ -276,8 +276,8 @@ export const MainMenu: React.FC<MainMenuProps> = ({
                 onClick={() => testPuzzleAssetDataFlow()}
                 style={{
                   padding: '8px 16px',
-                  backgroundColor: '#17a2b8',
-                  color: 'white',
+                  backgroundColor: 'var(--lavender)',
+                  color: 'var(--text-primary)',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer'

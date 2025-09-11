@@ -41,10 +41,10 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
   const canStartGame = selectedAsset !== null && !isGenerating;
 
   return (
-    <div className="w-full lg:w-[350px] lg:max-w-[600px] lg:mx-auto bg-white rounded-lg p-5 shadow-lg flex-shrink-0 overflow-y-auto h-full scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400">
+    <div className="w-full lg:w-[350px] lg:max-w-[600px] lg:mx-auto bg-[var(--card-background)] rounded-lg p-5 shadow-[var(--shadow-pink)] flex-shrink-0 overflow-y-auto h-full scrollbar-thin scrollbar-track-[var(--light-pink-1)] scrollbar-thumb-[var(--border-color)] hover:scrollbar-thumb-[var(--primary-pink)]">
       <div className="h-full flex flex-col">
         <div className="flex items-center justify-between px-2">
-          <h3 className="m-0 text-gray-800 text-xl font-bold">游戏设置</h3>
+          <h3 className="m-0 text-[var(--text-primary)] text-xl font-bold">游戏设置</h3>
           <GameHelpButton />
         </div>
         
@@ -68,8 +68,8 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
         {/* 拼图块翻转选项 */}
         <div className="mb-4">
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-gray-700 font-medium">特殊玩法:允许翻转</span>
-            <div className={`relative inline-block w-12 h-6 rounded-full transition-colors duration-200 ease-in-out ${isAllowPieceRotation ? 'bg-blue-500' : 'bg-gray-200'}`}>
+            <span className="text-[var(--text-secondary)] font-medium">特殊玩法:允许翻转</span>
+            <div className={`relative inline-block w-12 h-6 rounded-full transition-colors duration-200 ease-in-out ${isAllowPieceRotation ? 'bg-[var(--soft-blue)]' : 'bg-[var(--border-color)]'}`}>
               <input
                 type="checkbox"
                 checked={isAllowPieceRotation}
@@ -79,7 +79,7 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
               <span className={`absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out ${isAllowPieceRotation ? 'transform translate-x-6' : ''}`} />
             </div>
           </label>
-          <p className="mt-1 text-sm text-gray-500">部分拼图块将以翻转或旋转的方式出现</p>
+          <p className="mt-1 text-sm text-[var(--text-light)]">部分拼图块将以翻转或旋转的方式出现</p>
         </div>
         
         {/* 未选择素材提示 */}

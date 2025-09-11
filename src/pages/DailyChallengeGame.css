@@ -1,19 +1,20 @@
-/* 每日挑战特效样式 */
+/* 每日挑战特效样式 - 慵懒夏日淡粉色主题 */
 
 /* 雾里探花特效：未选中的拼图块模糊 */
 .effect-blur-unselected .puzzle-piece:not(.selected) {
   filter: blur(3px);
   transition: filter 0.3s ease;
+  opacity: 0.7;
 }
 
 .effect-blur-unselected .puzzle-piece.selected {
   filter: none;
 }
 
-/* 一手遮天特效：放置后的拼图块变黑 */
+/* 一手遮天特效：放置后的拼图块变透明粉色 */
 .effect-invisible-placed .answer-slot .puzzle-piece {
-  background: #000000 !important;
-  filter: brightness(0) !important;
+  background: var(--primary-pink) !important;
+  filter: opacity(0.3) !important;
 }
 
 /* 管中窥豹特效：隐藏的槽位样式 */
@@ -22,10 +23,10 @@
   pointer-events: none;
   background: repeating-linear-gradient(
     45deg,
-    #f0f0f0,
-    #f0f0f0 10px,
-    #e0e0e0 10px,
-    #e0e0e0 20px
+    var(--primary-pink),
+    var(--primary-pink) 10px,
+    var(--secondary-pink) 10px,
+    var(--secondary-pink) 20px
   );
 }
 
@@ -35,22 +36,22 @@
   pointer-events: none;
   background: repeating-linear-gradient(
     45deg,
-    #ffcccc,
-    #ffcccc 10px,
-    #ffaaaa 10px,
-    #ffaaaa 20px
+    var(--secondary-pink),
+    var(--secondary-pink) 10px,
+    var(--primary-pink) 10px,
+    var(--primary-pink) 20px
   );
 }
 
 .corner-slot.available {
-  box-shadow: 0 0 10px #ffaa00;
+  box-shadow: 0 0 10px var(--primary-pink);
   animation: pulse-corner 1.5s infinite;
 }
 
 @keyframes pulse-corner {
-  0% { box-shadow: 0 0 10px #ffaa00; }
-  50% { box-shadow: 0 0 20px #ff8800; }
-  100% { box-shadow: 0 0 10px #ffaa00; }
+  0% { box-shadow: 0 0 10px var(--primary-pink); }
+  50% { box-shadow: 0 0 20px var(--primary-pink); }
+  100% { box-shadow: 0 0 10px var(--primary-pink); }
 }
 
 /* 最终防线特效：错误提示 */
@@ -60,7 +61,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 0, 0, 0.2);
+  background: var(--primary-pink);
   z-index: 1000;
   pointer-events: none;
   animation: error-flash 0.5s ease-out;
@@ -73,8 +74,8 @@
 
 /* 精打细算特效：步数警告 */
 .step-limit-warning {
-  background: linear-gradient(45deg, #ff9800, #ff5722);
-  color: white;
+  background: linear-gradient(45deg, var(--accent-yellow), var(--accent-yellow));
+  color: var(--text-color);
   font-weight: bold;
   animation: warning-pulse 1s infinite;
 }
@@ -95,8 +96,8 @@
   position: absolute;
   top: -5px;
   right: -10px;
-  background: #ff5722;
-  color: white;
+  background: var(--accent-yellow);
+  color: var(--text-primary);
   font-size: 10px;
   padding: 2px 4px;
   border-radius: 3px;
@@ -113,12 +114,13 @@
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(148, 0, 211, 0.9);
-  color: white;
+  background: var(--accent-green);
+  color: var(--text-color);
   padding: 5px 10px;
   border-radius: 5px;
   font-size: 12px;
   z-index: 100;
+  border: 1px solid var(--accent-green);
 }
 
 /* 生死时速特效：时间紧急提示 */
@@ -127,9 +129,9 @@
 }
 
 @keyframes time-urgent {
-  0% { color: #ff0000; }
-  50% { color: #ff6600; }
-  100% { color: #ff0000; }
+  0% { color: var(--primary-pink); }
+  50% { color: var(--accent-pink); }
+  100% { color: var(--primary-pink); }
 }
 
 /* 璀璨星河特效：亮度变化容器 */

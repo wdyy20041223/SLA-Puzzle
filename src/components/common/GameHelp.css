@@ -35,7 +35,7 @@
 }
 
 .help-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   color: white;
   padding: 20px 24px;
   display: flex;
@@ -91,12 +91,12 @@
   padding: 16px;
   background: #f9fafb;
   border-radius: 12px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--primary-pink);
 }
 
 .step {
-  background: #3b82f6;
-  color: white;
+  background: var(--primary-pink);
+  color: var(--text-primary);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -189,8 +189,8 @@
 }
 
 .difficulty-item.medium {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--primary-pink);
+  background: #fff5f8;
 }
 
 .difficulty-item.hard {

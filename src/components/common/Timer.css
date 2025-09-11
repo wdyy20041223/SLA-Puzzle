@@ -1,20 +1,23 @@
+/* Timer 组件 - 马卡龙色系优化 */
 .timer {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #F3F4F6;
+  background-color: var(--light-pink);
   border-radius: 20px;
   font-family: 'Courier New', monospace;
   font-size: 18px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
 }
 
 .timer-running {
-  background-color: #DBEAFE;
-  color: #1E40AF;
+  background-color: var(--soft-blue);
+  color: var(--text-primary);
   animation: pulse 2s infinite;
+  border-color: var(--border-color);
 }
 
 .timer-icon {

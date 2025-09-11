@@ -58,7 +58,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  background: linear-gradient(90deg, var(--primary-pink), var(--secondary-pink));
   transition: width 0.3s ease;
   border-radius: 3px;
 }
@@ -117,8 +117,8 @@
 }
 
 .upload-area:hover {
-  border-color: #3b82f6;
-  background: #f8fafc;
+  border-color: var(--primary-pink);
+  background: #fff5f8;
 }
 
 .upload-content {
@@ -245,16 +245,16 @@
 }
 
 .ratio-btn:hover {
-  border-color: #3b82f6;
+  border-color: var(--primary-pink);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(248, 181, 215, 0.15);
 }
 
 .ratio-btn.active {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--primary-pink);
+  background: #fff5f8;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 4px 12px rgba(248, 181, 215, 0.2);
 }
 
 .ratio-icon {
@@ -472,30 +472,30 @@
 }
 
 .start-game-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--primary-pink), var(--secondary-pink));
   border: none;
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
   padding: 16px 32px;
   font-size: 16px;
 }
 
 .start-game-btn:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, var(--secondary-pink), var(--accent-pink));
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 8px 20px rgba(248, 181, 215, 0.3);
 }
 
 .save-btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--primary-pink), var(--secondary-pink));
   border: none;
-  color: white;
+  color: var(--text-primary);
 }
 
 .save-btn:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--secondary-pink), var(--accent-pink));
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 8px 20px rgba(248, 181, 215, 0.3);
 }
 
 .share-btn {
@@ -655,8 +655,8 @@
 
 /* Drag and Drop Effects */
 .upload-area.drag-over {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: var(--primary-pink);
+  background: #fff5f8;
   transform: scale(1.02);
 }
 

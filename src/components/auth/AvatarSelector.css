@@ -42,7 +42,7 @@
   align-items: center;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   color: white;
 }
 
@@ -106,7 +106,7 @@
 
 .tab.active {
   background: white;
-  color: #667eea;
+  color: var(--text-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   font-weight: 600;
 }
@@ -163,15 +163,15 @@
 }
 
 .item-card:hover {
-  border-color: #667eea;
+  border-color: var(--primary-pink);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(248, 181, 215, 0.2);
 }
 
 .item-card.selected {
-  border-color: #667eea;
-  background: linear-gradient(135deg, #667eea10, #764ba220);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  border-color: var(--primary-pink);
+  background: linear-gradient(135deg, rgba(248, 181, 215, 0.1), rgba(248, 140, 192, 0.2));
+  box-shadow: 0 4px 12px rgba(248, 181, 215, 0.3);
 }
 
 .item-card.locked {
@@ -287,12 +287,12 @@
 }
 
 .save-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-pink) 0%, var(--secondary-pink) 100%);
   color: white;
 }
 
 .save-button:hover {
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(248, 181, 215, 0.3);
   transform: translateY(-1px);
 }
 

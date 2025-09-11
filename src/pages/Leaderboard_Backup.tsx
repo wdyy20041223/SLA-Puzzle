@@ -149,7 +149,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
   // 早期测试返回
   if (false) {
     return (
-      <div className="leaderboard-page" style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '20px' }}>
+      <div className="leaderboard-page" style={{ minHeight: '100vh', background: 'var(--background-main)', padding: '20px' }}>
         <div style={{ color: 'white', textAlign: 'center' }}>
           <h1>🏆 排行榜测试页面</h1>
           <p>当前视图模式: {viewMode}</p>

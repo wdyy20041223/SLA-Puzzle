@@ -1,10 +1,11 @@
-/* 联机对战页面样式 */
+/* 联机对战页面样式 - 慵懒夏日淡粉色主题 */
 .multiplayer-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6b73ff 100%);
+  background: var(--light-pink-1);
   padding: 20px;
   display: flex;
   flex-direction: column;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .multiplayer-header {
@@ -13,9 +14,10 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .header-left {
@@ -26,17 +28,20 @@
 
 .header-left h1 {
   margin: 0;
-  color: white;
+  color: var(--text-color);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 300;
+  text-shadow: 0 2px 8px rgba(232, 205, 214, 0.3);
 }
 
 .multiplayer-tabs {
   display: flex;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--neutral-color);
   border-radius: 12px;
   padding: 8px;
+  border: 1px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .tab-button {
@@ -47,22 +52,24 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-light);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .tab-button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.9);
+  background: var(--light-pink-1);
+  color: var(--text-color);
+  transform: translateY(-1px);
 }
 
 .tab-button.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--primary-pink);
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(232, 205, 214, 0.5);
 }
 
 .tab-icon {
@@ -71,11 +78,12 @@
 
 .multiplayer-content {
   flex: 1;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--neutral-color);
   border-radius: 16px;
   padding: 32px;
-  backdrop-filter: blur(10px);
   min-height: 600px;
+  border: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 /* 加入房间页面 */
@@ -90,9 +98,11 @@
 }
 
 .join-by-code h3 {
-  color: white;
+  color: var(--text-color);
   font-size: 1.5rem;
+  font-weight: 300;
   margin-bottom: 16px;
+  text-shadow: 0 1px 4px rgba(232, 205, 214, 0.2);
 }
 
 .code-input-group {
@@ -106,34 +116,35 @@
   flex: 1;
   max-width: 300px;
   padding: 16px 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--primary-pink);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: white;
+  color: var(--text-color);
   font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: 2px;
   text-align: center;
   text-transform: uppercase;
-  backdrop-filter: blur(10px);
   transition: all 0.2s ease;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .code-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent-yellow);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 230, 181, 0.2);
 }
 
 .code-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-light);
   font-size: 1rem;
   letter-spacing: normal;
   text-transform: none;
 }
 
 .code-hint {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-light);
   font-size: 0.9rem;
   margin: 0;
 }
@@ -145,14 +156,15 @@
 }
 
 .create-form {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
   padding: 32px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .create-form h3 {
-  color: white;
+  color: var(--text-color);
   font-size: 1.5rem;
   margin-bottom: 24px;
   text-align: center;
@@ -164,7 +176,7 @@
 
 .form-group label {
   display: block;
-  color: white;
+  color: var(--text-color);
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 8px;
@@ -173,23 +185,24 @@
 .form-input {
   width: 100%;
   padding: 16px 20px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--primary-pink);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: white;
+  color: var(--text-color);
   font-size: 1rem;
-  backdrop-filter: blur(10px);
   transition: all 0.2s ease;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--accent-yellow);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 230, 181, 0.2);
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-light);
 }
 
 /* 难度选择 */
@@ -204,10 +217,10 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--light-pink-1);
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -215,14 +228,14 @@
 }
 
 .difficulty-option:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--light-pink-2);
+  border-color: var(--border-color);
 }
 
 .difficulty-option.selected {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: var(--primary-pink);
+  border-color: var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 .difficulty-color {
@@ -241,10 +254,10 @@
 
 .grid-size-option {
   padding: 12px 24px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--border-color);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--light-pink-1);
+  color: var(--text-primary);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -252,14 +265,14 @@
 }
 
 .grid-size-option:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--light-pink-2);
+  border-color: var(--border-color);
 }
 
 .grid-size-option.selected {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: var(--primary-pink);
+  border-color: var(--primary-pink);
+  box-shadow: var(--shadow-pink);
 }
 
 /* 拼图选择 */
@@ -278,7 +291,7 @@
 .puzzle-option-item input[type="radio"] {
   width: 20px;
   height: 20px;
-  accent-color: #3b82f6;
+  accent-color: var(--primary-pink);
 }
 
 .puzzle-option-item label {
@@ -287,22 +300,22 @@
   gap: 12px;
   flex: 1;
   padding: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--light-pink-1);
+  color: var(--text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .puzzle-option-item input[type="radio"]:checked + label {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: var(--primary-pink);
+  border-color: var(--primary-pink);
 }
 
 .puzzle-option-item label:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: var(--light-pink-2);
+  border-color: var(--border-color);
 }
 
 .puzzle-icon {
@@ -322,7 +335,7 @@
 
 .puzzle-category {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 
 .form-actions {
@@ -338,7 +351,7 @@
 .empty-my-rooms {
   text-align: center;
   padding: 64px 32px;
-  color: white;
+  color: var(--text-primary);
 }
 
 .empty-icon {
@@ -353,7 +366,7 @@
 
 .empty-my-rooms p {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin-bottom: 32px;
 }
 
@@ -376,13 +389,13 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
 }
 
 .room-title h3 {
-  color: white;
+  color: var(--text-primary);
   font-size: 1.5rem;
   margin: 0 0 12px 0;
 }
@@ -391,7 +404,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
 }
 
 .room-code-label {
@@ -401,8 +414,8 @@
 .room-code-value {
   font-size: 1.2rem;
   font-weight: 700;
-  color: white;
-  background: rgba(255, 255, 255, 0.2);
+  color: var(--text-primary);
+  background: var(--primary-pink);
   padding: 8px 16px;
   border-radius: 8px;
   letter-spacing: 1px;
@@ -421,14 +434,14 @@
 }
 
 .puzzle-info, .players-info {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
   padding: 24px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
 }
 
 .puzzle-info h4, .players-info h4 {
-  color: white;
+  color: var(--text-primary);
   font-size: 1.2rem;
   margin: 0 0 16px 0;
 }
@@ -441,24 +454,27 @@
 }
 
 .difficulty-badge {
-  color: white;
+  color: var(--text-primary);
   font-size: 0.8rem;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 6px;
+  background: var(--light-pink-1);
+  border: 1px solid var(--border-color);
 }
 
 .grid-size {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-1);
   padding: 6px 12px;
   border-radius: 6px;
+  border: 1px solid var(--border-color);
 }
 
 .puzzle-name {
-  color: white;
+  color: var(--text-primary);
   font-size: 1rem;
   font-weight: 500;
 }
@@ -470,9 +486,10 @@
 }
 
 .player-item {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 12px;
   padding: 16px;
+  border: 1px solid var(--border-color);
 }
 
 .player-info {
@@ -483,7 +500,7 @@
 }
 
 .player-name {
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
   font-size: 1rem;
   display: flex;
@@ -497,7 +514,7 @@
 
 .you-badge {
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
 }
 
 .player-status {
@@ -506,7 +523,7 @@
 }
 
 .player-result {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   font-size: 0.8rem;
 }
 
@@ -515,9 +532,9 @@
   gap: 16px;
   justify-content: center;
   padding: 24px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
 }
 
 /* 错误消息 */
@@ -526,12 +543,11 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: rgba(239, 68, 68, 0.2);
-  border: 2px solid rgba(239, 68, 68, 0.3);
+  background: rgba(255, 209, 220, 0.2);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
-  color: white;
+  color: var(--text-primary);
   margin: 16px 0;
-  backdrop-filter: blur(10px);
 }
 
 .error-icon {
@@ -541,7 +557,7 @@
 .error-close {
   background: none;
   border: none;
-  color: white;
+  color: var(--text-primary);
   font-size: 1.5rem;
   cursor: pointer;
   margin-left: auto;
@@ -556,7 +572,7 @@
 }
 
 .error-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-2);
 }
 
 /* 响应式设计 */
@@ -635,15 +651,14 @@
 
 /* 等待消息样式 */
 .waiting-message {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary);
+  background: var(--light-pink-1);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px 24px;
   text-align: center;
   font-size: 1rem;
   font-weight: 500;
-  backdrop-filter: blur(10px);
   margin: 8px 0;
   animation: pulse 2s infinite;
 }

@@ -1,7 +1,7 @@
-/* 商店页面样式 */
+/* 商店页面样式 - 慵懒夏日淡粉色主题 */
 .shop-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--background-main);
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -13,9 +13,11 @@
   align-items: center;
   margin-bottom: 32px;
   padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink);
   border-radius: 16px;
   backdrop-filter: blur(10px);
+  border: 2px solid var(--primary-pink);
+  box-shadow: 0 4px 16px var(--shadow-pink);
 }
 
 .header-left {
@@ -26,9 +28,11 @@
 
 .header-left h1 {
   margin: 0;
-  color: white;
+  color: var(--text-primary);
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 300;
+  text-shadow: 0 2px 8px var(--shadow-pink);
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .user-coins {
@@ -41,26 +45,27 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--accent-pink);
   padding: 12px 20px;
   border-radius: 12px;
   backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--primary-pink);
 }
 
 .coins-icon {
   font-size: 1.5rem;
+  color: var(--text-primary);
 }
 
 .coins-amount {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #ffd700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(255, 192, 203, 0.3);
 }
 
 .coins-label {
-  color: white;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -75,9 +80,11 @@
   display: flex;
   gap: 8px;
   padding: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink);
   border-radius: 12px;
   backdrop-filter: blur(10px);
+  border: 1px solid var(--primary-pink);
+  box-shadow: 0 2px 8px var(--shadow-pink);
   overflow-x: auto;
 }
 
@@ -89,22 +96,25 @@
   border: none;
   border-radius: 8px;
   background: transparent;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.215, 0.610, 0.355, 1.000);
   white-space: nowrap;
   min-width: fit-content;
+  font-family: 'Nunito', 'Quicksand', sans-serif;
 }
 
 .category-tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: var(--secondary-pink);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px var(--shadow-pink);
 }
 
 .category-tab.active {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--primary-pink);
   color: white;
-  font-weight: 600;
+  font-weight: 400;
+  box-shadow: 0 2px 8px var(--shadow-pink);
 }
 
 .category-icon {
@@ -116,11 +126,12 @@
 }
 
 .category-count {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-2);
   border-radius: 12px;
   padding: 2px 8px;
   font-size: 0.75rem;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .shop-grid {
@@ -131,28 +142,29 @@
 }
 
 .shop-item-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--light-pink);
   border-radius: 16px;
   padding: 20px;
   backdrop-filter: blur(10px);
   border: 2px solid transparent;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.215, 0.610, 0.355, 1.000);
   position: relative;
   overflow: hidden;
   transform: scale(1);
-  color: #1a1a1a;
+  color: var(--text-primary);
+  box-shadow: 0 4px 12px var(--shadow-pink);
 }
 
 .shop-item-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  transform: scale(1.03);
+  box-shadow: 0 8px 32px var(--shadow-pink);
   border-color: var(--rarity-color);
 }
 
 .shop-item-card.owned {
   opacity: 0.8;
-  border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.1);
+  border-color: var(--mint-green);
+  background: rgba(180, 224, 216, 0.2);
 }
 
 .shop-item-card::before {
@@ -180,11 +192,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--accent-pink);
   border-radius: 16px;
   backdrop-filter: blur(5px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid var(--primary-pink);
   position: relative;
+  box-shadow: 0 2px 8px var(--shadow-pink);
 }
 
 .puzzle-preview-image {
@@ -192,7 +205,8 @@
   height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow-pink);
+  border: 1px solid var(--primary-pink);
 }
 
 .fallback-icon {
@@ -220,12 +234,12 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .item-description {
   margin: 0;
-  color: #4a4a4a;
+  color: var(--text-secondary);
   line-height: 1.5;
   font-size: 0.9rem;
 }
@@ -250,7 +264,7 @@
 .price-amount {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #f59e0b;
+  color: var(--accent-yellow);
 }
 
 .purchase-btn {
@@ -264,24 +278,25 @@
 }
 
 .purchase-btn.affordable {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  background: linear-gradient(135deg, var(--accent-green), var(--mint-green));
+  color: var(--text-primary);
 }
 
 .purchase-btn.affordable:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, var(--mint-green), var(--accent-green));
   transform: scale(1.05);
 }
 
 .purchase-btn.expensive {
-  background: #e5e7eb;
-  color: #9ca3af;
+  background: var(--light-pink-1);
+  color: var(--text-secondary);
   cursor: not-allowed;
+  border: 1px solid var(--border-color);
 }
 
 .purchase-btn.owned {
-  background: #22c55e;
-  color: white;
+  background: var(--accent-green);
+  color: var(--text-primary);
   cursor: default;
 }
 
@@ -291,20 +306,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(214, 245, 226, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(2px);
 }
 
 .owned-badge {
-  background: #22c55e;
-  color: white;
+  background: var(--accent-green);
+  color: var(--text-primary);
   padding: 8px 16px;
   border-radius: 20px;
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 4px 12px rgba(214, 245, 226, 0.4);
 }
 
 .no-items {
@@ -316,7 +330,7 @@
 
 .empty-state {
   text-align: center;
-  color: white;
+  color: var(--text-primary);
 }
 
 .empty-icon {
@@ -332,21 +346,21 @@
 
 .empty-state p {
   margin: 0;
-  opacity: 0.8;
+  color: var(--text-secondary);
   line-height: 1.5;
 }
 
 .shop-tips {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-2);
   border-radius: 16px;
   padding: 24px;
   margin-top: 32px;
-  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
 }
 
 .shop-tips h4 {
   margin: 0 0 20px 0;
-  color: white;
+  color: var(--text-primary);
   font-size: 1.25rem;
   font-weight: 600;
   display: flex;
@@ -365,13 +379,14 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--light-pink-1);
   border-radius: 8px;
   transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
 }
 
 .tip-item:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--light-pink-2);
 }
 
 .tip-icon {
@@ -380,7 +395,7 @@
 }
 
 .tip-text {
-  color: white;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
 }

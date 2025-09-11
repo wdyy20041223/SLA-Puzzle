@@ -1,16 +1,17 @@
-/* 联机游戏页面样式 */
+/* 联机游戏页面样式 - 慵懒夏日淡粉色主题 */
 .multiplayer-game-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--light-pink-1);
   display: flex;
   flex-direction: column;
+  font-family: 'Nunito', 'Quicksand', 'Comfortaa', sans-serif;
 }
 
 /* 游戏信息面板 */
 .game-info-panel {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--light-pink-2);
+  border-bottom: 2px solid var(--primary-pink);
+  box-shadow: var(--shadow-pink);
   padding: 16px 24px;
   display: flex;
   justify-content: space-between;
@@ -25,7 +26,7 @@
 
 .room-code,
 .game-mode {
-  color: white;
+  color: var(--text-color);
   font-weight: 600;
   font-size: 1.1rem;
 }
@@ -44,7 +45,7 @@
 }
 
 .player-name {
-  color: white;
+  color: var(--text-color);
   font-weight: 500;
   font-size: 0.9rem;
 }
@@ -57,18 +58,19 @@
 }
 
 .status-indicator.playing {
-  background: rgba(59, 130, 246, 0.8);
+  background: var(--primary-pink);
   color: white;
 }
 
 .status-indicator.finished {
-  background: rgba(34, 197, 94, 0.8);
-  color: white;
+  background: var(--accent-green);
+  color: var(--text-color);
 }
 
 .status-indicator.waiting {
-  background: rgba(251, 191, 36, 0.8);
-  color: white;
+  background: var(--light-pink-2);
+  color: var(--text-light);
+  border: 1px solid var(--primary-pink);
 }
 
 /* 游戏加载状态 */
@@ -82,26 +84,27 @@
 
 .loading-container {
   text-align: center;
-  color: white;
+  color: var(--text-color);
 }
 
 .loading-container h2 {
   margin: 24px 0 12px 0;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 300;
+  text-shadow: 0 2px 8px rgba(138, 127, 142, 0.3);
 }
 
 .loading-container p {
   margin: 0;
   font-size: 1rem;
-  opacity: 0.8;
+  color: var(--text-light);
 }
 
 .loading-spinner {
   width: 60px;
   height: 60px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  border: 4px solid rgba(255, 221, 220, 0.3);
+  border-top: 4px solid var(--primary-pink);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto;
@@ -114,14 +117,15 @@
 
 /* 对手完成提示 */
 .opponent-finished-notice {
-  background: rgba(251, 191, 36, 0.9);
-  color: white;
+  background: var(--accent-yellow);
+  color: var(--text-color);
   padding: 12px 24px;
   display: flex;
   align-items: center;
   gap: 12px;
   font-weight: 500;
   animation: pulse 2s infinite;
+  border-bottom: 2px solid var(--primary-pink);
 }
 
 .notice-icon {
@@ -137,22 +141,23 @@
 /* 游戏结果页面 */
 .multiplayer-game-result {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--light-pink-1);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px;
+  font-family: 'Nunito', 'Quicksand', 'Comfortaa', sans-serif;
 }
 
 .result-container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: var(--neutral-color);
   border-radius: 24px;
   padding: 48px;
   max-width: 600px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-pink);
+  border: 2px solid var(--primary-pink);
 }
 
 .result-header {
@@ -166,16 +171,16 @@
 }
 
 .result-title.winner {
-  color: #10b981;
+  color: var(--accent-green);
 }
 
 .result-title.loser {
-  color: #ef4444;
+  color: var(--primary-pink);
 }
 
 .result-subtitle {
   font-size: 1.2rem;
-  color: #6b7280;
+  color: var(--text-light);
   margin: 0;
 }
 
@@ -188,9 +193,16 @@
 
 .player-stats {
   flex: 1;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--light-pink-2);
   border-radius: 16px;
   padding: 24px;
+  border: 1px solid var(--primary-pink);
+  transition: all 0.3s ease;
+}
+
+.player-stats:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 221, 220, 0.4);
 }
 
 .stats-header {

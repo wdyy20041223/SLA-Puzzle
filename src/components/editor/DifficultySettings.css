@@ -52,18 +52,18 @@
 }
 
 .difficulty-card:hover {
-  border-color: var(--accent-color, #3b82f6);
+  border-color: var(--primary-pink);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .difficulty-card.selected {
-  border-color: var(--accent-color, #3b82f6);
+  border-color: var(--primary-pink);
   background: linear-gradient(135deg, 
-    color-mix(in srgb, var(--accent-color, #3b82f6) 10%, white),
+    color-mix(in srgb, var(--primary-pink) 10%, white),
     white
   );
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-color, #3b82f6) 20%, transparent);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--primary-pink) 20%, transparent);
 }
 
 .card-header {
@@ -150,8 +150,8 @@
 }
 
 .selection-indicator.active {
-  background: var(--accent-color, #3b82f6);
-  color: white;
+  background: var(--primary-pink);
+  color: var(--text-primary);
 }
 
 /* Shape Grid */
@@ -165,24 +165,24 @@
   display: flex;
   flex-direction: column;
   padding: 20px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid #e8d5e9;
   border-radius: 12px;
-  background: white;
+  background: var(--card-background);
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
 }
 
 .shape-card:hover:not(.coming-soon) {
-  border-color: #3b82f6;
+  border-color: #f8c8dc;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 8px 24px rgba(248, 200, 220, 0.3);
 }
 
 .shape-card.selected {
-  border-color: #3b82f6;
-  background: linear-gradient(135deg, #eff6ff, white);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+  border-color: #f8c8dc;
+  background: linear-gradient(135deg, #fff0f5, var(--card-background));
+  box-shadow: 0 8px 24px rgba(248, 200, 220, 0.3);
 }
 
 .shape-card.coming-soon {
@@ -230,10 +230,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: #fff0f5;
   border-radius: 8px;
   margin-bottom: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e8d5e9;
 }
 
 .preview-placeholder {
@@ -298,10 +298,11 @@
 
 /* Settings Summary */
 .settings-summary {
-  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  background: var(--card-background);
   border-radius: 12px;
   padding: 24px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px var(--shadow-pink);
 }
 
 .settings-summary h3 {
@@ -348,36 +349,36 @@
 }
 
 .preview-btn {
-  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  background: linear-gradient(135deg, var(--soft-blue), #C4E1F5);
   border: none;
-  color: white;
+  color: var(--text-primary);
 }
 
 .preview-btn:hover {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: linear-gradient(135deg, #C4E1F5, #B5D9F2);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(214, 234, 248, 0.3);
 }
 
 .confirm-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--primary-pink), var(--secondary-pink));
   border: none;
-  color: white;
+  color: var(--text-primary);
   font-weight: 600;
   padding: 16px 32px;
   font-size: 16px;
 }
 
 .confirm-btn:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background: linear-gradient(135deg, var(--secondary-pink), var(--accent-pink));
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 8px 20px rgba(248, 181, 215, 0.3);
 }
 
 /* Tips */
 .settings-tips {
-  background: #f0f9ff;
-  border: 1px solid #bfdbfe;
+  background: var(--light-pink);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 20px;
 }
@@ -403,7 +404,7 @@
 }
 
 .settings-tips strong {
-  color: #1d4ed8;
+  color: var(--primary-pink);
 }
 
 /* Responsive Design */
