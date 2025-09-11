@@ -258,8 +258,31 @@ export function checkAchievements(
     unlockedAchievements
   });
 
+  // 创建一个增强的成就检查函数，包含多重验证
+  const shouldUnlockAchievement = (achievementId: string, condition: boolean, reason: string): boolean => {
+    // 基础检查：条件是否满足
+    if (!condition) {
+      return false;
+    }
+
+    // 检查是否已在解锁列表中
+    if (unlockedAchievements.includes(achievementId)) {
+      console.log(`⚠️ 成就 ${achievementId} 已解锁，跳过重复触发 (${reason})`);
+      return false;
+    }
+
+    // 检查是否已在本次检查中解锁（防止函数内重复）
+    if (newAchievements.some(a => a.id === achievementId)) {
+      console.log(`⚠️ 成就 ${achievementId} 已在本次检查中解锁，跳过 (${reason})`);
+      return false;
+    }
+
+    console.log(`✅ 成就 ${achievementId} 满足解锁条件 (${reason})`);
+    return true;
+  };
+
   // 检查进度成就（基于完成本局后的游戏数）
-  if (completedGamesAfterThis === 1 && !unlockedAchievements.includes('first_game')) {
+  if (shouldUnlockAchievement('first_game', completedGamesAfterThis === 1, `首次游戏: ${completedGamesAfterThis}局`)) {
     console.log('🎉 触发首次游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.first_game,
@@ -268,7 +291,7 @@ export function checkAchievements(
     });
   }
 
-  if (completedGamesAfterThis === 10 && !unlockedAchievements.includes('games_10')) {
+  if (shouldUnlockAchievement('games_10', completedGamesAfterThis === 10, `10局游戏: ${completedGamesAfterThis}局`)) {
     console.log('🎉 触发10局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_10,
@@ -277,7 +300,7 @@ export function checkAchievements(
     });
   }
 
-  if (completedGamesAfterThis === 50 && !unlockedAchievements.includes('games_50')) {
+  if (shouldUnlockAchievement('games_50', completedGamesAfterThis === 50, `50局游戏: ${completedGamesAfterThis}局`)) {
     console.log('🎉 触发50局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_50,
@@ -286,7 +309,7 @@ export function checkAchievements(
     });
   }
 
-  if (completedGamesAfterThis === 100 && !unlockedAchievements.includes('games_100')) {
+  if (shouldUnlockAchievement('games_100', completedGamesAfterThis === 100, `100局游戏: ${completedGamesAfterThis}局`)) {
     console.log('🎉 触发100局游戏成就');
     newAchievements.push({
       ...ACHIEVEMENTS.games_100,
@@ -296,9 +319,9 @@ export function checkAchievements(
   }
 
   // 检查表现成就（可以叠加）
-  if (gameResult.difficulty === 'medium' && 
-      gameResult.completionTime <= 180 && 
-      !unlockedAchievements.includes('speed_demon')) {
+  if (shouldUnlockAchievement('speed_demon', 
+      gameResult.difficulty === 'medium' && gameResult.completionTime <= 180,
+      `速度恶魔: ${gameResult.difficulty}难度 ${gameResult.completionTime}秒`)) {
     newAchievements.push({
       ...ACHIEVEMENTS.speed_demon,
       unlocked: true,
@@ -307,9 +330,9 @@ export function checkAchievements(
   }
 
   // 闪电快手：1分钟内完成简单难度拼图
-  if (gameResult.difficulty === 'easy' && 
-      gameResult.completionTime <= 60 && 
-      !unlockedAchievements.includes('lightning_fast')) {
+  if (shouldUnlockAchievement('lightning_fast',
+      gameResult.difficulty === 'easy' && gameResult.completionTime <= 60,
+      `闪电快手: ${gameResult.difficulty}难度 ${gameResult.completionTime}秒`)) {
     newAchievements.push({
       ...ACHIEVEMENTS.lightning_fast,
       unlocked: true,
@@ -333,8 +356,9 @@ export function checkAchievements(
   // 检查步数相关成就（允许同时获得多个）
   if (gameResult.perfectMoves) {
     // 完美主义者：用最少步数完成
-    if (gameResult.moves === gameResult.perfectMoves && 
-        !unlockedAchievements.includes('perfectionist')) {
+    if (shouldUnlockAchievement('perfectionist',
+        gameResult.moves === gameResult.perfectMoves,
+        `完美主义者: ${gameResult.moves}/${gameResult.perfectMoves}步`)) {
       newAchievements.push({
         ...ACHIEVEMENTS.perfectionist,
         unlocked: true,
@@ -378,7 +402,7 @@ export function checkAchievements(
           allMeetCriteria
         });
         
-        if (allMeetCriteria) {
+        if (shouldUnlockAchievement('efficient_solver', allMeetCriteria, '高效解密者: 连续三局游戏符合条件')) {
           newAchievements.push({
             ...ACHIEVEMENTS.efficient_solver,
             unlocked: true,
@@ -391,8 +415,9 @@ export function checkAchievements(
     }
 
     // 新增：超级效率者成就（用不超过标准步数25%完成）
-    if (gameResult.moves <= gameResult.perfectMoves * 0.3 && 
-        !unlockedAchievements.includes('super_efficient')) {
+    if (shouldUnlockAchievement('super_efficient',
+        gameResult.moves <= gameResult.perfectMoves * 0.3,
+        `超级效率者: ${gameResult.moves}/${gameResult.perfectMoves}步`)) {
       newAchievements.push({
         ...ACHIEVEMENTS.super_efficient,
         unlocked: true,
@@ -403,7 +428,7 @@ export function checkAchievements(
 
   // 检查特殊时间和难度组合成就
   const hour = now.getHours();
-  if (hour >= 2 && hour <= 6 && !unlockedAchievements.includes('night_owl')) {
+  if (shouldUnlockAchievement('night_owl', hour >= 2 && hour <= 6, `夜猫子: ${hour}点`)) {
     newAchievements.push({
       ...ACHIEVEMENTS.night_owl,
       unlocked: true,
@@ -412,7 +437,7 @@ export function checkAchievements(
   }
 
   // 早起鸟成就（5-7点完成游戏）
-  if (hour >= 5 && hour <= 7 && !unlockedAchievements.includes('early_bird')) {
+  if (shouldUnlockAchievement('early_bird', hour >= 5 && hour <= 7, `早起鸟儿: ${hour}点`)) {
     newAchievements.push({
       ...ACHIEVEMENTS.early_bird,
       unlocked: true,
@@ -422,7 +447,7 @@ export function checkAchievements(
 
   // 新增：周末战士（周末完成游戏）
   const isWeekend = now.getDay() === 0 || now.getDay() === 6;
-  if (isWeekend && !unlockedAchievements.includes('weekend_warrior')) {
+  if (shouldUnlockAchievement('weekend_warrior', isWeekend, `周末战士: 星期${now.getDay()}`)) {
     newAchievements.push({
       ...ACHIEVEMENTS.weekend_warrior,
       unlocked: true,
@@ -431,9 +456,9 @@ export function checkAchievements(
   }
 
   // 新增：专家难度+速度双重成就
-  if (gameResult.difficulty === 'expert' && 
-      gameResult.completionTime <= 600 && 
-      !unlockedAchievements.includes('expert_speedster')) {
+  if (shouldUnlockAchievement('expert_speedster', 
+      gameResult.difficulty === 'expert' && gameResult.completionTime <= 600,
+      `专家速度手: ${gameResult.difficulty}难度 ${gameResult.completionTime}秒`)) {
     newAchievements.push({
       ...ACHIEVEMENTS.expert_speedster,
       unlocked: true,
@@ -445,8 +470,9 @@ export function checkAchievements(
   if (userStats.bestTimes) {
     const difficultyKey = `${gameResult.difficulty}_time`;
     const previousBest = userStats.bestTimes[difficultyKey];
-    if (previousBest && gameResult.completionTime < previousBest && 
-        !unlockedAchievements.includes('time_master')) {
+    if (shouldUnlockAchievement('time_master',
+        !!(previousBest && gameResult.completionTime < previousBest),
+        `时间大师: ${gameResult.completionTime}秒 < ${previousBest}秒`)) {
       newAchievements.push({
         ...ACHIEVEMENTS.time_master,
         unlocked: true,

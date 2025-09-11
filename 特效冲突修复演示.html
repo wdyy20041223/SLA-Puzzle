@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天旋地转 + 最终防线特效冲突修复演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .problem-section, .solution-section {
+            margin-bottom: 40px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .problem-section {
+            background: linear-gradient(45deg, #ffb3b3, #ffcccc);
+            border-left: 5px solid #ff4757;
+        }
+
+        .solution-section {
+            background: linear-gradient(45deg, #c7ecee, #dff9fb);
+            border-left: 5px solid #2ed573;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .code-block {
+            background: #2c2c2c;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.6;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .before, .after {
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .before {
+            background: #ffe6e6;
+            border: 2px solid #ff4757;
+        }
+
+        .after {
+            background: #e6ffe6;
+            border: 2px solid #2ed573;
+        }
+
+        .flow-diagram {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #3742fa;
+            color: white;
+            padding: 15px 25px;
+            margin: 5px;
+            border-radius: 25px;
+            position: relative;
+        }
+
+        .flow-step:not(:last-child):after {
+            content: '→';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #3742fa;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .highlight {
+            background: #ffd32a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .test-section {
+            background: #f1f2f6;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+
+        .test-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .test-steps li {
+            counter-increment: step-counter;
+            margin: 15px 0;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .test-steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #3742fa;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-step {
+                display: block;
+                margin: 10px 0;
+            }
+            
+            .flow-step:not(:last-child):after {
+                content: '↓';
+                position: static;
+                display: block;
+                text-align: center;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 特效冲突修复演示</h1>
+            <p>天旋地转 + 最终防线特效兼容性问题解决方案</p>
+        </div>
+
+        <div class="content">
+            <!-- 问题描述 -->
+            <div class="problem-section">
+                <h2 class="section-title">
+                    <span class="emoji">⚠️</span>
+                    问题描述
+                </h2>
+                <p>当<strong>天旋地转</strong>特效和<strong>最终防线</strong>特效同时启用时，出现一个严重的兼容性问题：</p>
+                <ul style="margin: 20px 0; padding-left: 30px; line-height: 1.8;">
+                    <li>玩家明明正确调整了拼图块的旋转和翻转状态</li>
+                    <li>放置到正确位置时却直接报错</li>
+                    <li>最终防线特效误判为"放置失误"</li>
+                    <li>导致游戏体验极差，无法正常完成挑战</li>
+                </ul>
+            </div>
+
+            <!-- 技术原理 -->
+            <div class="solution-section">
+                <h2 class="section-title">
+                    <span class="emoji">🔍</span>
+                    技术原理分析
+                </h2>
+                
+                <h3>天旋地转特效机制：</h3>
+                <div class="code-block">
+// 拼图生成时启用旋转模式
+const rotatedConfig = await PuzzleGenerator.generatePuzzle({
+  allowRotation: true, // 启用翻转模式
+  // 拼图块随机初始状态：rotation: 90°, isFlipped: true
+  // 玩家通过R键、F键调整到正确状态：rotation: 0°, isFlipped: false
+});
+                </div>
+
+                <h3>最终防线特效机制：</h3>
+                <div class="code-block">
+// 检测拼图块放置正确性
+const isCorrectPlacement = 
+  piece.correctSlot === slotIndex && 
+  piece.rotation === piece.correctRotation && 
+  piece.isFlipped === piece.correctIsFlipped;
+
+if (!isCorrectPlacement) {
+  // 错误放置，立即显示失败弹窗
+  setFailureReason('最终防线特效不允许任何放置失误');
+  setShowFailureModal(true);
+}
+                </div>
+            </div>
+
+            <!-- 问题根因 -->
+            <div class="flow-diagram">
+                <h3>🐛 问题根因：状态同步时机冲突</h3>
+                <div style="margin: 20px 0;">
+                    <div class="flow-step">玩家按R键调整</div>
+                    <div class="flow-step">rotatePiece()</div>
+                    <div class="flow-step">React状态更新</div>
+                    <div class="flow-step">玩家放置拼图块</div>
+                    <div class="flow-step">❌ 检测到旧状态</div>
+                    <div class="flow-step">误报错误</div>
+                </div>
+                <p style="color: #ff4757; font-weight: bold; margin-top: 20px;">
+                    核心问题：最终防线特效在<span class="highlight">放置前</span>检测状态，获取到的可能是过时的拼图块状态！
+                </p>
+            </div>
+
+            <!-- 修复方案对比 -->
+            <div class="comparison">
+                <div class="before">
+                    <h3>🚫 修复前（有问题）</h3>
+                    <div class="code-block">
+// ❌ 错误：在放置前检测状态
+if (challenge.effects?.includes('最终防线')) {
+  const piece = gameState?.config.pieces
+    .find(p => p.id === pieceId);
+  
+  // 检测的可能是过时状态
+  if (!isCorrectPlacement) {
+    setFailureReason('放置失误！');
+    return; // 直接中断，不执行放置
+  }
+}
+
+// 执行放置逻辑
+placePieceToSlot(pieceId, slotIndex);
+                    </div>
+                </div>
+
+                <div class="after">
+                    <h3>✅ 修复后（正确）</h3>
+                    <div class="code-block">
+// ✅ 正确：在放置后检测状态
+if (challenge.effects?.includes('最终防线')) {
+  // 先执行放置逻辑
+  placePieceToSlot(pieceId, slotIndex);
+  
+  // 延迟检测，确保状态已更新
+  setTimeout(() => {
+    const piece = gameState.config.pieces
+      .find(p => p.id === pieceId);
+    
+    // 检测的是最新状态
+    if (!isCorrectPlacement) {
+      setFailureReason('放置失误！');
+      setShowFailureModal(true);
+    }
+  }, 50); // 50ms延迟
+}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 修复效果 -->
+            <div class="flow-diagram">
+                <h3>✨ 修复后：正确的状态检测流程</h3>
+                <div style="margin: 20px 0;">
+                    <div class="flow-step">玩家按键调整</div>
+                    <div class="flow-step">放置拼图块</div>
+                    <div class="flow-step">状态更新</div>
+                    <div class="flow-step">延迟检测</div>
+                    <div class="flow-step">✅ 获取最新状态</div>
+                    <div class="flow-step">正确识别</div>
+                </div>
+                <p style="color: #2ed573; font-weight: bold; margin-top: 20px;">
+                    解决方案：改为<span class="highlight">放置后检测</span>，确保获取到最新的拼图块状态！
+                </p>
+            </div>
+
+            <!-- 测试方案 -->
+            <div class="test-section">
+                <h2 class="section-title">
+                    <span class="emoji">🧪</span>
+                    测试验证步骤
+                </h2>
+                <ol class="test-steps">
+                    <li>进入每日挑战页面</li>
+                    <li>同时选择"天旋地转"和"最终防线"特效</li>
+                    <li>开始挑战，观察拼图块的随机旋转/翻转状态</li>
+                    <li>选择一个拼图块，使用R键旋转、F键翻转调整到正确状态</li>
+                    <li>将拼图块放置到正确位置</li>
+                    <li>验证是否能正常放置，不会出现误报错误</li>
+                    <li>继续完成整个拼图，确认特效功能正常</li>
+                </ol>
+            </div>
+
+            <!-- 修复总结 -->
+            <div class="solution-section">
+                <h2 class="section-title">
+                    <span class="emoji">🎯</span>
+                    修复总结
+                </h2>
+                <p>通过这个修复，我们成功解决了天旋地转和最终防线特效的冲突问题：</p>
+                <ul style="margin: 20px 0; padding-left: 30px; line-height: 1.8;">
+                    <li><strong>时机调整</strong>：将检测从"放置前"改为"放置后"</li>
+                    <li><strong>状态同步</strong>：确保检测到的是最新的拼图块状态</li>
+                    <li><strong>异步处理</strong>：使用适当的延迟确保React状态更新完成</li>
+                    <li><strong>兼容性</strong>：保持其他特效的正常功能</li>
+                </ul>
+                <p style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                    <strong>🎮 现在玩家可以正常享受天旋地转和最终防线特效的组合挑战，不会再遇到误报错误的问题！</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

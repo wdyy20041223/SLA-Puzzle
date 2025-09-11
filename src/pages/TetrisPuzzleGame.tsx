@@ -187,7 +187,7 @@ export const TetrisPuzzleGame: React.FC<TetrisPuzzleGameProps> = ({
                             timer,
                             gameState.moves,
                             {
-                                gamesCompleted: authState.user.gamesCompleted + 1, // 使用即将更新的值
+                                gamesCompleted: authState.user.gamesCompleted, // ✅ 使用当前真实值，成就系统内部会处理+1逻辑
                                 level: authState.user.level,
                                 experience: authState.user.experience,
                                 bestTimes: authState.user.bestTimes,
