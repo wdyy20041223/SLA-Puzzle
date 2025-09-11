@@ -1,0 +1,271 @@
+/* 慵懒夏日淡粉色主题 - 首页样式 */
+.home-page {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 192, 203, 0.7) 0%,    /* 淡粉色 */
+    rgba(255, 182, 193, 0.6) 25%,   /* 浅粉色 */
+    rgba(255, 228, 225, 0.7) 50%,   /* 薄荷粉 */
+    rgba(255, 218, 224, 0.6) 75%,   /* 玫瑰粉 */
+    rgba(255, 192, 203, 0.7) 100%   /* 回到淡粉色 */
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(0.3px);
+}
+
+/* 用户头像区域 */
+.home-user-profile {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 10;
+}
+
+.home-container {
+  max-width: 800px;
+  width: 90%;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 192, 203, 0.5);
+  box-shadow: 0 12px 40px rgba(255, 192, 203, 0.4);
+}
+
+/* 标题区域 */
+.home-header {
+  margin-bottom: 3rem;
+}
+
+.home-title {
+  font-size: 3.5rem;
+  font-weight: 300;
+  color: #8B5A6B;
+  margin: 0;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(255, 192, 203, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.home-icon {
+  font-size: 4rem;
+  filter: drop-shadow(0 4px 8px rgba(255, 192, 203, 0.4));
+}
+
+.home-subtitle {
+  font-size: 1.2rem;
+  color: #A0758D;
+  margin: 1rem 0 0 0;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+/* 菜单网格 */
+.home-menu {
+  margin-bottom: 2rem;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.menu-item {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 192, 203, 0.2) 0%,
+    rgba(255, 182, 193, 0.15) 100%
+  );
+  border: 2px solid rgba(255, 192, 203, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: left;
+  min-height: 120px;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.menu-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 192, 203, 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.menu-item:hover::before {
+  left: 100%;
+}
+
+.menu-item:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 192, 203, 0.6);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 192, 203, 0.3) 0%,
+    rgba(255, 182, 193, 0.25) 100%
+  );
+  box-shadow: 0 12px 24px rgba(255, 192, 203, 0.2);
+}
+
+.menu-item:active {
+  transform: translateY(-2px);
+}
+
+.menu-icon {
+  font-size: 3rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(255, 192, 203, 0.3));
+}
+
+.menu-text {
+  flex: 1;
+}
+
+.menu-text h3 {
+  font-size: 1.4rem;
+  color: #8B5A6B;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.menu-text p {
+  font-size: 0.95rem;
+  color: #A0758D;
+  margin: 0;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* 底部装饰 */
+.home-footer {
+  margin-top: 2rem;
+}
+
+.decorative-elements {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  opacity: 0.6;
+}
+
+.summer-icon {
+  font-size: 1.5rem;
+  animation: gentle-float 3s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(255, 192, 203, 0.3));
+}
+
+.summer-icon:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.summer-icon:nth-child(3) {
+  animation-delay: 2s;
+}
+
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .home-user-profile {
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .home-title {
+    font-size: 2.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .home-icon {
+    font-size: 3rem;
+  }
+  
+  .menu-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .menu-item {
+    padding: 1.5rem;
+    min-height: 100px;
+  }
+  
+  .menu-icon {
+    font-size: 2.5rem;
+  }
+  
+  .menu-text h3 {
+    font-size: 1.2rem;
+  }
+  
+  .menu-text p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 1.5rem;
+    width: 95%;
+  }
+  
+  .home-title {
+    font-size: 2rem;
+  }
+  
+  .home-icon {
+    font-size: 2.5rem;
+  }
+  
+  .menu-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+  }
+}

@@ -5,6 +5,7 @@ import IrregularAnswerGridIrregular from '../components/game/IrregularAnswerGrid
 import { Timer } from '../components/common/Timer';
 import { Button } from '../components/common/Button';
 import { GameHelpButton } from '../components/common/GameHelp';
+import { musicManager } from '../services/musicService';
 import '../components/game/PuzzleGame.css';
 import '../components/game/PuzzleWorkspace.css';
 
@@ -75,6 +76,8 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
       // 初始化答题网格
       const totalSlots = puzzleConfig.gridSize.rows * puzzleConfig.gridSize.cols;
       setAnswerGrid(new Array(totalSlots).fill(null));
+      
+      // 不在这里播放音乐，因为这个函数可能会被重复调用
     }
   }, [puzzleConfig]);
 
@@ -82,6 +85,8 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
   useEffect(() => {
     generatePuzzle();
   }, [generatePuzzle]);
+
+  // 不在这里播放音乐，音乐播放已移至MainMenu的handleStartGame中
 
   // 计时器更新
   useEffect(() => {
