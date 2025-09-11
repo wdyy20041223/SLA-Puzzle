@@ -18,12 +18,9 @@ interface GameConfigPanelProps {
   isAllowPieceRotation: boolean;
   onStartGame: () => void;
   onLoadGame?: () => void;
-  onOpenEditor: () => void;
   onOpenAchievements: () => void;
   onOpenDailyChallenge: () => void;
-  onOpenMultiplayer: () => void;
   onOpenLeaderboard: () => void;
-  onOpenSettings: () => void;
 }
 
 export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
@@ -37,12 +34,9 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
   isAllowPieceRotation,
   onStartGame,
   onLoadGame,
-  onOpenEditor,
   onOpenAchievements,
   onOpenDailyChallenge,
-  onOpenMultiplayer,
   onOpenLeaderboard,
-  onOpenSettings,
 }) => {
   const canStartGame = selectedAsset !== null && !isGenerating;
 
@@ -96,12 +90,9 @@ export const GameConfigPanel: React.FC<GameConfigPanelProps> = ({
         <GameActionButtons
           onStartGame={onStartGame}
           onLoadGame={onLoadGame}
-          onOpenEditor={onOpenEditor}
           onOpenAchievements={onOpenAchievements}
           onOpenDailyChallenge={onOpenDailyChallenge}
-          onOpenMultiplayer={onOpenMultiplayer}
           onOpenLeaderboard={onOpenLeaderboard}
-          onOpenSettings={onOpenSettings}
           canStartGame={canStartGame}
           isGenerating={isGenerating}
         />

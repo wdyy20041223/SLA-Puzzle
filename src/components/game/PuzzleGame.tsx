@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { usePuzzleGame } from '../../hooks/usePuzzleGame';
 import { PuzzleConfig, GameCompletionResult, GameState } from '../../types';
 import { PuzzleWorkspace } from './PuzzleWorkspace';
@@ -13,6 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { calculateGameCompletion } from '../../utils/rewardSystem';
 import { validateGameReward } from '../../utils/rewardDebugger';
 import { HybridLeaderboardService } from '../../services/hybridLeaderboardService';
+import { musicManager } from '../../services/musicService';
 import './PuzzleGame.css';
 
 interface PuzzleGameProps {
@@ -87,7 +88,11 @@ const [showOriginalImage, setShowOriginalImage] = useState(false);
     setHasProcessedCompletion(false); // 重置完成处理标记
     setShowCompletionModal(false);
     setCompletionResult(null);
+    
+    // 不在这里播放音乐，因为这个函数会在确认界面被重复调用
   }, [initializeGame, puzzleConfig]);
+
+  // 不在这里播放音乐，音乐播放已移至MainMenu的handleStartGame中
 
   // 处理再玩一次
   const handlePlayAgain = useCallback(() => {

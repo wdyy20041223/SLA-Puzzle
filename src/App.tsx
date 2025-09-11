@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PuzzleConfig } from './types';
+import { HomePage } from './pages/HomePage';
 import { MainMenu } from './pages/MainMenu';
 import { PuzzleGame } from './components/game/PuzzleGame';
 import { LoadedPuzzleGame } from './components/game/LoadedPuzzleGame';
@@ -12,17 +13,18 @@ import { MultiplayerGame } from './pages/MultiplayerGame';
 import { Shop } from './pages/Shop';
 import { Profile } from './pages/Profile';
 import { Leaderboard } from './pages/Leaderboard';
+import { Settings } from './pages/Settings';
 import { Button } from './components/common/Button';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/auth/Auth';
 import { MultiplayerRoom } from './services/apiService';
 import './App.css';
 
-type AppView = 'menu' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'multiplayer-game' | 'shop' | 'profile' | 'leaderboard' | 'settings';
+type AppView = 'home' | 'singlePlayer' | 'game' | 'editor' | 'irregular-game' | 'achievements' | 'dailyChallenge' | 'multiplayer' | 'multiplayer-game' | 'shop' | 'profile' | 'leaderboard' | 'settings';
 
 const AppContent: React.FC = () => {
   const { authState } = useAuth();
-  const [currentView, setCurrentView] = useState<AppView>('menu');
+  const [currentView, setCurrentView] = useState<AppView>('home');
   const [currentPuzzle, setCurrentPuzzle] = useState<PuzzleConfig | null>(null);
   const [loadGameSaveId, setLoadGameSaveId] = useState<string | null>(null);
   const [irregularGameParams, setIrregularGameParams] = useState<{
@@ -65,10 +67,21 @@ const AppContent: React.FC = () => {
   };
 
   const handleBackToMenu = () => {
-    setCurrentView('menu');
+    setCurrentView('singlePlayer');
     setCurrentPuzzle(null);
     setLoadGameSaveId(null);
     setIrregularGameParams({});
+  };
+
+  const handleBackToHome = () => {
+    setCurrentView('home');
+    setCurrentPuzzle(null);
+    setLoadGameSaveId(null);
+    setIrregularGameParams({});
+  };
+
+  const handleOpenSinglePlayer = () => {
+    setCurrentView('singlePlayer');
   };
 
   const handleOpenEditor = () => {
@@ -119,25 +132,35 @@ const AppContent: React.FC = () => {
 
   const handleMultiplayerGameComplete = () => {
     setMultiplayerRoom(null);
-    setCurrentView('menu');
+    setCurrentView('home');
   };
 
   const renderCurrentView = () => {
     switch (currentView) {
-      case 'menu':
+      case 'home':
+        return (
+          <HomePage
+            onOpenSinglePlayer={handleOpenSinglePlayer}
+            onOpenMultiplayer={handleOpenMultiplayer}
+            onOpenEditor={handleOpenEditor}
+            onOpenSettings={handleOpenSettings}
+            onOpenProfile={handleOpenProfile}
+            onOpenShop={handleOpenShop}
+          />
+        );
+      
+      case 'singlePlayer':
         return (
           <MainMenu
             onStartGame={handleStartGame}
             onLoadGame={handleLoadGame}
             onStartIrregularGame={handleStartIrregularGame}
-            onOpenEditor={handleOpenEditor}
             onOpenAchievements={handleOpenAchievements}
             onOpenDailyChallenge={handleOpenDailyChallenge}
-            onOpenMultiplayer={handleOpenMultiplayer}
             onOpenShop={handleOpenShop}
             onOpenProfile={handleOpenProfile}
             onOpenLeaderboard={handleOpenLeaderboard}
-            onOpenSettings={handleOpenSettings}
+            onBackToHome={handleBackToHome}
           />
         );
       
@@ -237,18 +260,7 @@ const AppContent: React.FC = () => {
       
       case 'settings':
         return (
-          <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
-              <div className="text-center">
-                <div className="text-6xl mb-4">⚙️</div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">设置</h2>
-                <p className="text-gray-600 mb-6">设置功能正在开发中，敬请期待！</p>
-                <Button onClick={handleBackToMenu} variant="primary" size="large" className="w-full">
-                  返回主菜单
-                </Button>
-              </div>
-            </div>
-          </div>
+          <Settings onBackToHome={handleBackToHome} />
         );
       
       default:
