@@ -4,7 +4,26 @@ import { LeaderboardEntry, DifficultyLevel, PieceShape } from '../types';
  * API排行榜服务 - 与后端数据库连接
  */
 export class APILeaderboardService {
-  private static readonly API_BASE_URL = (window as any).env?.REACT_APP_API_URL || 'http://localhost:3001/api';
+  private static readonly API_BASE_URL = (() => {
+    // 从环境变量获取API URL，支持HTTPS/HTTP自动检测
+    const configuredUrl = (window as any).env?.REACT_APP_API_URL || 
+                         import.meta.env.VITE_API_BASE_URL || 
+                         'http://localhost:3001/api';
+    
+    // 如果是localhost开发环境，根据当前页面协议选择
+    if (configuredUrl.includes('localhost')) {
+      const protocol = window.location.protocol;
+      return configuredUrl.replace(/^https?:/, protocol);
+    }
+    
+    // 生产环境优先使用HTTPS
+    const supportHttps = import.meta.env.VITE_API_SUPPORT_HTTPS !== 'false';
+    if (supportHttps && !configuredUrl.startsWith('https:')) {
+      return configuredUrl.replace(/^http:/, 'https:');
+    }
+    
+    return configuredUrl;
+  })();
   
   /**
    * 获取JWT Token

@@ -110,11 +110,33 @@ class ApiService {
 
   constructor() {
     // 从环境变量或配置文件获取API基础URL
-    // 使用云端服务器作为默认API地址
-    this.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://api.sla.edev.uno/api';
+    // 支持自动HTTPS检测和回退机制
+    this.baseURL = this.initializeApiUrl();
 
     // 从localStorage获取保存的token
     this.token = localStorage.getItem('puzzle_auth_token');
+  }
+
+  /**
+   * 初始化API URL，支持HTTPS/HTTP自动检测
+   */
+  private initializeApiUrl(): string {
+    const configuredUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.sla.edev.uno/api';
+    const supportHttps = import.meta.env.VITE_API_SUPPORT_HTTPS !== 'false';
+    
+    // 如果是localhost开发环境，根据当前页面协议选择
+    if (configuredUrl.includes('localhost')) {
+      const protocol = window.location.protocol;
+      const baseUrl = configuredUrl.replace(/^https?:/, protocol);
+      return baseUrl;
+    }
+    
+    // 生产环境优先使用HTTPS
+    if (supportHttps && !configuredUrl.startsWith('https:')) {
+      return configuredUrl.replace(/^http:/, 'https:');
+    }
+    
+    return configuredUrl;
   }
 
   /**
@@ -137,7 +159,7 @@ class ApiService {
   }
 
   /**
-   * 通用HTTP请求方法
+   * 通用HTTP请求方法，支持HTTPS/HTTP自动回退
    */
   private async request<T>(
     endpoint: string,
@@ -175,6 +197,36 @@ class ApiService {
       return data;
     } catch (error) {
       console.error('API请求错误:', error);
+      
+      // 如果是HTTPS请求失败，尝试回退到HTTP（仅限开发环境）
+      if (url.startsWith('https:') && 
+          (process.env.NODE_ENV === 'development' || import.meta.env.DEV)) {
+        console.warn('HTTPS请求失败，尝试回退到HTTP...');
+        try {
+          const httpUrl = url.replace('https:', 'http:');
+          const fallbackResponse = await fetch(httpUrl, {
+            ...options,
+            headers,
+          });
+
+          const fallbackData = await fallbackResponse.json();
+
+          if (!fallbackResponse.ok) {
+            return {
+              success: false,
+              error: fallbackData.error || '请求失败',
+              code: fallbackData.code,
+              details: fallbackData.details,
+            };
+          }
+
+          console.info('HTTP回退请求成功');
+          return fallbackData;
+        } catch (fallbackError) {
+          console.error('HTTP回退也失败:', fallbackError);
+        }
+      }
+      
       return {
         success: false,
         error: error instanceof Error ? error.message : '网络错误',
