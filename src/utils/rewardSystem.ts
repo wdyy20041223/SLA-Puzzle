@@ -597,6 +597,7 @@ export function calculateGameCompletion(
     difficulty,
     isNewRecord,
     totalPieces,
+    perfectMoves,
     rewards: finalRewards
   };
 }

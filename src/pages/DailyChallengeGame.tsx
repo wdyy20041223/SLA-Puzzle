@@ -958,6 +958,20 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           : 0;
 
         // 添加到每日挑战排行榜
+        console.log('🏆 准备添加到每日挑战排行榜:', {
+          date: today.toISOString().split('T')[0],
+          playerName: authState.user.username,
+          score: score,
+          completionTime: elapsedTime,
+          moves: moves,
+          difficulty: challenge.difficulty,
+          isPerfect: isPerfect,
+          consecutiveDays: consecutiveDays,
+          totalChallengesCompleted: totalChallengesCompleted,
+          averageScore: averageScore,
+          totalStars: challengeStars
+        });
+        
         LeaderboardService.addDailyChallengeEntry({
           date: today.toISOString().split('T')[0],
           playerName: authState.user.username,
@@ -971,6 +985,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           averageScore: averageScore,
           totalStars: challengeStars // 使用计算出的星数字段
         });
+        
+        console.log('✅ 每日挑战记录已添加到排行榜');
       }
       
       // 如果完成，更新连续挑战天数

@@ -789,9 +789,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         achievementsToUnlock.push({ achievementId: 'speed_demon', progress: 1 });
       }
 
-      // 新记录成就 - 只有在未解锁且在官方列表中时才添加
-      if (gameResult.isNewRecord && !isAchievementUnlocked('record_breaker') && officialAchievementIds.includes('record_breaker')) {
-        achievementsToUnlock.push({ achievementId: 'record_breaker', progress: 1 });
+      // 技巧成就 - 只有在未解锁且在官方列表中时才添加
+      if (gameResult.rewards.achievements) {
+        // 检查前端计算出的新成就
+        gameResult.rewards.achievements.forEach(achievement => {
+          if (!isAchievementUnlocked(achievement.id) && officialAchievementIds.includes(achievement.id)) {
+            achievementsToUnlock.push({ achievementId: achievement.id, progress: 1 });
+          }
+        });
+      }
+
+      // 特殊检查：完美主义者成就（用最少步数完成）
+      if (gameResult.perfectMoves && 
+          gameResult.moves === gameResult.perfectMoves && 
+          !isAchievementUnlocked('perfectionist') && 
+          officialAchievementIds.includes('perfectionist')) {
+        achievementsToUnlock.push({ achievementId: 'perfectionist', progress: 1 });
       }
 
       // 批量解锁成就

@@ -107,14 +107,15 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu, onOpenDa
             break;
           
           case 'daily':
-            console.log('加载每日挑战排行榜...');
+            console.log('📅 加载每日挑战排行榜...', { selectedDate });
             const dailyData = LeaderboardService.getDailyChallengeRanking(selectedDate, 50);
-            console.log('每日挑战数据:', dailyData);
+            console.log('📊 每日挑战数据:', dailyData);
+            console.log('📈 数据长度:', dailyData.length);
             setDailyChallengeData(dailyData);
             
             if (authState.user) {
               const playerStats = LeaderboardService.getPlayerDailyChallengeStats(authState.user.username);
-              console.log('玩家每日统计:', playerStats);
+              console.log('👤 玩家每日统计:', playerStats);
               setPlayerDailyStats(playerStats);
             }
             break;
