@@ -326,23 +326,33 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
             let cellKey = `${row}-${col}`;
 
             if (piece && piece.occupiedPositions && piece.currentSlot !== null) {
-              // 计算俄罗斯方块当前位置的锚点
-              const currentSlotRow = Math.floor(piece.currentSlot / gridSize.cols);
-              const currentSlotCol = piece.currentSlot % gridSize.cols;
+              // 检查当前俄罗斯方块是否在正确位置
+              const isInCorrectPosition = piece.correctSlots &&
+                piece.correctSlots.includes(index) &&
+                piece.currentSlot === piece.correctSlot;
 
-              // 计算原始锚点位置（最小行列）
-              const minRow = Math.min(...piece.occupiedPositions.map(pos => pos[0]));
-              const minCol = Math.min(...piece.occupiedPositions.map(pos => pos[1]));
+              if (isInCorrectPosition) {
+                // 如果在正确位置，直接使用原始相对坐标
+                cellKey = `${row}-${col}`;
+              } else {
+                // 如果不在正确位置，需要映射到原始相对坐标
+                const currentSlotRow = Math.floor(piece.currentSlot / gridSize.cols);
+                const currentSlotCol = piece.currentSlot % gridSize.cols;
 
-              // 计算当前槽位相对于当前锚点的偏移
-              const offsetRow = row - currentSlotRow;
-              const offsetCol = col - currentSlotCol;
+                // 计算原始锚点位置（最小行列）
+                const minRow = Math.min(...piece.occupiedPositions.map(pos => pos[0]));
+                const minCol = Math.min(...piece.occupiedPositions.map(pos => pos[1]));
 
-              // 映射回原始相对位置
-              const originalRow = minRow + offsetRow;
-              const originalCol = minCol + offsetCol;
+                // 计算当前槽位相对于当前锚点的偏移
+                const offsetRow = row - currentSlotRow;
+                const offsetCol = col - currentSlotCol;
 
-              cellKey = `${originalRow}-${originalCol}`;
+                // 映射回原始相对位置
+                const originalRow = minRow + offsetRow;
+                const originalCol = minCol + offsetCol;
+
+                cellKey = `${originalRow}-${originalCol}`;
+              }
             }
 
             return (
@@ -418,7 +428,7 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
           answerGrid.map((piece, index) => {
             // 检查槽位是否锁定（作茧自缚特效）
             const isLocked = hasCornerEffect && unlockedSlots && !unlockedSlots.has(index);
-            
+
             return (
               <div
                 key={`slot-${index}-${piece?.id || 'empty'}`}
@@ -437,50 +447,50 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
                   height: `${cellSize}px`,
                 }}
               >
-              {/* 槽位编号 */}
-              <div className="slot-number">{getSlotNumber(index)}</div>
+                {/* 槽位编号 */}
+                <div className="slot-number">{getSlotNumber(index)}</div>
 
-              {/* 拼图块 */}
-              {piece !== null && piece !== undefined && (
-                <div
-                  className="placed-piece"
-                  draggable={true}
-                  onDragStart={(e) => handlePieceDragStart(e, piece.id)}
-                  onDragEnd={handlePieceDragEnd}
-                  style={{
-                    transform: `rotate(${piece.rotation}deg) ${piece.isFlipped ? 'scaleX(-1)' : ''
-                      }`,
-                  }}
-                >
-                  <img
-                    src={piece.imageData}
-                    alt={`拼图块 ${piece.originalIndex + 1}`}
-                    className="piece-image"
-                    draggable={false}
-                  />
-                  {showAnswers && (
-                    <div className="piece-info">
-                      {piece.originalIndex + 1}
-                    </div>
-                  )}
+                {/* 拼图块 */}
+                {piece !== null && piece !== undefined && (
+                  <div
+                    className="placed-piece"
+                    draggable={true}
+                    onDragStart={(e) => handlePieceDragStart(e, piece.id)}
+                    onDragEnd={handlePieceDragEnd}
+                    style={{
+                      transform: `rotate(${piece.rotation}deg) ${piece.isFlipped ? 'scaleX(-1)' : ''
+                        }`,
+                    }}
+                  >
+                    <img
+                      src={piece.imageData}
+                      alt={`拼图块 ${piece.originalIndex + 1}`}
+                      className="piece-image"
+                      draggable={false}
+                    />
+                    {showAnswers && (
+                      <div className="piece-info">
+                        {piece.originalIndex + 1}
+                      </div>
+                    )}
 
-                  {/* 正确性指示器 */}
-                  {showAnswers && (
-                    <div className={`correctness-indicator ${piece.correctSlot === index ? 'correct' : 'incorrect'
-                      }`}>
-                      {piece.correctSlot === index ? '✓' : '✗'}
-                    </div>
-                  )}
-                </div>
-              )}
+                    {/* 正确性指示器 */}
+                    {showAnswers && (
+                      <div className={`correctness-indicator ${piece.correctSlot === index ? 'correct' : 'incorrect'
+                        }`}>
+                        {piece.correctSlot === index ? '✓' : '✗'}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              {/* 空槽位提示 */}
-              {!piece && selectedPieceId && (
-                <div className="drop-hint">
-                  点击放置
-                </div>
-              )}
-            </div>
+                {/* 空槽位提示 */}
+                {!piece && selectedPieceId && (
+                  <div className="drop-hint">
+                    点击放置
+                  </div>
+                )}
+              </div>
             );
           })
         )}
