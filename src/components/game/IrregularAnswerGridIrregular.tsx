@@ -1,10 +1,41 @@
+// 动态变换拼图块的up/down/left/right/rotation/flipX属性
+// 修正：翻转时 up/down/left/right 属性正确交换
+function transformPieceProps(piece: any, transform: { rotation?: number; flipX?: boolean }) {
+  let { up, down, left, right } = piece;
+  let dirs = [up, right, down, left]; // 顺序: 上右下左
+  let rot = ((transform.rotation ?? 0) % 360 + 360) % 360;
+  let times = Math.round(rot / 90) % 4;
+  for (let i = 0; i < times; i++) {
+    dirs = [dirs[3], dirs[0], dirs[1], dirs[2]];
+  }
+  // 先处理旋转，再处理翻转
+  // 水平翻转（flipX）：交换 left/right，并取反
+  if (transform.flipX) {
+    [dirs[1], dirs[3]] = [-dirs[3], -dirs[1]];
+  }
+  return {
+    ...piece,
+    up: dirs[0],
+    right: dirs[1],
+    down: dirs[2],
+    left: dirs[3],
+    rotation: transform.rotation ?? 0,
+    flipX: !!transform.flipX,
+  // 无flipY
+  };
+}
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { IrregularPuzzlePiece } from '../../utils/puzzleGenerator/irregular';
+// 扩展类型，允许答题卡拼图块带有旋转/翻转属性
+type IrregularPuzzlePieceWithTransform = IrregularPuzzlePiece & {
+  rotation?: number;
+  flipX?: boolean;
+};
 import './AnswerGrid.css';
 
 interface IrregularAnswerGridIrregularProps {
   gridSize: { rows: number; cols: number };
-  answerGrid: (IrregularPuzzlePiece | null)[];
+  answerGrid: (IrregularPuzzlePieceWithTransform | null)[];
   originalImage: string;
   selectedPieceId: string | null;
   showAnswers: boolean;
@@ -21,7 +52,13 @@ interface IrregularAnswerGridIrregularProps {
 }
 
 // 让每个小块的图片显示范围扩大30%，但布局不变，允许重叠
-export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregularProps> = (props) => {
+export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregularProps & { pieceTransforms?: Record<string, { rotation: number; flipX: boolean }> }> = (props) => {
+  // 右键拼图块返回处理区
+  const handlePieceContextMenu = (e: React.MouseEvent, pieceId: string) => {
+    e.preventDefault();
+    onRemovePiece(pieceId);
+    if (onPieceSelect) onPieceSelect(null);
+  };
   const {
     gridSize,
     answerGrid,
@@ -38,6 +75,7 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
     onDragOver,
     onDragLeave,
     onDropToSlot,
+    // pieceTransforms = {}, // 不再需要
   } = props;
 
   const gridRef = useRef<HTMLDivElement>(null);
@@ -153,6 +191,11 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
           // 计算拼图块在网格中的位置
           const row = Math.floor(index / gridSize.cols);
           const col = index % gridSize.cols;
+          // 直接用拼图块自身的 rotation/flipX 属性
+          const rot = piece.rotation || 0;
+          const scaleX = piece.flipX ? -1 : 1;
+          // 不再支持 flipY
+          const transform = `scaleX(${scaleX}) rotate(${rot}deg) scale(1.3)`;
           return (
             <div
               key={`piece-img-${index}-${piece.id}`}
@@ -160,6 +203,7 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
               draggable={true}
               onDragStart={(e) => handlePieceDragStart(e, piece.id)}
               onDragEnd={handlePieceDragEnd}
+              onContextMenu={(e) => handlePieceContextMenu(e, piece.id)}
               style={{
                 position: 'absolute',
                 left: `${col * cellSize}px`,
@@ -178,7 +222,7 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
                 src={piece.imageData}
                 alt={`拼图块 ${piece.id}`}
                 className="piece-image"
-                style={{ ...imageStyle, clipPath: scaleAndTranslateClipPath(piece.clipPath) }}
+                style={{ ...imageStyle, clipPath: scaleAndTranslateClipPath(piece.clipPath), transform }}
                 draggable={false}
               />
             </div>
@@ -216,7 +260,18 @@ export const IrregularAnswerGridIrregular: React.FC<IrregularAnswerGridIrregular
           已完成: {answerGrid.filter(slot => slot !== null).length} / {answerGrid.length}
         </div>
         <div className="correctness-status">
-          正确: {answerGrid.filter((piece, idx) => piece && (piece.gridRow * gridSize.cols + piece.gridCol) === idx).length} / {answerGrid.length}
+          正确: {
+            answerGrid.filter((piece, idx) => {
+              if (!piece) return false;
+              // 位置判定
+              const posCorrect = (piece.gridRow * gridSize.cols + piece.gridCol) === idx;
+              // 旋转判定
+              const rotCorrect = (piece.rotation ?? 0) % 360 === (piece.correctRotation ?? 0) % 360;
+              // 翻转判定
+              const flipCorrect = (piece.flipX ?? false) === (piece.correctFlipX ?? false);
+              return posCorrect && rotCorrect && flipCorrect;
+            }).length
+          } / {answerGrid.length}
         </div>
       </div>
     </div>

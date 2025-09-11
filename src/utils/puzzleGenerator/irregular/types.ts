@@ -15,6 +15,8 @@ export interface IrregularPuzzleConfig extends Omit<PuzzleConfig, 'pieces'> {
 
 // 异形拼图块
 export interface IrregularPuzzlePiece extends Omit<PuzzlePiece, 'shape' | 'currentSlot' | 'correctSlot' | 'isFlipped'> {
+  /** 是否左右翻转 */
+  flipX?: boolean;
   // 当前显示位置
   x: number;
   y: number;

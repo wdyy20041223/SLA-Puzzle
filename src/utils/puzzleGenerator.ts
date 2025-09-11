@@ -23,7 +23,7 @@ export class PuzzleGenerator {
 
     // 如果imageData是URL路径，则使用该路径作为图片源
     let imageUrl = imageData;
-    
+
     // 如果是颠倒世界特效，需要先将图像旋转180°
     if (upsideDown) {
       imageUrl = await this.rotateImage(imageData, 180);
@@ -128,13 +128,13 @@ export class PuzzleGenerator {
 
         // 将旋转中心移动到图像中心
         ctx.translate(canvas.width / 2, canvas.height / 2);
-        
+
         // 旋转指定角度
         ctx.rotate((degrees * Math.PI) / 180);
-        
+
         // 绘制图像（以中心为原点）
         ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        
+
         // 返回旋转后的图像数据
         resolve(canvas.toDataURL('image/png'));
       };
@@ -678,7 +678,7 @@ export class PuzzleGenerator {
         ]
       },
 
-      // 第二行：L型和T型
+      // 第二行：L型和T型，以及缺失的单格
       {
         shape: 'L' as TetrisShape,
         positions: [
@@ -689,12 +689,24 @@ export class PuzzleGenerator {
         ]
       },
       {
+        shape: 'O1' as TetrisShape,
+        positions: [
+          { row: 1, col: 1 }
+        ]
+      },
+      {
         shape: 'T' as TetrisShape,
         positions: [
           { row: 1, col: 2 },
           { row: 2, col: 1 },
           { row: 2, col: 2 },
           { row: 2, col: 3 }
+        ]
+      },
+      {
+        shape: 'O1' as TetrisShape,
+        positions: [
+          { row: 1, col: 3 }
         ]
       },
 
