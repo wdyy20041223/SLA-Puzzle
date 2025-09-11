@@ -703,6 +703,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
           break;
         case 'rotate':
           // 撤销旋转：应用相反的delta值
+
           if (lastMove.delta !== undefined) {
             updatedPieces = updatedPieces.map(piece =>
               piece.id === lastMove.pieceId
@@ -751,6 +752,7 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
           updatedPieces = updatedPieces.map(piece =>
             piece.id === lastMove.pieceId
               ? { ...piece, rotation: (piece.rotation - 90 + 360) % 360 }
+
               : piece
           );
           break;

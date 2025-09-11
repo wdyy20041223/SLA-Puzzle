@@ -10,17 +10,24 @@ interface GeneratePuzzleParams {
 
   allowRotation?: boolean;
 
+  upsideDown?: boolean; // 颠倒世界特效
+
 }
 
 export class PuzzleGenerator {
   static async generatePuzzle(params: GeneratePuzzleParams): Promise<PuzzleConfig> {
-    const { imageData, gridSize, pieceShape, name, allowRotation = false } = params;
+    const { imageData, gridSize, pieceShape, name, allowRotation = false, upsideDown = false } = params;
 
     // 确保图片是正方形，统一处理尺寸
     const targetSize = 400; // 统一的目标尺寸
 
     // 如果imageData是URL路径，则使用该路径作为图片源
-    const imageUrl = imageData;
+    let imageUrl = imageData;
+    
+    // 如果是颠倒世界特效，需要先将图像旋转180°
+    if (upsideDown) {
+      imageUrl = await this.rotateImage(imageData, 180);
+    }
 
     // 生成拼图块
     const pieces: PuzzlePiece[] = [];
@@ -37,7 +44,7 @@ export class PuzzleGenerator {
 
         // 为每个方格生成上三角形和下三角形
         const upperTriangle = await this.generateTrianglePiece({
-          imageData,
+          imageData: imageUrl,
           squareIndex: i,
           triangleType: 'upper',
           row,
@@ -48,7 +55,7 @@ export class PuzzleGenerator {
         });
 
         const lowerTriangle = await this.generateTrianglePiece({
-          imageData,
+          imageData: imageUrl,
           squareIndex: i,
           triangleType: 'lower',
           row,
@@ -73,7 +80,7 @@ export class PuzzleGenerator {
         const col = i % gridSize.cols;
 
         const piece = await this.generateSquarePiece({
-          imageData,
+          imageData: imageUrl,
           index: i,
           row,
           col,
@@ -101,6 +108,40 @@ export class PuzzleGenerator {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
+  }
+
+  // 旋转图像的静态方法
+  private static async rotateImage(imageData: string, degrees: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('无法获取canvas上下文'));
+          return;
+        }
+
+        // 设置canvas尺寸
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // 将旋转中心移动到图像中心
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        
+        // 旋转指定角度
+        ctx.rotate((degrees * Math.PI) / 180);
+        
+        // 绘制图像（以中心为原点）
+        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        
+        // 返回旋转后的图像数据
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = reject;
+      img.src = imageData.startsWith('/') ? imageData : imageData;
+      img.crossOrigin = 'anonymous';
+    });
   }
 
   private static async generateSquarePiece(params: {
@@ -273,7 +314,7 @@ export class PuzzleGenerator {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    // 如果允许旋转和翻转，则为每个拼图块随机应用
+    // 如果允许旋转和翻转，则为每个拼图块随机应用初始状态
     if (allowRotation) {
       return shuffled.map(piece => {
         // 随机旋转：0°, 90°, 180°, 270°
@@ -286,10 +327,14 @@ export class PuzzleGenerator {
         return {
           ...piece,
           rotation: randomRotation,
-          isFlipped: shouldFlip
+          isFlipped: shouldFlip,
+          // 正确状态始终是原始状态：0度旋转，不翻转
+          // 这样玩家需要通过按键将随机状态调整回正确状态
+          correctRotation: 0,
+          correctIsFlipped: false
         };
       });
-    }else{
+    } else {
       // 不允许旋转和翻转，保持原始状态
       return shuffled;
     }

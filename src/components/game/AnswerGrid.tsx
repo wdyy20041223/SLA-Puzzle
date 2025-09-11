@@ -20,6 +20,9 @@ interface AnswerGridProps {
   onDragOver?: (slotIndex: number) => void;
   onDragLeave?: () => void;
   onDropToSlot?: (targetSlot: number) => void;
+  // 作茧自缚特效相关
+  unlockedSlots?: Set<number>;
+  hasCornerEffect?: boolean;
 }
 
 export const AnswerGrid: React.FC<AnswerGridProps> = ({
@@ -38,6 +41,8 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
   onDragOver,
   onDragLeave,
   onDropToSlot,
+  unlockedSlots,
+  hasCornerEffect,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -410,23 +415,28 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
           })
         ) : (
           // 方形拼图：原有的渲染逻辑
-          answerGrid.map((piece, index) => (
-            <div
-              key={`slot-${index}-${piece?.id || 'empty'}`}
-              className={`grid-slot ${piece ? 'occupied' : 'empty'} ${selectedPieceId && !piece ? 'highlight' : ''
-                } ${piece && selectedPieceId === piece.id ? 'selected' : ''
-                } ${dragOverSlot === index ? 'drag-over' : ''
-                } ${draggedPiece === piece?.id ? 'dragging' : ''
-                }`}
-              onClick={() => handleSlotClick(index)}
-              onDragOver={(e) => handleSlotDragOver(e, index)}
-              onDragLeave={handleSlotDragLeave}
-              onDrop={(e) => handleSlotDrop(e, index)}
-              style={{
-                width: `${cellSize}px`,
-                height: `${cellSize}px`,
-              }}
-            >
+          answerGrid.map((piece, index) => {
+            // 检查槽位是否锁定（作茧自缚特效）
+            const isLocked = hasCornerEffect && unlockedSlots && !unlockedSlots.has(index);
+            
+            return (
+              <div
+                key={`slot-${index}-${piece?.id || 'empty'}`}
+                className={`grid-slot ${piece ? 'occupied' : 'empty'} ${selectedPieceId && !piece ? 'highlight' : ''
+                  } ${piece && selectedPieceId === piece.id ? 'selected' : ''
+                  } ${dragOverSlot === index ? 'drag-over' : ''
+                  } ${draggedPiece === piece?.id ? 'dragging' : ''
+                  } ${isLocked ? 'locked-slot' : hasCornerEffect && unlockedSlots?.has(index) ? 'unlocked-slot' : ''
+                  }`}
+                onClick={() => handleSlotClick(index)}
+                onDragOver={(e) => handleSlotDragOver(e, index)}
+                onDragLeave={handleSlotDragLeave}
+                onDrop={(e) => handleSlotDrop(e, index)}
+                style={{
+                  width: `${cellSize}px`,
+                  height: `${cellSize}px`,
+                }}
+              >
               {/* 槽位编号 */}
               <div className="slot-number">{getSlotNumber(index)}</div>
 
@@ -471,7 +481,8 @@ export const AnswerGrid: React.FC<AnswerGridProps> = ({
                 </div>
               )}
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

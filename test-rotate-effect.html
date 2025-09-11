@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天旋地转特效测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .effect-demo {
+            border: 2px dashed #ff9800;
+            padding: 20px;
+            margin: 10px 0;
+            background: #fff3e0;
+            border-radius: 8px;
+        }
+        .puzzle-piece {
+            width: 80px;
+            height: 80px;
+            background: #007bff;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .piece-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 280px;
+            margin: 20px auto;
+        }
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #f57c00;
+        }
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .hint-box {
+            background: rgba(255, 152, 0, 0.9);
+            color: white;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            animation: hint-pulse 2s infinite;
+        }
+        @keyframes hint-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+        .selected {
+            box-shadow: 0 0 15px #ffd700;
+            background: #28a745 !important;
+        }
+        .correct {
+            background: #28a745 !important;
+        }
+        .status {
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .instruction {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎮 天旋地转特效测试</h1>
+        
+        <div class="test-section">
+            <h2>特效说明</h2>
+            <div class="instruction">
+                <p><strong>🔄 天旋地转特效的新机制：</strong></p>
+                <ol>
+                    <li>等同于主页开启"启用翻转模式"</li>
+                    <li>拼图块会随机旋转（0°, 90°, 180°, 270°）和翻转</li>
+                    <li>玩家需要通过按键将拼图块调整到正确的方向和状态</li>
+                    <li>只有位置、旋转角度和翻转状态都正确才算完成</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>模拟按键控制</h2>
+            <div class="hint-box">
+                🎮 天旋地转：拼图块已随机旋转翻转，请使用R键旋转、F键翻转调整到正确位置！
+            </div>
+            
+            <div class="piece-grid" id="puzzleGrid">
+                <div class="puzzle-piece" id="piece1" data-rotation="0" data-flipped="false">1</div>
+                <div class="puzzle-piece" id="piece2" data-rotation="90" data-flipped="false">2</div>
+                <div class="puzzle-piece" id="piece3" data-rotation="180" data-flipped="true">3</div>
+                <div class="puzzle-piece" id="piece4" data-rotation="270" data-flipped="false">4</div>
+                <div class="puzzle-piece" id="piece5" data-rotation="0" data-flipped="true">5</div>
+                <div class="puzzle-piece" id="piece6" data-rotation="90" data-flipped="true">6</div>
+                <div class="puzzle-piece" id="piece7" data-rotation="180" data-flipped="false">7</div>
+                <div class="puzzle-piece" id="piece8" data-rotation="270" data-flipped="true">8</div>
+                <div class="puzzle-piece" id="piece9" data-rotation="0" data-flipped="false">9</div>
+            </div>
+
+            <div class="status" id="status">点击选择拼图块，然后使用按键控制</div>
+
+            <div class="controls">
+                <button onclick="rotatePiece()">R - 顺时针旋转</button>
+                <button onclick="rotatePieceReverse()">L - 逆时针旋转</button>
+                <button onclick="flipPiece()">F - 翻转</button>
+                <button onclick="resetAllPieces()">🔄 重置所有</button>
+                <button onclick="randomizeAll()">🎲 随机化</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>正确性检测演示</h2>
+            <div class="effect-demo">
+                <p><strong>检测规则：</strong></p>
+                <ul>
+                    <li>位置正确：拼图块在正确的槽位</li>
+                    <li>旋转正确：rotation === correctRotation（都为0°）</li>
+                    <li>翻转正确：isFlipped === correctIsFlipped（都为false）</li>
+                    <li>只有三个条件都满足才算正确放置</li>
+                </ul>
+                <button onclick="checkAllCorrectness()">🔍 检查所有拼图块</button>
+                <div id="checkResult"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>按键说明</h2>
+            <div class="instruction">
+                <p><strong>🎯 游戏控制：</strong></p>
+                <ul>
+                    <li><strong>R键</strong>：顺时针旋转90°</li>
+                    <li><strong>L键</strong>：逆时针旋转90°</li>
+                    <li><strong>F键</strong>：水平翻转</li>
+                    <li><strong>ESC键</strong>：取消选择</li>
+                </ul>
+                <p><strong>💡 提示：</strong>在真实游戏中，你需要先点击选择拼图块，再使用按键进行旋转和翻转操作。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPieceId = null;
+
+        // 初始化拼图块
+        function initializePieces() {
+            const pieces = document.querySelectorAll('.puzzle-piece');
+            pieces.forEach((piece, index) => {
+                piece.addEventListener('click', () => selectPiece(piece.id));
+                updatePieceDisplay(piece);
+            });
+        }
+
+        // 选择拼图块
+        function selectPiece(pieceId) {
+            // 取消之前的选择
+            document.querySelectorAll('.puzzle-piece').forEach(p => p.classList.remove('selected'));
+            
+            // 选择新的拼图块
+            selectedPieceId = pieceId;
+            document.getElementById(pieceId).classList.add('selected');
+            
+            updateStatus(`已选择拼图块 ${pieceId.replace('piece', '')}`);
+        }
+
+        // 旋转拼图块
+        function rotatePiece() {
+            if (!selectedPieceId) {
+                updateStatus('请先选择一个拼图块');
+                return;
+            }
+            
+            const piece = document.getElementById(selectedPieceId);
+            let rotation = parseInt(piece.dataset.rotation);
+            rotation = (rotation + 90) % 360;
+            piece.dataset.rotation = rotation;
+            
+            updatePieceDisplay(piece);
+            updateStatus(`拼图块 ${selectedPieceId.replace('piece', '')} 旋转到 ${rotation}°`);
+        }
+
+        // 逆时针旋转
+        function rotatePieceReverse() {
+            if (!selectedPieceId) {
+                updateStatus('请先选择一个拼图块');
+                return;
+            }
+            
+            const piece = document.getElementById(selectedPieceId);
+            let rotation = parseInt(piece.dataset.rotation);
+            rotation = (rotation - 90 + 360) % 360;
+            piece.dataset.rotation = rotation;
+            
+            updatePieceDisplay(piece);
+            updateStatus(`拼图块 ${selectedPieceId.replace('piece', '')} 逆时针旋转到 ${rotation}°`);
+        }
+
+        // 翻转拼图块
+        function flipPiece() {
+            if (!selectedPieceId) {
+                updateStatus('请先选择一个拼图块');
+                return;
+            }
+            
+            const piece = document.getElementById(selectedPieceId);
+            const isFlipped = piece.dataset.flipped === 'true';
+            piece.dataset.flipped = !isFlipped;
+            
+            updatePieceDisplay(piece);
+            updateStatus(`拼图块 ${selectedPieceId.replace('piece', '')} ${!isFlipped ? '已翻转' : '取消翻转'}`);
+        }
+
+        // 更新拼图块显示
+        function updatePieceDisplay(piece) {
+            const rotation = parseInt(piece.dataset.rotation);
+            const isFlipped = piece.dataset.flipped === 'true';
+            
+            let transform = `rotate(${rotation}deg)`;
+            if (isFlipped) {
+                transform += ' scaleX(-1)';
+            }
+            
+            piece.style.transform = transform;
+            
+            // 检查是否正确（正确状态：rotation=0, flipped=false）
+            if (rotation === 0 && !isFlipped) {
+                piece.classList.add('correct');
+            } else {
+                piece.classList.remove('correct');
+            }
+        }
+
+        // 重置所有拼图块
+        function resetAllPieces() {
+            document.querySelectorAll('.puzzle-piece').forEach(piece => {
+                piece.dataset.rotation = '0';
+                piece.dataset.flipped = 'false';
+                piece.classList.remove('selected', 'correct');
+                updatePieceDisplay(piece);
+            });
+            selectedPieceId = null;
+            updateStatus('所有拼图块已重置');
+        }
+
+        // 随机化所有拼图块
+        function randomizeAll() {
+            const rotations = [0, 90, 180, 270];
+            document.querySelectorAll('.puzzle-piece').forEach(piece => {
+                piece.dataset.rotation = rotations[Math.floor(Math.random() * rotations.length)];
+                piece.dataset.flipped = Math.random() > 0.5;
+                updatePieceDisplay(piece);
+            });
+            updateStatus('所有拼图块已随机化');
+        }
+
+        // 检查所有拼图块的正确性
+        function checkAllCorrectness() {
+            let correctCount = 0;
+            let totalCount = 0;
+            let resultText = '检查结果：\n';
+            
+            document.querySelectorAll('.puzzle-piece').forEach(piece => {
+                totalCount++;
+                const pieceNum = piece.id.replace('piece', '');
+                const rotation = parseInt(piece.dataset.rotation);
+                const isFlipped = piece.dataset.flipped === 'true';
+                
+                // 正确条件：rotation = 0, isFlipped = false
+                const isCorrect = rotation === 0 && !isFlipped;
+                if (isCorrect) {
+                    correctCount++;
+                    resultText += `✅ 拼图块${pieceNum}: 正确 (${rotation}°, ${isFlipped ? '翻转' : '正常'})\n`;
+                } else {
+                    resultText += `❌ 拼图块${pieceNum}: 错误 (${rotation}°, ${isFlipped ? '翻转' : '正常'})\n`;
+                }
+            });
+            
+            resultText += `\n总计：${correctCount}/${totalCount} 正确`;
+            if (correctCount === totalCount) {
+                resultText += '\n🎉 恭喜！所有拼图块都已正确！';
+            }
+            
+            document.getElementById('checkResult').innerHTML = resultText.replace(/\n/g, '<br>');
+        }
+
+        // 更新状态
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        // 键盘事件监听
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case 'r':
+                    rotatePiece();
+                    break;
+                case 'l':
+                    rotatePieceReverse();
+                    break;
+                case 'f':
+                    flipPiece();
+                    break;
+                case 'escape':
+                    if (selectedPieceId) {
+                        document.getElementById(selectedPieceId).classList.remove('selected');
+                        selectedPieceId = null;
+                        updateStatus('已取消选择');
+                    }
+                    break;
+            }
+        });
+
+        // 初始化
+        window.addEventListener('load', () => {
+            initializePieces();
+            randomizeAll();
+            updateStatus('页面已加载，拼图块已随机化');
+        });
+    </script>
+</body>
+</html>

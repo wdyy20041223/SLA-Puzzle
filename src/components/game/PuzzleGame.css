@@ -86,6 +86,30 @@
   gap: 8px;
 }
 
+/* 确保游戏控制区域中的按钮文字可见 */
+.game-controls .btn {
+  color: white !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.game-controls .btn * {
+  color: inherit !important;
+  font-weight: inherit !important;
+  display: inline !important;
+  visibility: visible !important;
+}
+
+/* 特别处理表情符号 */
+.game-controls .btn span,
+.game-controls .btn::before,
+.game-controls .btn::after {
+  display: inline !important;
+  visibility: visible !important;
+  color: inherit !important;
+}
+
 /* 游戏主体 */
 .game-content {
   flex: 1;

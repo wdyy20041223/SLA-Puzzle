@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧑‍💼 亦步亦趋特效测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #4caf50, #8bc34a);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .description {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .description ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .toggle-button {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: 0 auto 20px;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .grid-slot {
+            width: 80px;
+            height: 80px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+            color: #333;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .placed-piece {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #2196f3, #03a9f4);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .piece-info {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .correctness-indicator {
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .correctness-indicator.correct {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .correctness-indicator.incorrect {
+            background: #f44336;
+            color: white;
+        }
+        
+        /* 亦步亦趋特效样式 */
+        .step-follow-restricted {
+            opacity: 0.5;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                45deg,
+                #f0f0f0,
+                #f0f0f0 8px,
+                #e0e0e0 8px,
+                #e0e0e0 16px
+            ) !important;
+        }
+        
+        .step-follow-restricted::before {
+            content: "🚫";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            z-index: 10;
+            pointer-events: none;
+            color: #999;
+        }
+        
+        .step-follow-available {
+            border: 2px solid #4caf50 !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+        }
+        
+        .step-follow-available:hover {
+            box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+            border-color: #66bb6a !important;
+        }
+        
+        .step-follow-effect-hint {
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin: 10px 0;
+            text-align: center;
+            animation: hint-pulse 2s infinite;
+        }
+        
+        @keyframes hint-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+        
+        .demo-container {
+            position: relative;
+        }
+        
+        .feature-list {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .note {
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .current-state {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧑‍💼 亦步亦趋特效测试</h1>
+        
+        <div class="description">
+            <h3>特效说明</h3>
+            <p><strong>亦步亦趋</strong>是一个5星难度的每日挑战特效，它的核心机制是：</p>
+            <ul>
+                <li><strong>位置限制</strong>：除了第一个拼图块可以放在任意位置外，后续拼图块只能放在上次放置的拼图块周围（上下左右四个方向）</li>
+                <li><strong>动态限制</strong>：每次放置拼图块后，可放置区域会更新为新放置拼图块的相邻位置</li>
+                <li><strong>失败检测</strong>：如果拼图未完成但没有可放置的位置时，会自动弹出失败提示</li>
+                <li><strong>策略挑战</strong>：需要仔细规划放置顺序，避免将自己困在死角</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h3>特效演示</h3>
+            <div class="demo-container" id="demoContainer">
+                <button class="toggle-button" onclick="toggleEffect()">开启亦步亦趋特效</button>
+                
+                <div class="current-state" id="currentState">
+                    当前状态：无特效模式，所有位置均可放置
+                </div>
+                
+                <div class="puzzle-grid" id="puzzleGrid">
+                    <div class="grid-slot" data-slot="0">空槽位 0</div>
+                    <div class="grid-slot" data-slot="1">空槽位 1</div>
+                    <div class="grid-slot" data-slot="2">空槽位 2</div>
+                    <div class="grid-slot" data-slot="3">空槽位 3</div>
+                    <div class="grid-slot" data-slot="4">
+                        <div class="placed-piece" onclick="removePiece(4)">
+                            <div class="piece-info">5</div>
+                            <div class="correctness-indicator correct">✓</div>
+                        </div>
+                    </div>
+                    <div class="grid-slot" data-slot="5">空槽位 5</div>
+                    <div class="grid-slot" data-slot="6">空槽位 6</div>
+                    <div class="grid-slot" data-slot="7">空槽位 7</div>
+                    <div class="grid-slot" data-slot="8">空槽位 8</div>
+                </div>
+                
+                <div class="step-follow-effect-hint" id="effectHint" style="display: none;">
+                    🧑‍💼 亦步亦趣：仅能在上次放置的拼图块周围放置！当前可放置: <span id="availableCount">0</span>个位置
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <h3>📋 特效功能列表</h3>
+            <ul>
+                <li>✅ 检测特效是否启用（支持'brightness'和'亦步亦趋'标识）</li>
+                <li>✅ 初始化：第一个拼图块可放在任意位置</li>
+                <li>✅ 位置限制：后续拼图块只能放在相邻位置</li>
+                <li>✅ 动态更新：每次放置后更新可放置区域</li>
+                <li>✅ 撤回支持：撤回拼图块时自动回退限制状态</li>
+                <li>✅ 视觉反馈：限制区域显示禁止标志，可放置区域高亮显示</li>
+                <li>✅ 失败检测：无可放置位置时自动弹窗提示</li>
+                <li>✅ UI提示：显示当前可放置位置数量</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <strong>🎮 游戏体验：</strong><br>
+            亦步亦趋特效大大增加了拼图的策略性，玩家需要：
+            <ul>
+                <li>仔细规划第一个拼图块的放置位置</li>
+                <li>预见每一步放置后的可选范围</li>
+                <li>避免将拼图路径困在死角</li>
+                <li>平衡连续性和完整性的需求</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let effectEnabled = false;
+        let lastPlacedSlot = 4; // 模拟已放置在中心位置
+        let stepFollowSlots = new Set();
+        let placedPieces = [4]; // 记录已放置的拼图块位置
+        
+        // 获取相邻槽位
+        function getAdjacentSlots(slotIndex) {
+            const adjacent = [];
+            const rows = 3, cols = 3;
+            const row = Math.floor(slotIndex / cols);
+            const col = slotIndex % cols;
+            
+            // 上
+            if (row > 0) adjacent.push(slotIndex - cols);
+            // 下
+            if (row < rows - 1) adjacent.push(slotIndex + cols);
+            // 左
+            if (col > 0) adjacent.push(slotIndex - 1);
+            // 右
+            if (col < cols - 1) adjacent.push(slotIndex + 1);
+            
+            return adjacent;
+        }
+        
+        function updateStepFollowSlots() {
+            if (!effectEnabled) {
+                stepFollowSlots.clear();
+                return;
+            }
+            
+            // 获取中心位置(4)的相邻槽位：1, 3, 5, 7
+            const adjacent = getAdjacentSlots(lastPlacedSlot);
+            stepFollowSlots = new Set(adjacent);
+        }
+        
+        function updateGridDisplay() {
+            const slots = document.querySelectorAll('.grid-slot');
+            const availableCount = document.getElementById('availableCount');
+            const currentState = document.getElementById('currentState');
+            
+            slots.forEach((slot, index) => {
+                slot.classList.remove('step-follow-restricted', 'step-follow-available');
+                
+                if (effectEnabled) {
+                    // 已放置的拼图块不受限制
+                    if (slot.querySelector('.placed-piece')) {
+                        return;
+                    }
+                    
+                    if (stepFollowSlots.has(index)) {
+                        slot.classList.add('step-follow-available');
+                    } else {
+                        slot.classList.add('step-follow-restricted');
+                    }
+                }
+            });
+            
+            if (effectEnabled) {
+                availableCount.textContent = stepFollowSlots.size;
+                currentState.textContent = `当前状态：亦步亦趋特效启用，可在 ${stepFollowSlots.size} 个位置放置（槽位 ${Array.from(stepFollowSlots).join(', ')}）`;
+            } else {
+                availableCount.textContent = '9';
+                currentState.textContent = '当前状态：无特效模式，所有位置均可放置';
+            }
+        }
+        
+        function toggleEffect() {
+            const hint = document.getElementById('effectHint');
+            const button = document.querySelector('.toggle-button');
+            
+            effectEnabled = !effectEnabled;
+            
+            if (effectEnabled) {
+                updateStepFollowSlots();
+                hint.style.display = 'block';
+                button.textContent = '关闭亦步亦趣特效';
+                button.style.background = '#f44336';
+            } else {
+                stepFollowSlots.clear();
+                hint.style.display = 'none';
+                button.textContent = '开启亦步亦趋特效';
+                button.style.background = '#4caf50';
+            }
+            
+            updateGridDisplay();
+        }
+        
+        // 撤回拼图块功能
+        function removePiece(slotIndex) {
+            if (!effectEnabled) {
+                alert('请先开启亦步亦趋特效再试试撤回功能！');
+                return;
+            }
+            
+            // 移除已放置的拼图块
+            const slot = document.querySelector(`[data-slot="${slotIndex}"]`);
+            const piece = slot.querySelector('.placed-piece');
+            if (piece) {
+                piece.remove();
+                
+                // 从已放置列表中移除
+                placedPieces = placedPieces.filter(pos => pos !== slotIndex);
+                
+                // 如果撤回的是最后一个放置的拼图块，需要回退状态
+                if (slotIndex === lastPlacedSlot) {
+                    if (placedPieces.length === 0) {
+                        // 如果没有其他拼图块了，回到初始状态
+                        lastPlacedSlot = -1;
+                        const allSlots = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+                        stepFollowSlots = new Set(allSlots);
+                    } else {
+                        // 找到最后一个剩余拼图块的位置
+                        lastPlacedSlot = placedPieces[placedPieces.length - 1];
+                        updateStepFollowSlots();
+                    }
+                }
+                
+                updateGridDisplay();
+                
+                console.log('👨‍💼 亦步亦趋特效撤回状态更新:', {
+                    撤回位置: slotIndex,
+                    新的最后位置: lastPlacedSlot,
+                    新的可放置位置: Array.from(stepFollowSlots)
+                });
+            }
+        }
+        
+        // 页面加载时的说明
+        console.log('亦步亦趋特效测试页面已加载');
+        console.log('当前模拟情况：中心位置(4)已放置拼图块');
+        console.log('点击按钮可以切换特效开关，观察可放置区域的变化');
+        console.log('特效启用时，只有相邻的 1、3、5、7 槽位可以放置');
+        console.log('点击中心的拼图块可以测试撤回功能（需先开启特效）');
+    </script>
+</body>
+</html>

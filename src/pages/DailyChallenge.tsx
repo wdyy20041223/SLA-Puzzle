@@ -30,6 +30,8 @@ export interface Challenge {
   attempts: number;
   puzzleType: 'square' | 'irregular';
   effects: string[]; // 叠加的特效数组
+  star: 3 | 4 | 5; // 星级
+  effect: string; // 单个特效（用于显示）
 }
 
 export interface DailyEffect {
@@ -65,27 +67,29 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   const [totalCoins, setTotalCoins] = useState(0);
   const [totalExperience, setTotalExperience] = useState(0);
   const [unlockedItems, setUnlockedItems] = useState<{name: string, icon: string, date: string}[]>([]);
+  const [todayChallenges, setTodayChallenges] = useState<Challenge[]>([]);
+  const [selectedChallengeIds, setSelectedChallengeIds] = useState<string[]>([]);
 
   // 解析每日特效文本
   const parseDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
     const effects = {
       star3: [
-        { id: 'rotate', name: '天旋地转', description: '本关卡拼图块包含旋转与翻转', star: 3 as const },
-        { id: 'blur', name: '雾里探花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
+        { id: 'rotate', name: '天旋地转', description: '本关卡等同于启用翻转模式，拼图块包含旋转与翻转，玩家可通过按键旋转到正确位置', star: 3 as const },
+        { id: 'blur', name: '雾里看花', description: '本关卡拼图块在鼠标选中前模糊化', star: 3 as const },
         { id: 'partial', name: '管中窥豹', description: '本关卡答题区最开始只展示一半的拼图块', star: 3 as const },
-        { id: 'mirror', name: '镜中奇缘', description: '本关卡正确答案与原图块成镜像关系', star: 3 as const },
+        { id: 'upside_down', name: '颠倒世界', description: '本关卡中正确答案旋转180°后得到原图', star: 3 as const },
         { id: 'double_steps', name: '举步维艰', description: '每一步统计时算作2步', star: 3 as const }
       ],
       star4: [
         { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落', star: 4 as const },
-        { id: 'invisible', name: '一手遮天', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
+        { id: 'invisible', name: '深渊漫步', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
         { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 as const },
         { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 as const }
       ],
       star5: [
         { id: 'no_mistakes', name: '最终防线', description: '本关卡不允许任何一次放置失误', star: 5 as const },
         { id: 'step_limit', name: '精打细算', description: '本关卡必须在1.5*拼图块数量次步数内完成', star: 5 as const },
-        { id: 'brightness', name: '璀璨星河', description: '答题区拼图块亮度随时间呈正弦变化', star: 5 as const }
+        { id: 'brightness', name: '亦步亦趋', description: '仅能在上次放置的拼图块周围放置拼图块', star: 5 as const }
       ]
     };
     return effects;
@@ -243,26 +247,42 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     return false;
   };
 
-  // 生成今日多项挑战（3个3星、2个4星、1个5星）
+  // 生成今日多项挑战（展示所有tag）
   const generateTodayChallenges = (userId: string): Challenge[] => {
     const today = getTodayDate();
     const seed = getDateSeed(today);
     const random = pseudoRandom(seed);
     
-    // 星级分布：3个3星、2个4星、1个5星
-    const starDistribution = [3, 3, 3, 4, 4, 5];
+    // 每日特效定义 - 展示所有星级的所有特效
+    const allEffects = [
+      { name: "天旋地转", star: 3 as const },
+      { name: "雾里看花", star: 3 as const },
+      { name: "管中窥豹", star: 3 as const },
+      { name: "颠倒世界", star: 3 as const },
+      { name: "举步维艰", star: 3 as const },
+      { name: "作茧自缚", star: 4 as const },
+      { name: "深渊漫步", star: 4 as const },
+      { name: "一叶障目", star: 4 as const },
+      { name: "生死时速", star: 4 as const },
+      { name: "最终防线", star: 5 as const },
+      { name: "精打细算", star: 5 as const },
+      { name: "亦步亦趋", star: 5 as const }
+    ];
     
-    // 每日特效定义
-    const starEffects = {
-      3: ["天旋地转", "雾里探花", "管中窥豹", "镜中奇缘", "举步维艰"],
-      4: ["作茧自缚", "一手遮天", "一叶障目", "生死时速"],
-      5: ["最终防线", "精打细算", "璀璨星河"]
-    };
+    // 打乱特效顺序以增加多样性
+    const shuffledEffects = [...allEffects];
+    for (let i = shuffledEffects.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [shuffledEffects[i], shuffledEffects[j]] = [shuffledEffects[j], shuffledEffects[i]];
+    }
     
     const challenges: Challenge[] = [];
     
-    for (let i = 0; i < starDistribution.length; i++) {
-      const star = starDistribution[i] as 3 | 4 | 5;
+    // 为每个特效创建一个挑战，确保展示所有tag
+    for (let i = 0; i < allEffects.length; i++) {
+      const effectData = shuffledEffects[i];
+      const selectedEffect = effectData.name;
+      const star = effectData.star;
       
       // 随机选择图片
       const imageIndex = Math.floor(random() * puzzleImageLibrary.length);
@@ -280,11 +300,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
       
       // 获取难度配置
       const config = difficultyConfigs[selectedDifficulty];
-      
-      // 随机选择特效
-      const effectList = starEffects[star];
-      const effectIndex = Math.floor(random() * effectList.length);
-      const selectedEffect = effectList[effectIndex];
       
       // 从localStorage获取挑战记录
       const challengeRecordKey = `daily_challenge_${userId}_${today}_${i}`;
@@ -311,6 +326,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         bestMoves: record.bestMoves,
         attempts: Math.max(0, Math.min(3, typeof record.attempts === 'number' ? record.attempts : 0)),
         puzzleType: selectedPuzzleType,
+        effects: [selectedEffect], // 添加effects数组
         star: star,
         effect: selectedEffect
       });

@@ -1,0 +1,453 @@
+/* 每日挑战历史记录页面样式 */
+.daily-challenge-history-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+/* 页面头部 */
+.history-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 24px;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-left h1 {
+  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.header-left p {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 1rem;
+}
+
+/* 个人统计卡片 */
+.personal-stats {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 280px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.personal-stats h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.stat-item {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 8px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #FFD700;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+/* 控制面板 */
+.controls-section {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.controls-section > div {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.date-filter {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.date-filter option {
+  background: #333;
+  color: white;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #4CAF50;
+}
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sort-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sort-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sort-btn.active {
+  background: rgba(76, 175, 80, 0.3);
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+.sort-arrow {
+  font-size: 0.8rem;
+}
+
+/* 历史记录内容 */
+.history-content {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 加载和空状态 */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  font-size: 1.2rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+}
+
+.empty-state p {
+  margin: 8px 0;
+  opacity: 0.8;
+}
+
+/* 历史记录表格 */
+.history-table {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.table-header {
+  background: rgba(255, 255, 255, 0.1);
+  display: grid;
+  grid-template-columns: 60px 80px 120px 80px 80px 70px 80px 60px 60px 60px 120px;
+  gap: 8px;
+  padding: 16px 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 60px 80px 120px 80px 80px 70px 80px 60px 60px 60px 120px;
+  gap: 8px;
+  padding: 16px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background-color 0.2s;
+  align-items: center;
+}
+
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table-row.personal-record {
+  background: rgba(76, 175, 80, 0.1);
+  border-left: 4px solid #4CAF50;
+}
+
+.table-row.personal-record:hover {
+  background: rgba(76, 175, 80, 0.15);
+}
+
+/* 表格列样式 */
+.col-rank {
+  font-weight: 600;
+  color: #FFD700;
+}
+
+.col-date {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.col-player {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.player-name {
+  font-weight: 500;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.you-badge {
+  background: #4CAF50;
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.col-score {
+  text-align: center;
+}
+
+.score-value {
+  font-weight: 600;
+  color: #FFD700;
+  font-size: 1rem;
+}
+
+.col-time, .col-moves {
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+.col-difficulty {
+  text-align: center;
+}
+
+.difficulty-badge {
+  color: white;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  display: inline-block;
+  min-width: 50px;
+  text-align: center;
+}
+
+.col-stars {
+  text-align: center;
+}
+
+.stars-display {
+  color: #FFD700;
+  font-size: 0.9rem;
+}
+
+.col-streak {
+  text-align: center;
+}
+
+.streak-value {
+  font-size: 0.85rem;
+}
+
+.col-perfect {
+  text-align: center;
+}
+
+.perfect-badge {
+  font-size: 1.2rem;
+}
+
+.col-completed {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  text-align: center;
+}
+
+/* 底部统计 */
+.summary-footer {
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 24px;
+}
+
+.summary-stats {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .personal-stats {
+    min-width: auto;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .table-header, .table-row {
+    grid-template-columns: 50px 70px 100px 70px 70px 60px 70px 50px 50px 50px 100px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .controls-section {
+    padding: 16px;
+  }
+  
+  .filter-controls {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .sort-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .history-content {
+    padding: 16px;
+  }
+  
+  .table-header, .table-row {
+    grid-template-columns: 40px 60px 80px 60px 60px 50px 60px 40px 40px 40px 80px;
+    padding: 12px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+  
+  .table-header, .table-row {
+    grid-template-columns: 35px 50px 70px 50px 50px 45px 50px 35px 35px 35px 70px;
+    gap: 4px;
+  }
+  
+  .player-name {
+    max-width: 60px;
+  }
+}

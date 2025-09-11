@@ -7,11 +7,12 @@ import './Leaderboard.css';
 
 interface LeaderboardProps {
   onBackToMenu: () => void;
+  onOpenDailyChallengeHistory?: () => void;
 }
 
 type ViewMode = 'all' | 'puzzle' | 'daily';
 
-export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
+export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu, onOpenDailyChallengeHistory }) => {
   console.log('排行榜组件开始渲染...');
   
   const { authState } = useAuth();
@@ -362,7 +363,18 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
         {/* 每日挑战排行榜 */}
         {viewMode === 'daily' && !loading && (
           <div className="daily-challenge-section">
-            <h2>📅 每日挑战排行榜</h2>
+            <div className="daily-challenge-header">
+              <h2>📅 每日挑战排行榜</h2>
+              {onOpenDailyChallengeHistory && (
+                <Button 
+                  onClick={onOpenDailyChallengeHistory}
+                  variant="secondary"
+                  size="medium"
+                >
+                  📊 查看详细历史记录
+                </Button>
+              )}
+            </div>
             
             <div className="date-selector">
               <h3>选择日期</h3>
@@ -388,6 +400,17 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
               <div className="no-data" style={{ textAlign: 'center', padding: '40px' }}>
                 <p>🎯 该日期暂无挑战记录</p>
                 <p>选择其他日期或参与每日挑战来创建记录！</p>
+                {onOpenDailyChallengeHistory && (
+                  <div style={{ marginTop: '20px' }}>
+                    <Button 
+                      onClick={onOpenDailyChallengeHistory}
+                      variant="primary"
+                      size="medium"
+                    >
+                      📊 查看全球挑战记录
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="daily-leaderboard-table">
