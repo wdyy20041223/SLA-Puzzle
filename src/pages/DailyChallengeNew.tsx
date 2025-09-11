@@ -80,14 +80,14 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
       ],
       star4: [
         { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落', star: 4 as const },
-        { id: 'invisible', name: '一手遮天', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
+        { id: 'invisible', name: '深渊漫步', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 as const },
         { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 as const },
         { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 as const }
       ],
       star5: [
         { id: 'no_mistakes', name: '最终防线', description: '本关卡不允许任何一次放置失误', star: 5 as const },
         { id: 'step_limit', name: '精打细算', description: '本关卡必须在1.5*拼图块数量次步数内完成', star: 5 as const },
-        { id: 'brightness', name: '璀璨星河', description: '答题区拼图块亮度随时间呈正弦变化', star: 5 as const }
+        { id: 'brightness', name: '亦步亦趋', description: '仅能在上次放置的拼图块周围放置拼图块', star: 5 as const }
       ]
     };
   };

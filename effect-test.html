@@ -93,14 +93,14 @@
             ],
             star4: [
                 { id: 'corner_start', name: '作茧自缚', description: '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', star: 4 },
-                { id: 'invisible', name: '一手遮天', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 },
+                { id: 'invisible', name: '深渊漫步', description: '本关卡放置后的拼图块为纯黑色不可见', star: 4 },
                 { id: 'no_preview', name: '一叶障目', description: '本关卡不允许查看原图', star: 4 },
                 { id: 'time_limit', name: '生死时速', description: '本关卡限时126*(拼图块数量/9)秒', star: 4 }
             ],
             star5: [
                 { id: 'no_mistakes', name: '最终防线', description: '本关卡不允许任何一次放置失误', star: 5 },
                 { id: 'step_limit', name: '精打细算', description: '本关卡必须在1.5*拼图块数量次步数内完成', star: 5 },
-                { id: 'brightness', name: '璀璨星河', description: '答题区拼图块亮度随时间呈正弦变化', star: 5 }
+                { id: 'brightness', name: '亦步亦趋', description: '仅能在上次放置的拼图块周围放置拼图块', star: 5 }
             ]
         };
 
@@ -326,9 +326,9 @@
             return effects.reduce((total, effectId) => {
                 if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
                     return total + 3;
-                } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+                } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
                     return total + 4;
-                } else if (['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
+                } else if (['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '亦步亦趋'].includes(effectId)) {
                     return total + 5;
                 }
                 return total;
@@ -357,7 +357,7 @@
             if (effects.includes('blur') || effects.includes('雾里看花')) {
                 classes.push('effect-blur-unselected');
             }
-            if (effects.includes('invisible') || effects.includes('一手遮天')) {
+            if (effects.includes('invisible') || effects.includes('深渊漫步')) {
                 classes.push('effect-invisible-placed');
             }
             return classes;

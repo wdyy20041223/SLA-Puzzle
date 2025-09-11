@@ -73,7 +73,7 @@
             border-radius: 4px;
         }
         
-        /* 一手遮天特效样式 */
+        /* 深渊漫步特效样式 */
         .effect-invisible-placed .placed-piece {
             background: #000000 !important;
         }
@@ -194,11 +194,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>🗺️ 一手遮天特效测试</h1>
+        <h1>🎩 深渊漫步特效测试</h1>
         
         <div class="description">
             <h3>特效说明</h3>
-            <p><strong>一手遮天</strong>是一个4星难度的每日挑战特效，它的核心机制是：</p>
+            <p><strong>深渊漫步</strong>是一个4星难度的每日挑战特效，它的核心机制是：</p>
             <ul>
                 <li><strong>放置后不可见</strong>：拼图块一旦放置到答题区，图像部分会变为纯黑色</li>
                 <li><strong>保留正确性提示</strong>：虽然图像变黑，但仍会显示拼图块编号和正确性指示器</li>
@@ -210,7 +210,7 @@
         <div class="demo-section">
             <h3>特效演示</h3>
             <div class="demo-container" id="demoContainer">
-                <button class="toggle-button" onclick="toggleEffect()">切换一手遮天特效</button>
+                <button class="toggle-button" onclick="toggleEffect()">切换深渊漫步特效</button>
                 
                 <div class="puzzle-grid" id="puzzleGrid">
                     <div class="grid-slot">
@@ -263,7 +263,7 @@
                 </div>
                 
                 <div class="invisible-effect-hint" id="effectHint" style="display: none;">
-                    🗺️ 一手遮天：放置后的拼图块为纯黑色不可见，只会提示是否正确放置！
+                    🎩 深渊漫步：放置后的拼图块为纯黑色不可见，只会提示是否正确放置！
                 </div>
             </div>
         </div>
@@ -292,7 +292,7 @@
 
         <div class="note">
             <strong>🎮 游戏体验：</strong><br>
-            一手遮天特效大大增加了拼图的挑战性，玩家需要：
+            深渊漫步特效大大增加了拼图的挑战性，玩家需要：
             <ul>
                 <li>仔细观察原图，记住每个区域的特征</li>
                 <li>利用正确性提示来判断放置是否正确</li>
@@ -315,18 +315,18 @@
             if (effectEnabled) {
                 container.classList.add('effect-invisible-placed');
                 hint.style.display = 'block';
-                button.textContent = '关闭一手遮天特效';
+                button.textContent = '关闭深渊漫步特效';
                 button.style.background = '#f44336';
             } else {
                 container.classList.remove('effect-invisible-placed');
                 hint.style.display = 'none';
-                button.textContent = '开启一手遮天特效';
+                button.textContent = '开启深渊漫步特效';
                 button.style.background = '#2196f3';
             }
         }
         
         // 页面加载时的说明
-        console.log('一手遮天特效测试页面已加载');
+        console.log('深渊漫步特效测试页面已加载');
         console.log('点击按钮可以切换特效开关，观察拼图块的变化');
     </script>
 </body>

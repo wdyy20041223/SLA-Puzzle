@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * 一手遮天特效测试脚本
+ * 深渊漫步特效测试脚本
  * 测试特效的核心逻辑和样式应用
  */
 
-console.log('🗺️ 一手遮天特效测试开始...\n');
+console.log('🎩 深渊漫步特效测试开始...\n');
 
 // 模拟特效检测函数
 function hasInvisibleEffect(effects) {
-    return effects.includes('invisible') || effects.includes('一手遮天');
+    return effects.includes('invisible') || effects.includes('深渊漫步');
 }
 
 // 模拟CSS类名生成函数
@@ -21,8 +21,8 @@ function getEffectClasses(effects) {
         classes.push('effect-blur-unselected');
     }
     
-    // 一手遮天特效
-    if (effects.includes('invisible') || effects.includes('一手遮天')) {
+    // 深渊漫步特效
+    if (effects.includes('invisible') || effects.includes('深渊漫步')) {
         classes.push('effect-invisible-placed');
     }
     
@@ -41,7 +41,7 @@ const testScenarios = [
         ]
     },
     {
-        name: '一手遮天特效场景（使用ID）',
+        name: '深渊漫步特效场景（使用ID）',
         effects: ['invisible'],
         pieces: [
             { id: 'piece1', placed: true, correct: true },
@@ -50,8 +50,8 @@ const testScenarios = [
         ]
     },
     {
-        name: '一手遮天特效场景（使用中文名）',
-        effects: ['一手遮天'],
+        name: '深渊漫步特效场景（使用中文名）',
+        effects: ['深渊漫步'],
         pieces: [
             { id: 'piece1', placed: true, correct: true },
             { id: 'piece2', placed: true, correct: false },
@@ -75,7 +75,7 @@ testScenarios.forEach((scenario, index) => {
     
     // 测试特效检测
     const hasEffect = hasInvisibleEffect(scenario.effects);
-    console.log(`   是否包含一手遮天特效: ${hasEffect ? '✅ 是' : '❌ 否'}`);
+    console.log(`   是否包含深渊漫步特效: ${hasEffect ? '✅ 是' : '❌ 否'}`);
     
     // 测试CSS类名生成
     const cssClasses = getEffectClasses(scenario.effects);
@@ -210,8 +210,8 @@ console.log('✅ 样式选择器精确');
 console.log('✅ 用户体验平衡良好');
 console.log('✅ 兼容性设计完善');
 console.log('');
-console.log('🚀 一手遮天特效实现完成！');
-console.log('   可在每日挑战中选择包含"一手遮天"或"invisible"特效的挑战来体验此功能。');
+console.log('🚀 深渊漫步特效实现完成！');
+console.log('   可在每日挑战中选择包含"深渊漫步"或"invisible"特效的挑战来体验此功能。');
 
 // 导出测试结果（如果在Node.js环境中运行）
 if (typeof module !== 'undefined' && module.exports) {

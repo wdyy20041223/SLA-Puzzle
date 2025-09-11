@@ -186,7 +186,7 @@
   animation: hint-pulse 2s infinite;
 }
 
-/* 一手遮天特效提示 */
+/* 深渊漫步特效提示 */
 .invisible-effect-hint {
   position: absolute;
   top: 90px;
@@ -225,6 +225,63 @@
   0% { color: #ff0000; }
   50% { color: #ff6600; }
   100% { color: #ff0000; }
+}
+
+/* 亦步亦趋特效：限制放置位置的槽位样式 */
+.step-follow-restricted {
+  position: relative;
+  opacity: 0.5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    #f0f0f0,
+    #f0f0f0 8px,
+    #e0e0e0 8px,
+    #e0e0e0 16px
+  );
+}
+
+.step-follow-restricted::before {
+  content: "🚫";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  z-index: 10;
+  pointer-events: none;
+  color: #999;
+}
+
+/* 亦步亦趋特效：可放置的槽位样式 */
+.step-follow-available {
+  opacity: 1;
+  pointer-events: auto;
+  background: #ffffff;
+  border: 2px solid #4caf50;
+  transition: all 0.3s ease;
+}
+
+.step-follow-available:hover {
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+  border-color: #66bb6a;
+}
+
+/* 亦步亦趋特效提示 */
+.step-follow-effect-hint {
+  position: absolute;
+  top: 130px;
+  right: 10px;
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 12px;
+  z-index: 100;
+  max-width: 250px;
+  line-height: 1.4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  animation: hint-pulse 2s infinite;
 }
 
 /* 璀璨星河特效：亮度变化容器 */

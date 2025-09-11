@@ -65,13 +65,15 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   
   // 特效实现状态
   const [effectStates, setEffectStates] = useState({
-    brightnessPhase: 0, // 璀璨星河特效的亮度相位
+    brightnessPhase: 0, // 亦步亦趋特效的相位（备用）
     availablePieces: new Set<string>(), // 管中窥豹特效当前可用的拼图块ID
     remainingPieces: [] as string[], // 管中窥豹特效剩余待补充的拼图块ID
     unlockedSlots: new Set<number>(), // 作茧自缚特效解锁的槽位
     cornerOnlyMode: false, // 作茧自缚特效是否只能在角落放置
     hasStepError: false, // 最终防线特效是否已有错误
     actualMoves: 0, // 举步维艰特效的实际步数（显示会翻倍）
+    lastPlacedSlot: -1, // 亦步亦趋特效：上次放置的槽位索引
+    stepFollowSlots: new Set<number>(), // 亦步亦趋特效：当前可放置的槽位
   });
 
   // 检查是否只能在角落放置（作茧自缚特效）
@@ -82,7 +84,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
     return corners.includes(slotIndex);
   }, [gameState]);
 
-  // 获取相邻槽位（作茧自缚特效）
+  // 获取相邻槽位（作茧自缚特效和亦步亦趋特效）
   const getAdjacentSlots = useCallback((slotIndex: number) => {
     if (!gameState) return [];
     const { rows, cols } = gameState.config.gridSize;
@@ -115,8 +117,18 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       return effectStates.unlockedSlots.has(slotIndex);
     }
     
+    // 亦步亦趋特效：只能在上次放置的拼图块周围放置
+    if (challenge.effects?.includes('brightness') || challenge.effects?.includes('亦步亦趋')) {
+      // 如果还没有放置任何拼图块，可以放在任意位置
+      if (gameState && gameState.answerGrid.every(slot => slot === null)) {
+        return true;
+      }
+      // 否则检查是否在允许的槽位列表中
+      return effectStates.stepFollowSlots.has(slotIndex);
+    }
+    
     return true;
-  }, [challenge.effects, gameState, isCornerSlot, effectStates.unlockedSlots]);
+  }, [challenge.effects, gameState, isCornerSlot, effectStates.unlockedSlots, effectStates.stepFollowSlots]);
 
   // 获取特效CSS类名
   const getEffectClasses = useCallback(() => {
@@ -127,8 +139,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       classes.push('effect-blur-unselected');
     }
     
-    // 一手遮天特效：放置后的拼图块变黑
-    if (challenge.effects?.includes('invisible') || challenge.effects?.includes('一手遮天')) {
+    // 深渊漫步特效：放置后的拼图块变黑
+    if (challenge.effects?.includes('invisible') || challenge.effects?.includes('深渊漫步')) {
       classes.push('effect-invisible-placed');
     }
     
@@ -139,14 +151,10 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const getEffectStyles = useCallback(() => {
     const styles: React.CSSProperties = {};
     
-    // 璀璨星河特效：答题区亮度变化
-    if (challenge.effects?.includes('brightness') || challenge.effects?.includes('璀璨星河')) {
-      const brightness = 0.7 + 0.3 * Math.sin(effectStates.brightnessPhase); // 0.7到1.0之间变化
-      styles.filter = `brightness(${brightness})`;
-    }
+    // 亦步亦趋特效不再使用亮度变化
     
     return styles;
-  }, [challenge.effects, effectStates.brightnessPhase]);
+  }, []);
 
   // 计算特效总星数
   const getTotalStars = useCallback(() => {
@@ -155,7 +163,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       // 基于特效ID计算星数
       if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
         return total + 3;
-      } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+      } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
         return total + 4;
       } else if (effectId.includes('5') || ['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
         return total + 5;
@@ -173,12 +181,12 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       'upside_down': '颠倒世界', '颠倒世界': '颠倒世界',
       'double_steps': '举步维艰', '举步维艰': '举步维艰',
       'corner_start': '作茧自缚', '作茧自缚': '作茧自缚',
-      'invisible': '一手遮天', '一手遮天': '一手遮天',
+      'invisible': '深渊漫步', '深渊漫步': '深渊漫步',
       'no_preview': '一叶障目', '一叶障目': '一叶障目',
       'time_limit': '生死时速', '生死时速': '生死时速',
       'no_mistakes': '最终防线', '最终防线': '最终防线',
       'step_limit': '精打细算', '精打细算': '精打细算',
-      'brightness': '璀璨星河', '璀璨星河': '璀璨星河'
+      'brightness': '亦步亦趋', '亦步亦趋': '亦步亦趋'
     };
     return effectMap[effectId] || effectId;
   }, []);
@@ -192,12 +200,12 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       'upside_down': '本关卡中正确答案旋转180°后得到原图', '颠倒世界': '本关卡中正确答案旋转180°后得到原图',
       'double_steps': '每一步统计时算作2步', '举步维艰': '每一步统计时算作2步',
       'corner_start': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位', '作茧自缚': '本关卡最开始可以放置拼图块的位置只有四个角落，只有正确放置才会解锁相邻槽位',
-      'invisible': '本关卡放置后的拼图块为纯黑色不可见', '一手遮天': '本关卡放置后的拼图块为纯黑色不可见',
+      'invisible': '本关卡放置后的拼图块为纯黑色不可见', '深渊漫步': '本关卡放置后的拼图块为纯黑色不可见',
       'no_preview': '本关卡不允许查看原图', '一叶障目': '本关卡不允许查看原图',
       'time_limit': '本关卡限时126*(拼图块数量/9)秒', '生死时速': '本关卡限时126*(拼图块数量/9)秒',
       'no_mistakes': '本关卡不允许任何一次放置失误', '最终防线': '本关卡不允许任何一次放置失误',
       'step_limit': '本关卡必须在1.5*拼图块数量次步数内完成', '精打细算': '本关卡必须在1.5*拼图块数量次步数内完成',
-      'brightness': '答题区拼图块亮度随时间呈正弦变化', '璀璨星河': '答题区拼图块亮度随时间呈正弦变化'
+      'brightness': '仅能在上次放置的拼图块周围放置拼图块', '亦步亦趋': '仅能在上次放置的拼图块周围放置拼图块'
     };
     return descriptionMap[effectId] || '未知特效';
   }, []);
@@ -206,9 +214,9 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   const getEffectStars = useCallback((effectId: string) => {
     if (['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
       return 3;
-    } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+    } else if (['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
       return 4;
-    } else if (['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
+    } else if (['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '亦步亦趋'].includes(effectId)) {
       return 5;
     }
     return 0;
@@ -295,6 +303,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         cornerOnlyMode: false,
         hasStepError: false,
         actualMoves: 0,
+        lastPlacedSlot: -1,
+        stepFollowSlots: new Set(),
       });
       
     } catch (err) {
@@ -359,6 +369,17 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         newStates.unlockedSlots = new Set();
       }
       
+      // 亦步亦趋特效：初始化状态
+      if (challenge.effects?.includes('brightness') || challenge.effects?.includes('亦步亦趋')) {
+        newStates.lastPlacedSlot = -1;
+        // 初始可以在任意位置放置第一个拼图块
+        const allSlots = Array.from({ length: rows * cols }, (_, i) => i);
+        newStates.stepFollowSlots = new Set(allSlots);
+      } else {
+        newStates.lastPlacedSlot = -1;
+        newStates.stepFollowSlots = new Set();
+      }
+      
       return newStates;
     });
   }, [puzzleConfig, challenge.effects, challenge.gridSize, puzzleType]);
@@ -385,13 +406,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       setElapsedTime(elapsed);
       setRemainingTime(remaining);
       
-      // 璀璨星河特效：更新亮度相位
-      if (challenge.effects?.includes('brightness') || challenge.effects?.includes('璀璨星河')) {
-        setEffectStates(prev => ({
-          ...prev,
-          brightnessPhase: (elapsed * 0.05) % (2 * Math.PI) // 20秒一个周期
-        }));
-      }
+      // 亦步亦趋特效不再更新亮度相位（已改为位置限制特效）
       
       // 检查时间是否用完
       if (remaining <= 0) {
@@ -475,6 +490,89 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       updateChallengeRecord(true, isPerfect);
     }
   }, [moves, challenge.perfectMoves, challenge.effects, challenge.gridSize, effectStates.actualMoves, authState]);
+
+  // 检查亦步亦趋特效是否无可放置位置
+  const checkStepFollowFailure = useCallback(() => {
+    if (!challenge.effects?.includes('brightness') && !challenge.effects?.includes('亦步亦趋')) {
+      return;
+    }
+    
+    if (!gameState || gameState.isCompleted) {
+      return;
+    }
+    
+    // 检查是否还有未放置的拼图块
+    const hasUnplacedPieces = gameState.answerGrid.some(slot => slot === null);
+    
+    if (hasUnplacedPieces && effectStates.stepFollowSlots.size === 0 && effectStates.lastPlacedSlot !== -1) {
+      // 还有拼图块没放置，但没有可放置的位置，游戏失败
+      setFailureReason('亦步亦趋特效：您已经无法在上次放置的拼图块周围继续放置，游戏失败！');
+      setShowFailureModal(true);
+    }
+  }, [challenge.effects, gameState, effectStates.stepFollowSlots, effectStates.lastPlacedSlot]);
+
+  // 特效增强的拼图块撤回函数
+  const enhancedRemovePieceFromSlot = useCallback((pieceId: string) => {
+    if (!gameState) return;
+    
+    // 先找到要撤回的拼图块信息
+    const piece = gameState.config.pieces.find(p => p.id === pieceId);
+    if (!piece || piece.currentSlot === null) {
+      return;
+    }
+    
+    const removedSlotIndex = piece.currentSlot;
+    
+    // 执行正常的撤回逻辑
+    removePieceFromSlot(pieceId);
+    
+    // 亦步亦趋特效：回退状态逻辑
+    if (challenge.effects?.includes('brightness') || challenge.effects?.includes('亦步亦趋')) {
+      setEffectStates(prev => {
+        const newStates = { ...prev };
+        
+        // 如果撤回的是最后放置的拼图块，需要回退状态
+        if (removedSlotIndex === prev.lastPlacedSlot) {
+          // 查找上一个放置的拼图块位置
+          const remainingPieces = gameState.answerGrid.filter((slot, index) => 
+            slot !== null && index !== removedSlotIndex
+          );
+          
+          if (remainingPieces.length === 0) {
+            // 如果没有其他拼图块了，回到初始状态
+            newStates.lastPlacedSlot = -1;
+            const { rows, cols } = gameState.config.gridSize;
+            const allSlots = Array.from({ length: rows * cols }, (_, i) => i);
+            newStates.stepFollowSlots = new Set(allSlots);
+          } else {
+            // 找到最后一个剩余拼图块的位置
+            const lastRemainingPieceIndex = gameState.answerGrid
+              .map((slot, index) => slot !== null && index !== removedSlotIndex ? index : -1)
+              .filter(index => index !== -1)
+              .pop();
+              
+            if (lastRemainingPieceIndex !== undefined && lastRemainingPieceIndex !== -1) {
+              newStates.lastPlacedSlot = lastRemainingPieceIndex;
+              // 重新计算基于新的最后位置的可放置槽位
+              const adjacentSlots = getAdjacentSlots(lastRemainingPieceIndex);
+              const availableAdjacent = adjacentSlots.filter(slot => 
+                slot !== removedSlotIndex && !gameState.answerGrid[slot] // 排除刚撤回的位置，且槽位未被占用
+              );
+              newStates.stepFollowSlots = new Set(availableAdjacent);
+            }
+          }
+          
+          console.log('👨‍💼 亦步亦趋特效撤回状态更新:', {
+            撤回位置: removedSlotIndex,
+            新的最后位置: newStates.lastPlacedSlot,
+            新的可放置位置: Array.from(newStates.stepFollowSlots)
+          });
+        }
+        
+        return newStates;
+      });
+    }
+  }, [gameState, removePieceFromSlot, challenge.effects, getAdjacentSlots]);
 
   // 特效增强的拼图块放置函数
   const enhancedPlacePieceToSlot = useCallback((pieceId: string, slotIndex: number) => {
@@ -564,6 +662,29 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       }
     }
     
+    // 亦步亦趋特效：更新上次放置位置和当前可放置槽位
+    if (challenge.effects?.includes('brightness') || challenge.effects?.includes('亦步亦趋')) {
+      setEffectStates(prev => {
+        const newStates = { ...prev };
+        newStates.lastPlacedSlot = slotIndex;
+        
+        // 获取相邻槽位作为下次可放置的位置
+        const adjacentSlots = getAdjacentSlots(slotIndex);
+        // 只允许在未被占用的相邻槽位放置
+        const availableAdjacent = adjacentSlots.filter(slot => 
+          !gameState?.answerGrid[slot] // 槽位未被占用
+        );
+        newStates.stepFollowSlots = new Set(availableAdjacent);
+        
+        console.log('👨‍💼 亦步亦趋特效更新:', {
+          放置位置: slotIndex,
+          下次可放置位置: availableAdjacent
+        });
+        
+        return newStates;
+      });
+    }
+    
     // 更新步数（考虑举步维艰特效）
     if (challenge.effects?.includes('double_steps') || challenge.effects?.includes('举步维艰')) {
       setEffectStates(prev => ({ ...prev, actualMoves: prev.actualMoves + 1 }));
@@ -588,7 +709,17 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       }
     }
     
-  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState, getAdjacentSlots, gameState]);
+    // 检查亦步亦趋特效的失败条件（在放置后延迟检查）
+    setTimeout(() => {
+      checkStepFollowFailure();
+    }, 100);
+    
+  }, [placePieceToSlot, canPlaceToSlot, challenge.effects, challenge.gridSize, effectStates.actualMoves, moves, authState, getAdjacentSlots, gameState, checkStepFollowFailure]);
+
+  // 监听亦步亦趋特效的失败条件
+  useEffect(() => {
+    checkStepFollowFailure();
+  }, [checkStepFollowFailure]);
 
   // 监听游戏完成状态（仿照普通关卡的完成检测机制）
   useEffect(() => {
@@ -720,9 +851,9 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
         // 基于特效ID计算星数
         if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
           return total + 3;
-        } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '一手遮天', '一叶障目', '生死时速'].includes(effectId)) {
+        } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
           return total + 4;
-        } else if (effectId.includes('5') || ['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '璀璨星河'].includes(effectId)) {
+        } else if (effectId.includes('5') || ['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '亦步亦趋'].includes(effectId)) {
           return total + 5;
         }
         return total;
@@ -1057,16 +1188,22 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
                 🔍 管中窥豹：初始只提供一半拼图块，正确放置后自动补充新的拼图块！当前可用: {effectStates.availablePieces.size}/{gameState?.config.pieces.length || 0}
               </div>
             )}
-            {/* 一手遮天特效提示 */}
-            {(challenge.effects?.includes('invisible') || challenge.effects?.includes('一手遮天')) && (
+            {/* 深渊漫步特效提示 */}
+            {(challenge.effects?.includes('invisible') || challenge.effects?.includes('深渊漫步')) && (
               <div className="invisible-effect-hint">
-                🗺️ 一手遮天：放置后的拼图块为纯黑色不可见，只会提示是否正确放置！
+                🎩 深渊漫步：放置后的拼图块为纯黑色不可见，只会提示是否正确放置！
               </div>
             )}
             {/* 颠倒世界特效提示 */}
             {(challenge.effects?.includes('upside_down') || challenge.effects?.includes('颠倒世界')) && (
               <div className="upside-down-effect-hint">
                 🔄 颠倒世界：原图已被旋转180°，拼图区域和答题区都是颠倒的
+              </div>
+            )}
+            {/* 亦步亦趋特效提示 */}
+            {(challenge.effects?.includes('brightness') || challenge.effects?.includes('亦步亦趋')) && (
+              <div className="step-follow-effect-hint">
+                👨‍💼 亦步亦趋：仅能在上次放置的拼图块周围放置！当前可放置: {effectStates.stepFollowSlots.size}个位置
               </div>
             )}
             {/* 天旋地转特效提示 */}
@@ -1145,7 +1282,7 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
               showAnswers={showAnswer && !isAnswerDisabled}
               onPieceSelect={handlePieceSelect}
               onPlacePiece={enhancedPlacePieceToSlot}
-              onRemovePiece={removePieceFromSlot}
+              onRemovePiece={enhancedRemovePieceFromSlot}
               onRotatePiece={(id) => rotatePiece(id, 90)}
               onFlipPiece={flipPiece}
               onDragStart={handleDragStart}
