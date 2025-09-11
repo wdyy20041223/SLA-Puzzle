@@ -9,6 +9,7 @@ interface PreviewModalProps {
   imageTitle: string;
   showPuzzleGrid?: boolean;
   gridSize?: string;
+  pieceShape?: string; // 新增：拼块形状
 }
 
 export const PreviewModal: React.FC<PreviewModalProps> = ({
@@ -17,7 +18,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
   imageSrc,
   imageTitle,
   showPuzzleGrid = false,
-  gridSize = '4x4'
+  gridSize = '4x4',
+  pieceShape = 'square' // 默认方形
 }) => {
   if (!isOpen) return null;
 
@@ -55,6 +57,50 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
       );
     }
 
+    // 添加对角线（三角形拼块）
+    if (pieceShape === 'triangle') {
+      // 左上到右下的对角线
+      gridLines.push(
+        <div
+          key="diagonal-1"
+          className="grid-line diagonal"
+          style={{
+            top: '0%',
+            left: '0%',
+            width: '141.42%', // 对角线长度
+            height: '2px',
+            transform: 'rotate(45deg)',
+            transformOrigin: '0 0'
+          }}
+        />
+      );
+
+      // 为每个单元格添加对角线
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const cellWidth = 100 / cols;
+          const cellHeight = 100 / rows;
+          const left = col * cellWidth;
+          const top = row * cellHeight;
+          
+          gridLines.push(
+            <div
+              key={`cell-diag-${row}-${col}`}
+              className="grid-line diagonal-cell"
+              style={{
+                top: `${top}%`,
+                left: `${left}%`,
+                width: `${cellWidth}%`,
+                height: `${cellHeight}%`
+              }}
+            >
+              <div className="diagonal-line" />
+            </div>
+          );
+        }
+      }
+    }
+
     return (
       <div className="puzzle-grid-overlay">
         <div className="grid-overlay-inner">
@@ -62,6 +108,28 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
         </div>
       </div>
     );
+  };
+
+  const getPieceCount = () => {
+    const [rows, cols] = gridSize.split('x').map(Number);
+    const baseCount = rows * cols;
+    
+    if (pieceShape === 'triangle') {
+      // 三角形拼块：每个方形单元格被对角线分成2个三角形
+      return baseCount * 2;
+    }
+    
+    return baseCount;
+  };
+
+  const getShapeDisplay = () => {
+    switch (pieceShape) {
+      case 'triangle':
+        return '三角形';
+      case 'square':
+      default:
+        return '方形';
+    }
   };
 
   return (
@@ -98,8 +166,8 @@ export const PreviewModal: React.FC<PreviewModalProps> = ({
         
         {showPuzzleGrid && (
           <div className="preview-info">
-            <p>🧩 拼图网格预览 ({gridSize})</p>
-            <p>蓝色线条显示图片将如何被分割成 {gridSize.replace('x', '×')} 共 {gridSize.split('x').reduce((a, b) => parseInt(a) * parseInt(b), 1)} 块拼图</p>
+            <p>🧩 拼图网格预览 ({gridSize.replace('x', '×')} {getShapeDisplay()})</p>
+            <p>蓝色线条显示图片将如何被分割成 {getPieceCount()} 块{getShapeDisplay()}拼图</p>
           </div>
         )}
         

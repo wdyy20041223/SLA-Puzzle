@@ -29,6 +29,9 @@
   overflow-y: auto;
   padding-top: 24px;
   box-sizing: border-box;
+  width: 1100px;
+  min-height: 800px;
+  margin: 0 auto;
 }
 
 .settings-section {
@@ -67,7 +70,7 @@
 /* Difficulty Grid */
 .difficulty-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
 }
 
@@ -97,6 +100,26 @@
     white
   );
   box-shadow: 0 8px 24px color-mix(in srgb, var(--accent-color, #3b82f6) 20%, transparent);
+}
+
+/* 自定义选项的特殊样式 */
+.difficulty-card[style*="--accent-color: #8b5cf6"] {
+  border: 2px solid #e5e7eb;
+}
+
+.difficulty-card[style*="--accent-color: #8b5cf6"].selected {
+  border: 2px solid #8b5cf6;
+  background: linear-gradient(135deg, 
+    color-mix(in srgb, #8b5cf6 15%, white),
+    white
+  );
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+}
+
+.difficulty-card[style*="--accent-color: #8b5cf6"]:hover {
+  border-color: #7c3aed;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
 }
 
 .card-header {
@@ -370,15 +393,16 @@
 
 .summary-content {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
 
 .summary-item {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   padding: 8px 0;
+  gap: 12px;
 }
 
 .summary-label {
@@ -467,7 +491,7 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .difficulty-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
   
   .shape-grid {
@@ -509,6 +533,31 @@
   
   .stat-item {
     flex-direction: row;
+  .difficulty-grid {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    gap: 16px;
+    margin: 0 auto 12px auto;
+    width: 80%;
+    max-width: 100px;
+  }
+  .difficulty-card {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 6px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 120px;
+    width: 50px;
+    max-width: 10vw;
+    box-sizing: border-box;
+  }
     justify-content: space-between;
     align-items: center;
   }
@@ -565,3 +614,21 @@
 .shape-card:nth-child(1) { animation-delay: 0.1s; }
 .shape-card:nth-child(2) { animation-delay: 0.2s; }
 .shape-card:nth-child(3) { animation-delay: 0.3s; }
+
+/* Custom shape section animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.custom-shape-section {
+  animation: fadeIn 0.3s ease-in-out;
+  margin-top: 6px !important;
+  padding: 6px !important;
+}

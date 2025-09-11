@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../common/Button';
 import { DifficultyLevel, PieceShape } from '../../types';
 import './DifficultySettings.css';
 
 interface DifficultySettingsProps {
-  onComplete: (difficulty: DifficultyLevel, pieceShape: PieceShape) => void;
+  onComplete: (difficulty: DifficultyLevel, pieceShape: PieceShape, customRows?: number, customCols?: number) => void;
   onBack: () => void;
   onPreviewClick?: () => void;
   hasPreviewImage?: boolean;
@@ -24,8 +24,17 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
   onDifficultyChange,
   onShapeChange
 }) => {
+  const [customRows, setCustomRows] = useState('3');
+  const [customCols, setCustomCols] = useState('3');
+  const [showCustomInputs, setShowCustomInputs] = useState(false);
 
-  const difficultyOptions = [
+  // 当选择自定义难度时显示输入框
+  useEffect(() => {
+    setShowCustomInputs(selectedDifficulty === 'custom');
+  }, [selectedDifficulty]);
+
+  // 基础难度选项
+  const baseDifficultyOptions = [
     {
       value: 'easy' as DifficultyLevel,
       label: '简单',
@@ -57,8 +66,25 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
       pieces: 36,
       color: '#ef4444',
       icon: '🔥'
+    },
+    {
+      value: 'custom' as DifficultyLevel,
+      label: '自定义',
+      grid: '自定义',
+      pieces: 0,
+      color: '#8b5cf6',
+      icon: '⚙️'
     }
   ];
+
+  // 根据形状调整拼块数量
+  const difficultyOptions = baseDifficultyOptions.map(option => {
+    let pieces = option.pieces;
+    if (selectedShape === 'triangle' && option.value !== 'custom') {
+      pieces = pieces * 2;
+    }
+    return { ...option, pieces };
+  });
 
   const shapeOptions = [
     {
@@ -97,11 +123,60 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
   ];
 
   const handleComplete = () => {
-    onComplete(selectedDifficulty, selectedShape);
+    if (selectedDifficulty === 'custom') {
+      const rows = parseInt(customRows);
+      const cols = parseInt(customCols);
+      if (rows >= 2 && rows <= 10 && cols >= 2 && cols <= 10) {
+        onComplete('custom', selectedShape, rows, cols);
+      } else {
+        alert('请输入有效的行数和列数（2-10之间）');
+      }
+    } else {
+      onComplete(selectedDifficulty, selectedShape);
+    }
+  };
+
+  const handleCustomGridChange = () => {
+    const rows = parseInt(customRows);
+    const cols = parseInt(customCols);
+    if (rows >= 2 && rows <= 10 && cols >= 2 && cols <= 10) {
+      // 更新配置并关闭自定义设置面板
+      setShowCustomInputs(false);
+      // 这里可以添加其他配置更新逻辑
+      console.log(`自定义网格已更新: ${rows}×${cols}`);
+    } else {
+      alert('请输入有效的行数和列数（2-10之间）');
+    }
+  };
+
+  const getCurrentGridSize = () => {
+    if (selectedDifficulty === 'custom') {
+      const rows = parseInt(customRows);
+      const cols = parseInt(customCols);
+      return `${rows}×${cols}`;
+    }
+    
+    const option = difficultyOptions.find(d => d.value === selectedDifficulty);
+    return option?.grid || '3×3';
+  };
+
+  const getCurrentPieceCount = () => {
+    if (selectedDifficulty === 'custom') {
+      const rows = parseInt(customRows);
+      const cols = parseInt(customCols);
+      let pieces = rows * cols;
+      if (selectedShape === 'triangle') {
+        pieces = pieces * 2;
+      }
+      return pieces;
+    }
+    
+    const option = difficultyOptions.find(d => d.value === selectedDifficulty);
+    return option?.pieces || 9;
   };
 
   return (
-    <div className="difficulty-settings">
+  <div className="difficulty-settings" style={{ transform: 'translateX(-150px)' }}>
       <div className="settings-section">
         <h3>🎯 选择难度等级</h3>
         <p className="section-description">
@@ -109,38 +184,187 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
         </p>
         
         <div className="difficulty-grid">
-          {difficultyOptions.map((option) => (
-            <button
-              key={option.value}
-              className={`difficulty-card ${selectedDifficulty === option.value ? 'selected' : ''}`}
-              onClick={() => onDifficultyChange(option.value)}
-              style={{ '--accent-color': option.color } as React.CSSProperties}
-            >
-              <div className="card-header">
-                <span className="difficulty-icon">{option.icon}</span>
-                <div className="difficulty-info">
-                  <h4>{option.label}</h4>
-                  <span className="grid-size">{option.grid} 网格</span>
-                </div>
-              </div>
-              
-              <div className="card-body">
-                <div className="difficulty-stats">
-                  <div className="stat-item">
-                    <span className="stat-label">拼块数量</span>
-                    <span className="stat-value">{option.pieces}块</span>
+          {difficultyOptions.map((option) => {
+            // 解析 grid 字符串为 m 和 n
+            let gridDisplay = option.grid;
+            if (option.value !== 'custom') {
+              const gridMatch = option.grid.match(/(\d+)×(\d+)/);
+              gridDisplay = option.grid + ' 网格';
+              if (selectedShape === 'triangle' && gridMatch) {
+                const m = gridMatch[1];
+                const n = gridMatch[2];
+                gridDisplay = `${m}×${n}×2 网格`;
+              }
+            }
+            
+            return (
+              <button
+                key={option.value}
+                className={`difficulty-card ${selectedDifficulty === option.value ? 'selected' : ''}`}
+                onClick={() => onDifficultyChange(option.value)}
+                style={{ '--accent-color': option.color, width: 180, minWidth: 0, padding: '8px 2px' } as React.CSSProperties}
+              >
+                <div className="card-header">
+                  <span className="difficulty-icon">{option.icon}</span>
+                  <div className="difficulty-info">
+                    <h4>{option.label}</h4>
+                    <span className="grid-size">{gridDisplay}</span>
                   </div>
                 </div>
+                <div className="card-body">
+                  <div className="difficulty-stats">
+                    <div className="stat-item">
+                      <span className="stat-label">拼块数量</span>
+                      <span className="stat-value">
+                        {option.value === 'custom' 
+                          ? (selectedDifficulty === 'custom' ? getCurrentPieceCount() + '块' : '自定义')
+                          : option.pieces + '块'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="card-footer">
+                  <div className={`selection-indicator ${selectedDifficulty === option.value ? 'active' : ''}`}>
+                    {selectedDifficulty === option.value ? '✓ 已选择' : '点击选择'}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 自定义形状选项 - 当选择自定义时自动显示 */}
+        {showCustomInputs && (
+          <div className="custom-shape-section" style={{ 
+            marginTop: '6px', 
+            padding: '5px', 
+            border: '2px solid #8b5cf6', 
+            borderRadius: '12px',
+            background: 'linear-gradient(135deg, color-mix(in srgb, #8b5cf6 5%, white), white)',
+            animation: 'fadeIn 0.3s ease-in'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <h4 style={{ margin: 0, fontSize: '18px', color: '#1f2937', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ color: '#8b5cf6' }}>⚙️</span>
+                自定义网格设置
+              </h4>
+              <button
+                onClick={() => setShowCustomInputs(false)}
+                style={{
+                  padding: '6px 12px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '6px',
+                  background: 'white',
+                  color: '#6b7280',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                收起
+              </button>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', alignItems: 'end' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>
+                  行数 (2-10)
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  max="10"
+                  value={customRows}
+                  onChange={(e) => setCustomRows(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                />
               </div>
               
-              <div className="card-footer">
-                <div className={`selection-indicator ${selectedDifficulty === option.value ? 'active' : ''}`}>
-                  {selectedDifficulty === option.value ? '✓ 已选择' : '点击选择'}
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#374151' }}>
+                  列数 (2-10)
+                </label>
+                <input
+                  type="number"
+                  min="2"
+                  max="10"
+                  value={customCols}
+                  onChange={(e) => setCustomCols(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#8b5cf6'}
+                  onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                />
+              </div>
+              
+              <div>
+                <button
+                  onClick={handleCustomGridChange}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: 'none',
+                    borderRadius: '8px',
+                    background: '#8b5cf6',
+                    color: 'white',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7c3aed'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#8b5cf6'}
+                >
+                  更新配置
+                </button>
+              </div>
+            </div>
+            
+            <div style={{ 
+              marginTop: '16px', 
+              padding: '16px', 
+              background: '#f8fafc', 
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0'
+            }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <strong style={{ color: '#374151', fontSize: '14px' }}>网格尺寸:</strong>
+                  <span style={{ color: '#8b5cf6', fontWeight: '600', fontSize: '16px', marginLeft: '8px' }}>
+                    {customRows}×{customCols}
+                  </span>
+                </div>
+                <div>
+                  <strong style={{ color: '#374151', fontSize: '14px' }}>拼块总数:</strong>
+                  <span style={{ color: '#8b5cf6', fontWeight: '600', fontSize: '16px', marginLeft: '8px' }}>
+                    {getCurrentPieceCount()}块
+                  </span>
                 </div>
               </div>
-            </button>
-          ))}
-        </div>
+              {selectedShape === 'triangle' && (
+                <div style={{ marginTop: '8px', fontSize: '14px', color: '#64748b' }}>
+                  <span style={{ color: '#f59e0b' }}>⚠️</span> 三角拼块模式下，实际拼块数量为网格大小的2倍
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="settings-section">
@@ -183,8 +407,10 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
           <div className="summary-item">
             <span className="summary-label">难度等级:</span>
             <span className="summary-value">
-              {difficultyOptions.find(d => d.value === selectedDifficulty)?.label}
-              ({difficultyOptions.find(d => d.value === selectedDifficulty)?.grid})
+              {selectedDifficulty === 'custom' 
+                ? `自定义 (${customRows}×${customCols})` 
+                : `${difficultyOptions.find(d => d.value === selectedDifficulty)?.label} (${getCurrentGridSize()})`
+              }
             </span>
           </div>
           <div className="summary-item">
@@ -196,7 +422,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
           <div className="summary-item">
             <span className="summary-label">拼块总数:</span>
             <span className="summary-value">
-              {difficultyOptions.find(d => d.value === selectedDifficulty)?.pieces}块
+              {getCurrentPieceCount()}块
             </span>
           </div>
 
@@ -242,6 +468,7 @@ export const DifficultySettings: React.FC<DifficultySettingsProps> = ({
           <li><strong>图片细节:</strong> 细节丰富的图片适合更高难度</li>
           <li><strong>游戏时间:</strong> 根据可用时间选择合适难度</li>
           <li><strong>拼块形状:</strong> 方形拼块最适合初学者</li>
+          <li><strong>自定义形状:</strong> 可以创建2×2到10×10之间的任意网格</li>
         </ul>
       </div>
     </div>

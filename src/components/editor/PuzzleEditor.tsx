@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
+import LZString from 'lz-string';
 import SavedPuzzlesPage from '../../pages/SavedPuzzles';
 import { Button } from '../common/Button';
 import { ImageCropper } from './ImageCropper';
@@ -27,6 +28,8 @@ interface CustomPuzzleConfig {
   pieceShape: PieceShape;
   aspectRatio: AspectRatio;
   croppedImageData?: string;
+  customRows?: number;
+  customCols?: number;
 }
 
 export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStartGame, initialStep, onStartIrregularGame }) => {
@@ -41,9 +44,11 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     aspectRatio: '1:1'
   });
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  // 新增：用于实时记录设置页的难度和形状选择
+  // 新增：用于实时记录设置页的难度和形状选择和自定义行列
   const [tempDifficulty, setTempDifficulty] = useState<DifficultyLevel>('medium');
   const [tempPieceShape, setTempPieceShape] = useState<PieceShape>('square');
+  const [tempCustomRows, setTempCustomRows] = useState<number>(3);
+  const [tempCustomCols, setTempCustomCols] = useState<number>(3);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // 新增：保存后跳转到存档页面
   const [showSavedPage, setShowSavedPage] = useState(false);
@@ -62,8 +67,8 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
     setImportCode(val);
     setImportError('');
     try {
-      const json = decodeURIComponent(atob(val.trim()));
-      const data = JSON.parse(json);
+  const json = LZString.decompressFromBase64(val.trim());
+  const data = JSON.parse(json);
       if (data.image) {
         setImportPreviewImage(data.image);
       } else {
@@ -96,8 +101,8 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
   const handleImportShareCode = () => {
     setImportError('');
     try {
-      const json = decodeURIComponent(atob(importCode.trim()));
-      const data = JSON.parse(json);
+  const json = LZString.decompressFromBase64(importCode.trim());
+  const data = JSON.parse(json);
       if (!data.image || !data.pieceShape || !data.difficulty || !data.gridSize) {
         setImportError('分享代码无效或缺少必要信息');
         return;
@@ -182,12 +187,16 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
   // 传递给 DifficultySettings 的回调，确认时才写入主配置
   const handleDifficultySettingsComplete = useCallback((
     difficulty: DifficultyLevel,
-    pieceShape: PieceShape
+    pieceShape: PieceShape,
+    customRows?: number,
+    customCols?: number
   ) => {
     setCustomPuzzleConfig(prev => ({
       ...prev,
       difficulty,
-      pieceShape
+      pieceShape,
+      customRows: difficulty === 'custom' ? customRows : undefined,
+      customCols: difficulty === 'custom' ? customCols : undefined
     }));
     setCurrentStep('preview');
   }, []);
@@ -198,6 +207,11 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
   }, []);
   const handleTempPieceShapeChange = useCallback((shape: PieceShape) => {
     setTempPieceShape(shape);
+  }, []);
+  // 新增：自定义行列同步
+  const handleTempCustomGrid = useCallback((rows: number, cols: number) => {
+    setTempCustomRows(rows);
+    setTempCustomCols(cols);
   }, []);
 
   const handleSavePuzzle = useCallback(() => {
@@ -237,12 +251,15 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
       return;
     }
     // 计算块数
-    const gridSize = (() => {
-      if (customPuzzleConfig.difficulty === 'easy') return { rows: 3, cols: 3 };
-      if (customPuzzleConfig.difficulty === 'medium') return { rows: 4, cols: 4 };
-      if (customPuzzleConfig.difficulty === 'hard') return { rows: 5, cols: 5 };
-      return { rows: 6, cols: 6 };
-    })();
+    let gridSize;
+    if (customPuzzleConfig.difficulty === 'custom' && customPuzzleConfig.customRows && customPuzzleConfig.customCols) {
+      gridSize = { rows: customPuzzleConfig.customRows, cols: customPuzzleConfig.customCols };
+    } else {
+      if (customPuzzleConfig.difficulty === 'easy') gridSize = { rows: 3, cols: 3 };
+      else if (customPuzzleConfig.difficulty === 'medium') gridSize = { rows: 4, cols: 4 };
+      else if (customPuzzleConfig.difficulty === 'hard') gridSize = { rows: 5, cols: 5 };
+      else gridSize = { rows: 6, cols: 6 };
+    }
     // 分享内容
     const shareData = {
       name: customPuzzleConfig.name,
@@ -253,9 +270,9 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
       aspectRatio: customPuzzleConfig.aspectRatio
     };
     // 编码为 base64
-    const json = JSON.stringify(shareData);
-    const encoded = btoa(encodeURIComponent(json));
-    setShareCode(encoded);
+  const json = JSON.stringify(shareData);
+  const encoded = LZString.compressToBase64(json);
+  setShareCode(encoded);
     setShareDialogOpen(true);
   }, [customPuzzleConfig]);
   // 复制分享代码到剪贴板
@@ -278,22 +295,42 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
   const handleStartGame = useCallback(async () => {
     const pieceShape = currentStep === 'settings' ? tempPieceShape : customPuzzleConfig.pieceShape;
     const difficulty = currentStep === 'settings' ? tempDifficulty : customPuzzleConfig.difficulty;
-    if (!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name) {
-      alert('请先完成拼图设置并裁剪图片！');
+    const customRows = currentStep === 'settings' ? tempCustomRows : customPuzzleConfig.customRows;
+    const customCols = currentStep === 'settings' ? tempCustomCols : customPuzzleConfig.customCols;
+    
+    // 检查必要的配置是否完整
+    if (!customPuzzleConfig.croppedImageData) {
+      alert('请先裁剪图片！请返回裁剪步骤完成图片裁剪。');
+      setCurrentStep('crop');
       return;
     }
-    const gridSize = (() => {
-      if (difficulty === 'easy') return { rows: 3, cols: 3 };
-      if (difficulty === 'medium') return { rows: 4, cols: 4 };
-      if (difficulty === 'hard') return { rows: 5, cols: 5 };
-      return { rows: 6, cols: 6 };
-    })();
+    
+    if (!customPuzzleConfig.name) {
+      alert('请设置拼图名称！请返回上传步骤设置拼图名称。');
+      setCurrentStep('upload');
+      return;
+    }
+    let gridSize;
+    if (difficulty === 'custom' && customRows && customCols) {
+      gridSize = { rows: customRows, cols: customCols };
+    } else {
+      if (difficulty === 'easy') gridSize = { rows: 3, cols: 3 };
+      else if (difficulty === 'medium') gridSize = { rows: 4, cols: 4 };
+      else if (difficulty === 'hard') gridSize = { rows: 5, cols: 5 };
+      else gridSize = { rows: 6, cols: 6 };
+    }
     try {
       if (pieceShape === 'irregular') {
-        // 直接跳转到异形拼图游戏
-        if (typeof onStartIrregularGame === 'function') {
-          const gridStr = `${gridSize.rows}x${gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
-          onStartIrregularGame(customPuzzleConfig.croppedImageData, gridStr);
+        // 只允许 3x3/4x4/5x5/6x6，custom 非这几种时提示
+        const allowed = [3, 4, 5, 6];
+        if (gridSize && allowed.includes(gridSize.rows) && allowed.includes(gridSize.cols) && gridSize.rows === gridSize.cols) {
+          if (typeof onStartIrregularGame === 'function') {
+            const gridStr = `${gridSize.rows}x${gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6';
+            onStartIrregularGame(customPuzzleConfig.croppedImageData, gridStr);
+            return;
+          }
+        } else {
+          alert('异形拼图仅支持 3x3、4x4、5x5、6x6 的正方形网格');
           return;
         }
       }
@@ -312,7 +349,7 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
       alert('生成拼图失败！');
       console.error(e);
     }
-  }, [customPuzzleConfig, onStartGame, tempDifficulty, tempPieceShape, currentStep, onStartIrregularGame]);
+  }, [customPuzzleConfig, onStartGame, tempDifficulty, tempPieceShape, tempCustomRows, tempCustomCols, currentStep, onStartIrregularGame]);
 
   const handleRestart = useCallback(() => {
     setCurrentStep('upload');
@@ -481,11 +518,12 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
           onBack={() => setCurrentStep('crop')}
           onPreviewClick={() => setIsPreviewModalOpen(true)}
           hasPreviewImage={!!customPuzzleConfig.croppedImageData}
-          // 新增：传递当前选择和变更回调
           selectedDifficulty={tempDifficulty}
           selectedShape={tempPieceShape}
           onDifficultyChange={handleTempDifficultyChange}
           onShapeChange={handleTempPieceShapeChange}
+          // 新增：自定义行列同步
+          onCustomGridChange={handleTempCustomGrid}
         />
       </div>
     </div>
@@ -570,6 +608,8 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
               variant="primary"
               size="large"
               className="start-game-btn"
+              disabled={!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name}
+              title={!customPuzzleConfig.croppedImageData || !customPuzzleConfig.name ? "请先完成拼图设置并裁剪图片" : "开始游戏"}
             >
               🎮 开始游戏
             </Button>
@@ -634,6 +674,11 @@ export const PuzzleEditor: React.FC<PuzzleEditorProps> = ({ onBackToMenu, onStar
             currentStep === 'settings'
               ? (tempDifficulty === 'easy' ? '3x3' : tempDifficulty === 'medium' ? '4x4' : tempDifficulty === 'hard' ? '5x5' : '6x6')
               : (customPuzzleConfig.difficulty === 'easy' ? '3x3' : customPuzzleConfig.difficulty === 'medium' ? '4x4' : customPuzzleConfig.difficulty === 'hard' ? '5x5' : '6x6')
+          }
+          pieceShape={
+            currentStep === 'settings'
+              ? tempPieceShape
+              : customPuzzleConfig.pieceShape
           }
         />
         {/* 分享代码弹窗 */}
