@@ -809,232 +809,208 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   }, []);
 
   // 更新挑战记录
-  const updateChallengeRecord = async (completed: boolean, _isPerfect: boolean) => {
+  const updateChallengeRecord = async (isCompleted: boolean, time: number, moves: number) => {
     try {
-      // 获取用户数据
-      const usersResponse = await cloudStorage.getUsers();
+      if (!authState.user) return;
       
-      if (!usersResponse.success || !usersResponse.data) {
-        console.error('无法获取用户数据');
-        return;
-      }
-
-      const users = usersResponse.data;
-      const userIndex = users.findIndex((u: any) => u.id === authState.user?.id);
+      const userId = authState.user.id;
       
-      if (userIndex === -1) {
-        console.error('找不到当前用户');
-        return;
-      }
-
-      const user = users[userIndex];
-      
-      // 确保用户挑战记录存在
-      if (!user.challengeHistory) {
-        user.challengeHistory = [];
-      }
-      
-      if (!user.dailyStreak) {
-        user.dailyStreak = 0;
-      }
-      
-      if (!user.coins) {
-        user.coins = 0;
-      }
-      
-      if (!user.experience) {
-        user.experience = 0;
-      }
-      
-      if (!user.achievements) {
-        user.achievements = [];
-      }
-      
-      // 检查今天是否已经有挑战记录
-      const today = new Date().toISOString().split('T')[0];
-      const existingRecordIndex = user.challengeHistory.findIndex(
-        (record: any) => record.date === today
-      );
-      
-      // 计算每日挑战得分 - 新评分公式：(0.1*星星总数+1)*(60/用时)*(1.2*拼图块数/步数)*100
-      const calculateDailyChallengeScore = (
-        completed: boolean,
-        _isPerfect: boolean,
-        timeUsed: number,
-        moves: number,
-        starCount: number, // 挑战星数
-        puzzlePieces: number // 拼图块总数
-      ): number => {
-        if (!completed) return 0;
-
-        // 星数加成：(0.1 * 星星总数 + 1)
-        const starBonus = 0.1 * starCount + 1;
-        
-        // 时间效率：60 / 用时（秒）
-        const timeEfficiency = 60 / Math.max(timeUsed, 1);
-        
-        // 步数效率：1.2 * 拼图块数 / 步数
-        const moveEfficiency = (1.2 * puzzlePieces) / Math.max(moves, 1);
-        
-        // 最终得分
-        const finalScore = starBonus * timeEfficiency * moveEfficiency * 100;
-
-        return Math.round(Math.max(0, finalScore));
-      };
-
-      // 计算拼图块总数
-      const getPuzzlePieces = (gridSize: string): number => {
-        const [rows, cols] = gridSize.split('x').map(Number);
-        return rows * cols;
-      };
-
-      // 计算挑战星数
-      const challengeStars = challenge.effects?.reduce((total, effectId) => {
-        // 基于特效ID计算星数
-        if (effectId.includes('3') || ['rotate', 'blur', 'partial', 'upside_down', 'double_steps', '天旋地转', '雾里看花', '管中窥豹', '颠倒世界', '举步维艰'].includes(effectId)) {
-          return total + 3;
-        } else if (effectId.includes('4') || ['corner_start', 'invisible', 'no_preview', 'time_limit', '作茧自缚', '深渊漫步', '一叶障目', '生死时速'].includes(effectId)) {
-          return total + 4;
-        } else if (effectId.includes('5') || ['no_mistakes', 'step_limit', 'brightness', '最终防线', '精打细算', '亦步亦趋'].includes(effectId)) {
-          return total + 5;
+      // 根据用户认证状态选择数据存储方式
+      if (authState.isAuthenticated) {
+        // 云端用户 - 使用云存储服务
+        const usersResponse = await cloudStorage.getUsers();
+        if (!usersResponse.success) {
+          throw new Error(usersResponse.error || '获取用户数据失败');
         }
-        return total;
-      }, 0) || 0;
-
-      const puzzlePieces = getPuzzlePieces(challenge.gridSize);
-      const score = calculateDailyChallengeScore(
-        completed,
-        isPerfect,
-        elapsedTime,
-        moves,
-        challengeStars,
-        puzzlePieces
-      );
-
-      // 创建或更新挑战记录
-      const challengeRecord = {
-        id: challenge.id,
-        date: today,
-        completed: completed,
-        isPerfect: isPerfect,
-        time: elapsedTime,
-        moves: moves,
-        puzzleImage: challenge.puzzleImage,
-        gridSize: challenge.gridSize,
-        difficulty: challenge.difficulty,
-        score: score
-      };
-      
-      if (existingRecordIndex === -1) {
-        user.challengeHistory.push(challengeRecord);
-      } else {
-        user.challengeHistory[existingRecordIndex] = challengeRecord;
-      }
-
-      // 更新每日挑战排行榜
-      if (completed && authState.user) {
-        // 计算连续天数（从用户历史记录中计算）
-        const completedDays = user.challengeHistory
-          .filter((record: any) => record.completed)
-          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        let consecutiveDays = 0;
-        const today = new Date();
-        for (let i = 0; i < completedDays.length; i++) {
-          const recordDate = new Date(completedDays[i].date);
-          const daysDiff = Math.floor((today.getTime() - recordDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        const users = usersResponse.data || [];
+        const userIndex = users.findIndex((u: any) => u.id === userId);
+        
+        if (userIndex === -1) {
+          console.error('未找到用户数据');
+          return;
+        }
+        
+        const user = users[userIndex];
+        
+        // 更新挑战记录
+        const challengeRecordKey = `daily_challenge_${userId}_${challenge.date}_${challenge.id.split('-')[2]}`;
+        const savedRecord = localStorage.getItem(challengeRecordKey);
+        let record: any = savedRecord ? JSON.parse(savedRecord) : {};
+        
+        if (isCompleted) {
+          record.isCompleted = true;
+          record.time = time;
+          record.moves = moves;
+          record.isPerfect = moves <= challenge.perfectMoves;
           
-          if (daysDiff === i) {
-            consecutiveDays++;
-          } else {
-            break;
+          // 更新最佳记录
+          if (!record.bestTime || time < record.bestTime) {
+            record.bestTime = time;
+          }
+          if (!record.bestMoves || moves < record.bestMoves) {
+            record.bestMoves = moves;
           }
         }
-
-        // 计算总完成挑战数和平均分数
-        const totalChallengesCompleted = completedDays.length;
-        const averageScore = completedDays.length > 0 
-          ? Math.round(completedDays.reduce((sum: number, record: any) => sum + (record.score || 0), 0) / completedDays.length * 10) / 10
-          : 0;
-
-        // 添加到每日挑战排行榜
-        console.log('🏆 准备添加到每日挑战排行榜:', {
-          date: today.toISOString().split('T')[0],
-          playerName: authState.user.username,
-          score: score,
-          completionTime: elapsedTime,
-          moves: moves,
+        
+        // 保存到localStorage（作为缓存）
+        localStorage.setItem(challengeRecordKey, JSON.stringify(record));
+        
+        // 更新用户数据
+        if (!user.challengeHistory) {
+          user.challengeHistory = [];
+        }
+        
+        const historyIndex = user.challengeHistory.findIndex((h: any) => h.id === challenge.id);
+        const historyRecord = {
+          id: challenge.id,
+          date: challenge.date,
+          title: challenge.title,
+          description: challenge.description,
           difficulty: challenge.difficulty,
-          isPerfect: isPerfect,
-          consecutiveDays: consecutiveDays,
-          totalChallengesCompleted: totalChallengesCompleted,
-          averageScore: averageScore,
-          totalStars: challengeStars
-        });
-        
-        LeaderboardService.addDailyChallengeEntry({
-          date: today.toISOString().split('T')[0],
-          playerName: authState.user.username,
-          score: score,
-          completionTime: elapsedTime,
+          puzzleImage: challenge.puzzleImage,
+          gridSize: challenge.gridSize,
+          time: time,
           moves: moves,
-          difficulty: challenge.difficulty as any,
-          isPerfect: isPerfect,
-          consecutiveDays: consecutiveDays,
-          totalChallengesCompleted: totalChallengesCompleted,
-          averageScore: averageScore,
-          totalStars: challengeStars // 使用计算出的星数字段
-        });
+          completed: isCompleted,
+          isPerfect: moves <= challenge.perfectMoves,
+          attempts: (record.attempts || 0) + 1
+        };
         
-        console.log('✅ 每日挑战记录已添加到排行榜');
-      }
-      
-      // 如果完成，更新连续挑战天数
-      if (completed) {
-        // 检查上一次完成的日期是否是昨天
-        const lastCompletedIndex = user.challengeHistory
-          .filter((record: any) => record.completed)
-          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+        if (historyIndex === -1) {
+          user.challengeHistory.push(historyRecord);
+        } else {
+          user.challengeHistory[historyIndex] = historyRecord;
+        }
         
-        if (lastCompletedIndex) {
-          const lastCompletedDate = new Date(lastCompletedIndex.date);
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          yesterday.setHours(0, 0, 0, 0);
+        // 更新连击天数
+        if (isCompleted) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
           
-          if (lastCompletedDate >= yesterday) {
-            user.dailyStreak += 1;
+          const lastCompletedDate = user.lastDailyChallengeDate ? 
+            new Date(user.lastDailyChallengeDate) : null;
+            
+          if (lastCompletedDate) {
+            lastCompletedDate.setHours(0, 0, 0, 0);
+            
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            yesterday.setHours(0, 0, 0, 0);
+            
+            if (lastCompletedDate >= yesterday) {
+              user.dailyStreak = (user.dailyStreak || 0) + 1;
+            } else {
+              user.dailyStreak = 1;
+            }
           } else {
             user.dailyStreak = 1;
           }
-        } else {
-          user.dailyStreak = 1;
+          
+          user.lastDailyChallengeDate = new Date().toISOString();
         }
         
         // 添加金币奖励
         const coinsReward = challenge.rewards.completion.includes('金币') ? 
           parseInt(challenge.rewards.completion.match(/\d+/)?.[0] || '0') : 0;
-        user.coins += coinsReward;
+        user.coins = (user.coins || 0) + coinsReward;
         
         // 添加经验奖励
         const expReward = challenge.rewards.speed.includes('经验值') ? 
           parseInt(challenge.rewards.speed.match(/\d+/)?.[0] || '0') : 0;
-        user.experience += expReward;
+        user.experience = (user.experience || 0) + expReward;
         
         // 如果完美完成，添加完美主义者称号
-        if (isPerfect && !user.achievements.includes('完美主义者')) {
+        if (isCompleted && moves <= challenge.perfectMoves && !user.achievements.includes('完美主义者')) {
           user.achievements.push('完美主义者');
         }
+        
+        // 保存更新后的用户数据到云存储
+        users[userIndex] = user;
+        await cloudStorage.saveUsers(users);
+        
+        // 同时更新本地存储的用户数据
+        const { password, ...userWithoutPassword } = user;
+        localStorage.setItem('puzzle_current_user', JSON.stringify(userWithoutPassword));
+      } else {
+        // 本地用户 - 使用localStorage
+        const challengeRecordKey = `daily_challenge_${userId}_${challenge.date}_${challenge.id.split('-')[2]}`;
+        const savedRecord = localStorage.getItem(challengeRecordKey);
+        let record: any = savedRecord ? JSON.parse(savedRecord) : {};
+        
+        if (isCompleted) {
+          record.isCompleted = true;
+          record.time = time;
+          record.moves = moves;
+          record.isPerfect = moves <= challenge.perfectMoves;
+          
+          // 更新最佳记录
+          if (!record.bestTime || time < record.bestTime) {
+            record.bestTime = time;
+          }
+          if (!record.bestMoves || moves < record.bestMoves) {
+            record.bestMoves = moves;
+          }
+        }
+        
+        // 保存到localStorage
+        localStorage.setItem(challengeRecordKey, JSON.stringify(record));
+        
+        // 更新用户数据到localStorage
+        const userDataKey = `user_data_${userId}`;
+        const savedUserData = localStorage.getItem(userDataKey);
+        const userData = savedUserData ? JSON.parse(savedUserData) : {
+          dailyStreak: 0,
+          coins: 0,
+          experience: 0,
+          achievements: [],
+          challengeHistory: []
+        };
+        
+        // 更新挑战历史
+        if (!userData.challengeHistory) {
+          userData.challengeHistory = [];
+        }
+        
+        const historyIndex = userData.challengeHistory.findIndex((h: any) => h.id === challenge.id);
+        const historyRecord = {
+          id: challenge.id,
+          date: challenge.date,
+          title: challenge.title,
+          description: challenge.description,
+          difficulty: challenge.difficulty,
+          puzzleImage: challenge.puzzleImage,
+          gridSize: challenge.gridSize,
+          time: time,
+          moves: moves,
+          completed: isCompleted,
+          isPerfect: moves <= challenge.perfectMoves
+        };
+        
+        if (historyIndex === -1) {
+          userData.challengeHistory.push(historyRecord);
+        } else {
+          userData.challengeHistory[historyIndex] = historyRecord;
+        }
+        
+        // 更新连击天数和奖励
+        if (isCompleted) {
+          userData.dailyStreak = (userData.dailyStreak || 0) + 1;
+          userData.coins = (userData.coins || 0) + 
+            (challenge.rewards.completion.includes('金币') ? 
+              parseInt(challenge.rewards.completion.match(/\d+/)?.[0] || '0') : 0);
+          userData.experience = (userData.experience || 0) + 
+            (challenge.rewards.speed.includes('经验值') ? 
+              parseInt(challenge.rewards.speed.match(/\d+/)?.[0] || '0') : 0);
+          
+          // 如果完美完成，添加完美主义者称号
+          if (moves <= challenge.perfectMoves && !userData.achievements.includes('完美主义者')) {
+            userData.achievements = [...userData.achievements, '完美主义者'];
+          }
+        }
+        
+        localStorage.setItem(userDataKey, JSON.stringify(userData));
       }
-      
-      // 保存更新后的用户数据
-      users[userIndex] = user;
-      await cloudStorage.saveUsers(users);
-      
-      // 更新本地存储的用户数据
-      const { password, ...userWithoutPassword } = user;
-      localStorage.setItem('puzzle_current_user', JSON.stringify(userWithoutPassword));
-      
     } catch (error) {
       console.error('更新挑战记录失败:', error);
     }

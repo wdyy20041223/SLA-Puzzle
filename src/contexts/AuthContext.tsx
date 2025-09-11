@@ -827,6 +827,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           if (response.success) {
             console.log('成就解锁成功:', response.data);
+            
+            // 更新本地用户成就状态
+            if (authState.user) {
+              const updatedAchievements = [...(authState.user.achievements || []), ...finalAchievementsToUnlock.map(a => a.achievementId)];
+              setAuthState(prev => ({
+                ...prev,
+                user: prev.user ? {
+                  ...prev.user,
+                  achievements: updatedAchievements
+                } : null
+              }));
+            }
           } else {
             console.error('成就解锁失败:', response.error);
           }
