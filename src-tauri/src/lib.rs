@@ -13,7 +13,6 @@ fn greet(name: &str) -> String {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_http::init())
         .manage(Mutex::new(AppState::default()))
         .invoke_handler(tauri::generate_handler![
             greet,
@@ -21,10 +20,7 @@ pub fn run() {
             save_game,
             load_game,
             get_leaderboard,
-            get_puzzles,
-            submit_daily_challenge,
-            get_daily_challenge_leaderboard,
-            get_daily_challenge_stats
+            get_puzzles
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

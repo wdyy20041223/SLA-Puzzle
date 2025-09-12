@@ -116,12 +116,18 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
       };
 
       // 如果选择了特定拼图而不是随机
-      if (selectedPuzzle !== 'random') {
+      if (selectedPuzzle !== 'random' && selectedPuzzle !== 'volcanic_journey') {
         const puzzle = puzzleAssets.find(p => p.id === selectedPuzzle);
         if (puzzle) {
           puzzleConfig.imageName = puzzle.name;
           puzzleConfig.imageData = puzzle.imagePath; // 添加图片路径
         }
+      } else if (selectedPuzzle === 'volcanic_journey') {
+        // 火山旅梦系列：从10张CG中随机选择一张
+        const volcanicJourneyPuzzles = puzzleAssets.filter(p => p.category === 'volcanic_journey');
+        const randomVolcanicPuzzle = volcanicJourneyPuzzles[Math.floor(Math.random() * volcanicJourneyPuzzles.length)];
+        puzzleConfig.imageName = randomVolcanicPuzzle.name;
+        puzzleConfig.imageData = randomVolcanicPuzzle.imagePath;
       } else {
         // 随机选择时也要设置图片数据
         const randomPuzzle = puzzleAssets[Math.floor(Math.random() * puzzleAssets.length)];
@@ -372,6 +378,19 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
                 disabled={loading}
               />
               <label htmlFor="random">🎲 随机拼图</label>
+        </div>
+
+            <div className="puzzle-option-item">
+            <input
+                type="radio"
+                id="volcanic_journey"
+                name="puzzle"
+                value="volcanic_journey"
+                checked={selectedPuzzle === 'volcanic_journey'}
+                onChange={(e) => setSelectedPuzzle(e.target.value)}
+                disabled={loading}
+              />
+              <label htmlFor="volcanic_journey">🌋 火山旅梦</label>
         </div>
 
             {puzzleAssets.slice(0, 4).map((puzzle) => (
