@@ -179,7 +179,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
           setDailyStreak(user.dailyStreak || 0);
           setTotalCoins(user.coins || 0);
           setTotalExperience(user.experience || 0);
-          setUnlockedItems(user.achievements ? user.achievements.map((achievement: string, index: number) => ({
+          setUnlockedItems(user.achievements ? user.achievements.map((achievement: string) => ({
             name: achievement,
             icon: achievement === '完美主义者' ? '👑' : '🏆',
             date: new Date().toLocaleDateString('zh-CN')
@@ -228,11 +228,11 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
           }
         }
 
-        // 生成今日多项挑战
-        const challenges = generateTodayChallenges(userId);
-        setTodayChallenges(challenges);
-        setSelectedChallengeIds([]);
-        setCurrentChallengeIndex(0);
+  // 生成今日多项挑战，进度从云端 challengeHistory 获取
+  const challenges = generateTodayChallenges(userId, user?.challengeHistory || []);
+  setTodayChallenges(challenges);
+  setSelectedChallengeIds([]);
+  setCurrentChallengeIndex(0);
       } catch (error) {
         console.error('初始化云端用户数据失败:', error);
         // 回退到本地用户初始化
@@ -261,7 +261,7 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         setDailyStreak(userData.dailyStreak || 0);
         setTotalCoins(userData.coins || 0);
         setTotalExperience(userData.experience || 0);
-        setUnlockedItems(userData.achievements ? userData.achievements.map((achievement: string, index: number) => ({
+        setUnlockedItems(userData.achievements ? userData.achievements.map((achievement: string) => ({
           name: achievement,
           icon: achievement === '完美主义者' ? '👑' : '🏆',
           date: new Date().toLocaleDateString('zh-CN')
@@ -309,11 +309,11 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
           setChallengeHistory(history);
         }
 
-        // 生成今日多项挑战
-        const challenges = generateTodayChallenges(userId);
-        setTodayChallenges(challenges);
-        setSelectedChallengeIds([]);
-        setCurrentChallengeIndex(0);
+  // 生成今日多项挑战，本地用户无云端进度
+  const challenges = generateTodayChallenges(userId, userData.challengeHistory || []);
+  setTodayChallenges(challenges);
+  setSelectedChallengeIds([]);
+  setCurrentChallengeIndex(0);
       } catch (error) {
         console.error('初始化本地用户数据失败:', error);
         // 生成默认挑战
@@ -364,81 +364,111 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         }
       });
       localStorage.setItem('daily_challenge_last_reset', today);
+
+      // 异步处理云端数据重置
+      if (authState.isAuthenticated && authState.user) {
+        resetCloudChallengeData(today);
+      }
+
       return true;
     }
     return false;
   };
 
-  // 生成今日多项挑战（展示所有tag）
-  const generateTodayChallenges = (userId: string): Challenge[] => {
+  // 重置云端每日挑战数据
+  const resetCloudChallengeData = async (today: string) => {
+    try {
+      const usersResponse = await cloudStorage.getUsers();
+      if (!usersResponse.success) return;
+
+      const users = usersResponse.data || [];
+      const userIndex = users.findIndex((u: any) => u.id === authState.user?.id);
+
+      if (userIndex !== -1) {
+        const user = users[userIndex];
+
+        // 清除今日的挑战历史记录
+        if (user.challengeHistory && Array.isArray(user.challengeHistory)) {
+          user.challengeHistory = user.challengeHistory.filter((record: any) => record.date !== today);
+        }
+
+        // 保存更新后的用户数据
+        await cloudStorage.saveUsers(users);
+      }
+    } catch (error) {
+      console.error('重置云端挑战数据失败:', error);
+    }
+  };
+
+  // 生成今日多项挑战（3星3个，4星2个，5星1个，分发一致，进度需云端同步）
+  const generateTodayChallenges = (userId: string, userChallengeHistory?: any[]): Challenge[] => {
     const today = getTodayDate();
     const seed = getDateSeed(today);
     const random = pseudoRandom(seed);
-    
-    // 每日特效定义 - 展示所有星级的所有特效
-    const allEffects = [
+
+    // 每日特效定义
+    const star3Effects = [
       { name: "天旋地转", star: 3 as const },
       { name: "雾里看花", star: 3 as const },
       { name: "管中窥豹", star: 3 as const },
       { name: "颠倒世界", star: 3 as const },
-      { name: "鱼目混珠", star: 3 as const },
+      { name: "鱼目混珠", star: 3 as const }
+    ];
+    const star4Effects = [
       { name: "作茧自缚", star: 4 as const },
       { name: "深渊漫步", star: 4 as const },
       { name: "一叶障目", star: 4 as const },
-      { name: "生死时速", star: 4 as const },
+      { name: "生死时速", star: 4 as const }
+    ];
+    const star5Effects = [
       { name: "最终防线", star: 5 as const },
       { name: "精打细算", star: 5 as const },
       { name: "亦步亦趋", star: 5 as const }
     ];
-    
-    // 打乱特效顺序以增加多样性
-    const shuffledEffects = [...allEffects];
-    for (let i = shuffledEffects.length - 1; i > 0; i--) {
-      const j = Math.floor(random() * (i + 1));
-      [shuffledEffects[i], shuffledEffects[j]] = [shuffledEffects[j], shuffledEffects[i]];
+
+    // 随机抽取指定数量的特效
+    function pickRandom(arr: any[], count: number): any[] {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy.slice(0, count);
     }
-    
-    const challenges: Challenge[] = [];
-    
-    // 为每个特效创建一个挑战，确保展示所有tag
-    for (let i = 0; i < allEffects.length; i++) {
-      const effectData = shuffledEffects[i];
+
+    const picked3 = pickRandom(star3Effects, 3);
+    const picked4 = pickRandom(star4Effects, 2);
+    const picked5 = pickRandom(star5Effects, 1);
+    const allPicked = [...picked3, ...picked4, ...picked5];
+
+    // 随机分配图片、难度、拼图类型
+    const challenges: Challenge[] = allPicked.map((effectData, i) => {
       const selectedEffect = effectData.name;
       const star = effectData.star;
-      
-      // 随机选择图片
       const imageIndex = Math.floor(random() * puzzleImageLibrary.length);
       const selectedImage = puzzleImageLibrary[imageIndex];
-      
-      // 随机选择难度
       const difficulties = ['easy', 'medium', 'hard', 'expert'] as const;
       const difficultyIndex = Math.floor(random() * difficulties.length);
       const selectedDifficulty = difficulties[difficultyIndex];
-      
-      // 随机选择拼图类型
       const puzzleTypes = ['square', 'irregular'] as const;
       const puzzleTypeIndex = Math.floor(random() * puzzleTypes.length);
       const selectedPuzzleType = puzzleTypes[puzzleTypeIndex];
-      
-      // 获取难度配置
       const config = difficultyConfigs[selectedDifficulty];
-      
-      // 从存储中获取挑战记录（根据用户认证状态选择存储方式）
+
+      // 进度同步：优先从云端 challengeHistory 查找
       let record = {};
-      if (authState.isAuthenticated && authState.user) {
-        // 云端用户 - 从云存储获取
-        // 注意：这里简化处理，实际应该从云存储获取用户数据后再提取挑战记录
-        const challengeRecordKey = `daily_challenge_${userId}_${today}_${i}`;
-        const savedRecord = localStorage.getItem(challengeRecordKey);
-        record = savedRecord ? JSON.parse(savedRecord) : {};
+      if (userChallengeHistory && Array.isArray(userChallengeHistory)) {
+        // 使用挑战ID来查找进度记录
+        const challengeId = `daily-${today}-${i}`;
+        record = userChallengeHistory.find((r: any) => r.id === challengeId) || {};
       } else {
-        // 本地用户 - 从localStorage获取
+        // 本地回退
         const challengeRecordKey = `daily_challenge_${userId}_${today}_${i}`;
         const savedRecord = localStorage.getItem(challengeRecordKey);
         record = savedRecord ? JSON.parse(savedRecord) : {};
       }
-      
-      challenges.push({
+
+      return {
         id: `daily-${today}-${i}`,
         date: today,
         title: `${selectedImage.title} (${star}星)`,
@@ -458,12 +488,12 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         bestMoves: (record as any).bestMoves,
         attempts: Math.max(0, Math.min(3, typeof (record as any).attempts === 'number' ? (record as any).attempts : 0)),
         puzzleType: selectedPuzzleType,
-        effects: [selectedEffect], // 添加effects数组
+        effects: [selectedEffect],
         star: star,
         effect: selectedEffect
-      });
-    }
-    
+      };
+    });
+
     return challenges;
   };
 
@@ -491,13 +521,13 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
   };
 
   // 重试当前挑战
-  const handleRestartChallenge = (): boolean => {
+  const handleRestartChallenge = async (): Promise<boolean> => {
     const userId = authState.user?.id || 'default';
     if (selectedChallengeIds.length === 0) return false;
-    
+
     const currentChallengeId = selectedChallengeIds[currentChallengeIndex];
     const challenge = todayChallenges.find(c => c.id === currentChallengeId);
-    
+
     if (!challenge) return false;
     if (challenge.attempts >= 3) {
       alert('每日挑战机会已用完，请明天再来！');
@@ -505,26 +535,41 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
     }
 
     // 增加尝试次数
-    const updatedChallenges = todayChallenges.map(c => 
-      c.id === currentChallengeId 
+    const updatedChallenges = todayChallenges.map(c =>
+      c.id === currentChallengeId
         ? { ...c, attempts: Math.min(c.attempts + 1, 3) }
         : c
     );
     setTodayChallenges(updatedChallenges);
-    
-    // 保存到存储中（根据用户认证状态选择存储方式）
+
     if (authState.isAuthenticated && authState.user) {
-      // 云端用户 - 保存到云存储
-      // 注意：这里简化处理，实际应该更新云存储中的用户数据
-      const challengeRecordKey = `daily_challenge_${userId}_${getTodayDate()}_${currentChallengeIndex}`;
-      const updatedChallenge = updatedChallenges.find(c => c.id === currentChallengeId);
-      if (updatedChallenge) {
-        localStorage.setItem(challengeRecordKey, JSON.stringify({
-          attempts: updatedChallenge.attempts,
-          isCompleted: updatedChallenge.isCompleted,
-          bestTime: updatedChallenge.bestTime,
-          bestMoves: updatedChallenge.bestMoves
-        }));
+      // 云端用户 - 更新 challengeHistory
+      const usersResponse = await cloudStorage.getUsers();
+      if (usersResponse.success) {
+        const users = usersResponse.data || [];
+        const user = users.find((u: any) => u.id === userId);
+        if (user) {
+          // 更新 challengeHistory
+          const today = getTodayDate();
+          let challengeHistory = Array.isArray(user.challengeHistory) ? [...user.challengeHistory] : [];
+          // 使用挑战ID来查找记录
+          const idx = challengeHistory.findIndex((r: any) => r.id === currentChallengeId);
+          if (idx !== -1) {
+            challengeHistory[idx] = {
+              ...challengeHistory[idx],
+              attempts: Math.min((challengeHistory[idx].attempts || 0) + 1, 3)
+            };
+          } else {
+            challengeHistory.push({
+              id: currentChallengeId,
+              date: today,
+              effect: challenge.effect,
+              attempts: 1,
+              isCompleted: false
+            });
+          }
+          await cloudStorage.updateUser(userId, { challengeHistory });
+        }
       }
     } else {
       // 本地用户 - 保存到localStorage
@@ -539,7 +584,6 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         }));
       }
     }
-    
     return true;
   };
 
@@ -887,7 +931,14 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu }) 
         onBackToMenu={handleChallengeReturn}
         challenge={currentChallenge}
         puzzleType={currentChallenge.puzzleType}
-        onRestartChallenge={handleRestartChallenge}
+        onRestartChallenge={() => {
+          // 包装异步函数为同步函数
+          handleRestartChallenge().catch(error => {
+            console.error('重试挑战失败:', error);
+            return false;
+          });
+          return true; // 立即返回true，实际结果由异步处理
+        }}
       />
     );
   }

@@ -10,6 +10,7 @@ import { Button } from '../components/common/Button';
 import { useAuth } from '../contexts/AuthContext';
 import { cloudStorage } from '../services/cloudStorage';
 import { LeaderboardService } from '../services/leaderboardService';
+import { DailyChallengeLeaderboardService } from '../services/dailyChallengeLeaderboardService';
 import { Challenge } from './DailyChallenge';
 import { GameFailureModal } from '../components/game/GameFailureModal';
 import './DailyChallengeGame.css';
@@ -541,11 +542,11 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
   }, [selectedPiece, rotatePiece, flipPiece, handlePieceSelect, showAnswer, setShowAnswer, showPreview, setShowPreview, isPreviewDisabled]);
 
   // 处理拼图完成
-  const handlePuzzleComplete = useCallback(() => {
+  const handlePuzzleComplete = useCallback(async () => {
     setIsComplete(true);
-    
+
     // 检查是否在完美步数内完成
-    const stepLimit = challenge.effects?.includes('step_limit') || challenge.effects?.includes('精打细算') 
+    const stepLimit = challenge.effects?.includes('step_limit') || challenge.effects?.includes('精打细算')
       ? (() => {
           const gridParts = challenge.gridSize.split('x');
           const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
@@ -554,12 +555,37 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
       : null;
     const actualMoves = moves;
     const isPerfect = stepLimit ? actualMoves <= stepLimit : actualMoves <= challenge.perfectMoves;
-    
+
     // 更新用户挑战记录
     if (authState.isAuthenticated && authState.user) {
       updateChallengeRecord(true, elapsedTime, moves);
+      // 同步成绩到每日挑战排行榜
+      const user = authState.user;
+      const gridParts = challenge.gridSize.split('x');
+      const totalPieces = parseInt(gridParts[0]) * parseInt(gridParts[1]);
+      const score = Math.round((0.1 * challenge.star + 1) * (60 / elapsedTime) * (1.2 * totalPieces / moves) * 100);
+      try {
+        await DailyChallengeLeaderboardService.submitDailyChallengeCompletion({
+          date: challenge.date,
+          challengeId: challenge.id,
+          puzzleName: challenge.title,
+          difficulty: challenge.difficulty,
+          pieceShape: challenge.puzzleType,
+          gridSize: challenge.gridSize,
+          totalPieces,
+          completionTime: elapsedTime,
+          moves,
+          score,
+          isPerfect,
+          totalStars: challenge.star,
+          consecutiveDays: 0, // 可根据 streak 传递
+          playerName: user.username || user.id
+        });
+      } catch (e) {
+        console.error('同步每日挑战成绩到排行榜失败', e);
+      }
     }
-  }, [moves, challenge.perfectMoves, challenge.effects, challenge.gridSize, effectStates.actualMoves, authState]);
+  }, [moves, challenge, elapsedTime, authState]);
 
   // 检查亦步亦趋特效是否无可放置位置
   const checkStepFollowFailure = useCallback(() => {
@@ -958,7 +984,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           moves: moves,
           completed: isCompleted,
           isPerfect: moves <= challenge.perfectMoves,
-          attempts: (record.attempts || 0) + 1
+          attempts: (record.attempts || 0) + 1,
+          effect: challenge.effect // 添加特效字段用于匹配
         };
         
         if (historyIndex === -1) {
@@ -1068,7 +1095,8 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
           time: time,
           moves: moves,
           completed: isCompleted,
-          isPerfect: moves <= challenge.perfectMoves
+          isPerfect: moves <= challenge.perfectMoves,
+          effect: challenge.effect // 添加特效字段用于匹配
         };
         
         if (historyIndex === -1) {

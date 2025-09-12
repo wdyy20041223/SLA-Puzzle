@@ -90,19 +90,42 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, on
     };
   };
 
-  // 基于日期生成每日特效（展示所有特效）
+  // 基于日期生成每日特效（随机抽取指定数量）
   const generateDailyEffects = (): { star3: DailyEffect[]; star4: DailyEffect[]; star5: DailyEffect[] } => {
     const allEffects = getAllEffects();
+    const today = new Date().toISOString().split('T')[0];
+    
+    // 使用日期作为种子生成伪随机数
+    const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
+    const random = (seedValue: number) => {
+      const x = Math.sin(seedValue) * 10000;
+      return x - Math.floor(x);
+    };
 
-    // 直接返回所有特效，不再进行随机选择
+    // 随机抽取函数
+    function pickRandom<T>(arr: T[], count: number, seedOffset: number): T[] {
+      const copy = [...arr];
+      const result: T[] = [];
+      let currentSeed = seed + seedOffset;
+      
+      for (let i = 0; i < count && copy.length > 0; i++) {
+        const randomIndex = Math.floor(random(currentSeed) * copy.length);
+        result.push(copy[randomIndex]);
+        copy.splice(randomIndex, 1);
+        currentSeed += 1;
+      }
+      
+      return result;
+    }
+
     return {
-      star3: allEffects.star3, // 显示所有5个3星特效
-      star4: allEffects.star4, // 显示所有4个4星特效
-      star5: allEffects.star5  // 显示所有3个5星特效
+      star3: pickRandom(allEffects.star3, 3, 0), // 随机抽取3个3星特效
+      star4: pickRandom(allEffects.star4, 2, 100), // 随机抽取2个4星特效
+      star5: pickRandom(allEffects.star5, 1, 200)  // 随机抽取1个5星特效
     };
   };
 
-  // 拼图图片库
+  // 拼图图片库 - 扩展更多图片选项
   const puzzleImageLibrary = [
     { path: '/images/nature/landscape1.svg', title: '梦幻城堡', description: '一座隐藏在云端的神秘城堡，等待着勇敢的冒险者来探索' },
     { path: '/images/nature/landscape2.svg', title: '樱花飞舞', description: '春日樱花盛开的美景' },
@@ -110,32 +133,61 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, on
     { path: '/images/animals/cat.svg', title: '草原之王', description: '非洲草原上的雄狮，展现王者风范' },
     { path: '/images/nature/landscape1.svg', title: '高山流水', description: '壮丽的山脉与清澈的溪流' },
     { path: '/images/anime/character.svg', title: '动漫角色', description: '来自异世界的神秘角色' },
-    { path: '/images/buildings/castle.svg', title: '城市之巅', description: '现代化都市的摩天大楼' }
+    { path: '/images/buildings/castle.svg', title: '城市之巅', description: '现代化都市的摩天大楼' },
+    { path: '/images/nature/landscape2.svg', title: '海洋之心', description: '深蓝色的海洋与神秘的海底世界' },
+    { path: '/images/animals/cat.svg', title: '森林精灵', description: '茂密森林中的精灵守护者' },
+    { path: '/images/buildings/castle.svg', title: '古代遗迹', description: '古老文明留下的神秘遗迹' },
+    { path: '/images/nature/landscape3.svg', title: '极光奇观', description: '北极的极光与冰雪世界' },
+    { path: '/images/anime/character.svg', title: '未来都市', description: '高科技的未来城市景观' },
+    { path: '/images/nature/landscape1.svg', title: '沙漠绿洲', description: '沙漠中的生命绿洲' },
+    { path: '/images/animals/cat.svg', title: '太空探索', description: '浩瀚宇宙中的太空站' },
+    { path: '/images/buildings/castle.svg', title: '魔法森林', description: '充满魔力的神秘森林' }
   ];
 
-  // 难度配置
+  // 难度配置 - 为每个难度添加多种尺寸选项
   const difficultyConfigs = {
-    easy: { gridSize: '3x3', timeLimit: 180, perfectMoves: 15, rewards: { completion: 50, perfect: 100, speed: 25 } },
-    medium: { gridSize: '4x4', timeLimit: 300, perfectMoves: 25, rewards: { completion: 75, perfect: 150, speed: 40 } },
-    hard: { gridSize: '5x5', timeLimit: 450, perfectMoves: 40, rewards: { completion: 100, perfect: 200, speed: 60 } },
-    expert: { gridSize: '6x6', timeLimit: 600, perfectMoves: 60, rewards: { completion: 150, perfect: 300, speed: 100 } }
+    easy: [
+      { gridSize: '3x3', timeLimit: 180, perfectMoves: 15, rewards: { completion: 50, perfect: 100, speed: 25 } },
+      { gridSize: '3x4', timeLimit: 200, perfectMoves: 18, rewards: { completion: 55, perfect: 110, speed: 28 } },
+      { gridSize: '4x3', timeLimit: 190, perfectMoves: 17, rewards: { completion: 52, perfect: 105, speed: 26 } }
+    ],
+    medium: [
+      { gridSize: '4x4', timeLimit: 300, perfectMoves: 25, rewards: { completion: 75, perfect: 150, speed: 40 } },
+      { gridSize: '4x5', timeLimit: 350, perfectMoves: 30, rewards: { completion: 80, perfect: 160, speed: 45 } },
+      { gridSize: '5x4', timeLimit: 340, perfectMoves: 28, rewards: { completion: 78, perfect: 155, speed: 42 } }
+    ],
+    hard: [
+      { gridSize: '5x5', timeLimit: 450, perfectMoves: 40, rewards: { completion: 100, perfect: 200, speed: 60 } },
+      { gridSize: '5x6', timeLimit: 500, perfectMoves: 45, rewards: { completion: 110, perfect: 220, speed: 68 } },
+      { gridSize: '6x5', timeLimit: 480, perfectMoves: 43, rewards: { completion: 105, perfect: 210, speed: 64 } }
+    ],
+    expert: [
+      { gridSize: '6x6', timeLimit: 600, perfectMoves: 60, rewards: { completion: 150, perfect: 300, speed: 100 } },
+      { gridSize: '6x7', timeLimit: 680, perfectMoves: 68, rewards: { completion: 165, perfect: 330, speed: 115 } },
+      { gridSize: '7x6', timeLimit: 650, perfectMoves: 65, rewards: { completion: 158, perfect: 315, speed: 108 } },
+      { gridSize: '7x7', timeLimit: 720, perfectMoves: 75, rewards: { completion: 180, perfect: 360, speed: 125 } }
+    ]
   };
 
   // 生成今日挑战（单个拼图）
   const generateTodayChallenge = (): Challenge => {
     const today = new Date().toISOString().split('T')[0];
     const seed = today.split('-').reduce((acc, val) => acc + parseInt(val), 0);
-    
+
     // 使用日期作为随机种子选择拼图
     const puzzleIndex = seed % puzzleImageLibrary.length;
     const selectedPuzzle = puzzleImageLibrary[puzzleIndex];
-    
+
     // 根据日期确定难度
     const difficulties: Array<'easy' | 'medium' | 'hard' | 'expert'> = ['easy', 'medium', 'hard', 'expert'];
     const difficultyIndex = (seed + 1) % difficulties.length;
     const difficulty = difficulties[difficultyIndex];
-    const difficultyConfig = difficultyConfigs[difficulty];
-    
+
+    // 在选定难度内随机选择配置
+    const difficultyOptions = difficultyConfigs[difficulty];
+    const configIndex = (seed + 2) % difficultyOptions.length;
+    const difficultyConfig = difficultyOptions[configIndex];
+
     return {
       id: `daily-${today}`,
       date: today,
@@ -200,11 +252,42 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, on
     }
   };
 
+  // 获取今天的日期字符串
+  const getTodayDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  // 检查是否需要重置每日挑战（午夜12点）
+  const checkMidnightReset = (): boolean => {
+    const today = getTodayDate();
+    const lastResetDate = localStorage.getItem('daily_challenge_new_last_reset');
+
+    // 如果最后重置日期不是今天，需要重置
+    if (lastResetDate !== today) {
+      // 清除所有每日挑战相关数据
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('daily_challenge_new_') && key !== 'daily_challenge_new_last_reset') {
+          localStorage.removeItem(key);
+        }
+      });
+      localStorage.setItem('daily_challenge_new_last_reset', today);
+      return true;
+    }
+    return false;
+  };
+
   // 初始化
   useEffect(() => {
     const initializeData = async () => {
       try {
         setIsLoading(true);
+
+        // 检查是否需要午夜重置
+        const wasReset = checkMidnightReset();
+        if (wasReset) {
+          console.log('📅 每日挑战已重置');
+        }
         
         // 初始化特效数据
         const effects = generateDailyEffects();
@@ -234,6 +317,24 @@ export const DailyChallenge: React.FC<DailyChallengeProps> = ({ onBackToMenu, on
     };
 
     initializeData();
+
+    // 设置定时检查器，每分钟检查一次是否需要更新每日挑战
+    const checkInterval = setInterval(() => {
+      const wasReset = checkMidnightReset();
+      if (wasReset) {
+        console.log('📅 每日挑战已重置');
+        // 重新生成今日挑战和特效
+        const effects = generateDailyEffects();
+        setDailyEffects(effects);
+        const challenge = generateTodayChallenge();
+        setTodayChallenge(challenge);
+      }
+    }, 60000); // 每分钟检查一次
+
+    // 清理定时器
+    return () => {
+      clearInterval(checkInterval);
+    };
   }, [authState.user?.id]);
 
   // 计算总星级
