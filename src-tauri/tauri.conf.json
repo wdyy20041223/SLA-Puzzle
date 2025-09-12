@@ -22,7 +22,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self' https: http: data: blob: 'unsafe-inline' 'unsafe-eval'"
     }
   },
   "bundle": {
@@ -35,5 +35,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "http": {
+      "all": true,
+      "request": true
+    }
   }
 }

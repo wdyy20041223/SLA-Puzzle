@@ -238,6 +238,8 @@
   color: #6b7280;
   font-size: 0.875rem;
   font-weight: 500;
+  position: relative;
+  overflow: hidden;
 }
 
 .section-divider span {
@@ -255,6 +257,7 @@
   height: 1px;
   background: #d1d5db;
   z-index: 0;
+  transform: translateY(-50%);
 }
 
 /* 底部按钮 */
