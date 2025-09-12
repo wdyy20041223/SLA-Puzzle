@@ -111,14 +111,30 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onBackToMenu }) => {
           
           case 'daily':
             console.log('加载每日挑战排行榜...');
-            const dailyData = LeaderboardService.getDailyChallengeRanking(selectedDate, 50);
-            console.log('每日挑战数据:', dailyData);
-            setDailyChallengeData(dailyData);
-            
-            if (authState.user) {
-              const playerStats = LeaderboardService.getPlayerDailyChallengeStats(authState.user.username);
-              console.log('玩家每日统计:', playerStats);
-              setPlayerDailyStats(playerStats);
+            // 使用新的每日挑战排行榜服务
+            try {
+              const { DailyChallengeLeaderboardService } = await import('../services/dailyChallengeLeaderboardService');
+              const realtimeData = await DailyChallengeLeaderboardService.getRealtimeDailyChallengeLeaderboard(selectedDate, 50);
+              console.log('每日挑战数据:', realtimeData);
+              setDailyChallengeData(realtimeData.leaderboard);
+              
+              if (authState.user) {
+                const playerStats = await DailyChallengeLeaderboardService.getUserDailyChallengeStats();
+                console.log('玩家每日统计:', playerStats);
+                setPlayerDailyStats(playerStats);
+              }
+            } catch (error) {
+              console.warn('每日挑战排行榜服务失败，回退到本地数据:', error);
+              // 回退到本地数据
+              const dailyData = LeaderboardService.getDailyChallengeRanking(selectedDate, 50);
+              console.log('本地每日挑战数据:', dailyData);
+              setDailyChallengeData(dailyData);
+              
+              if (authState.user) {
+                const playerStats = LeaderboardService.getPlayerDailyChallengeStats(authState.user.username);
+                console.log('玩家每日统计:', playerStats);
+                setPlayerDailyStats(playerStats);
+              }
             }
             break;
         }
