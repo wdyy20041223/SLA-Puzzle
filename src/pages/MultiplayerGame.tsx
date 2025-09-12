@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PuzzleGame } from '../components/game/PuzzleGame';
+import { IrregularPuzzleGame } from './IrregularPuzzleGame';
+import { TetrisPuzzleGame } from './TetrisPuzzleGame';
 import { Button } from '../components/common/Button';
 import { apiService, MultiplayerRoom } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,16 +47,50 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({
       const gridSizeParts = room.puzzleConfig.gridSize.split('x');
       const rows = parseInt(gridSizeParts[0]);
       const cols = parseInt(gridSizeParts[1]);
+      const pieceShape = room.puzzleConfig.pieceShape || 'square';
       
-      console.log('生成拼图配置:', { imageUrl, rows, cols });
+      console.log('生成拼图配置:', { imageUrl, rows, cols, pieceShape });
       
-      const generatedConfig = await PuzzleGenerator.generatePuzzle({
-        imageData: imageUrl,
-        gridSize: { rows, cols },
-        pieceShape: 'square',
-        name: room.puzzleConfig.imageName || '联机对战拼图',
-        allowRotation: false
-      });
+      let generatedConfig: PuzzleConfig;
+
+      if (pieceShape === 'irregular') {
+        // 异形拼图需要使用特殊的生成器
+        const { IrregularPuzzleGenerator } = await import('../utils/puzzleGenerator/irregular/IrregularPuzzleGenerator');
+        const irregularConfig = await IrregularPuzzleGenerator.generateIrregularPuzzle({
+          imageData: imageUrl,
+          gridSize: { rows, cols },
+          name: room.puzzleConfig.imageName || '联机对战拼图',
+          pieceShape: 'irregular'
+        });
+        
+        // 转换为标准的 PuzzleConfig 格式
+        generatedConfig = {
+          id: irregularConfig.id,
+          name: irregularConfig.name,
+          originalImage: irregularConfig.originalImage,
+          gridSize: irregularConfig.gridSize,
+          pieceShape: 'irregular',
+          difficulty: irregularConfig.difficulty,
+          pieces: irregularConfig.pieces.map(piece => ({
+            ...piece,
+            shape: 'irregular' as const,
+            currentSlot: null, // 异形拼图不使用 slot 概念
+            correctSlot: 0,    // 异形拼图不使用 slot 概念
+            isFlipped: piece.flipX || false
+          })),
+          createdAt: irregularConfig.createdAt,
+          updatedAt: irregularConfig.updatedAt
+        };
+      } else {
+        // 其他形状使用标准生成器
+        generatedConfig = await PuzzleGenerator.generatePuzzle({
+          imageData: imageUrl,
+          gridSize: { rows, cols },
+          pieceShape: pieceShape,
+          name: room.puzzleConfig.imageName || '联机对战拼图',
+          allowRotation: false
+        });
+      }
 
       const config: PuzzleConfig = {
         ...generatedConfig,
@@ -517,12 +553,27 @@ export const MultiplayerGame: React.FC<MultiplayerGameProps> = ({
 
       {/* 拼图游戏区域 */}
       <div className="game-area">
-        <PuzzleGame
-          puzzleConfig={puzzleConfig}
-          onGameComplete={handleGameComplete}
-          onBackToMenu={onBackToRoom}
-          isMultiplayer={true}
-        />
+        {puzzleConfig.pieceShape === 'irregular' ? (
+          <IrregularPuzzleGame
+            imageData={puzzleConfig.originalImage}
+            gridSize={`${puzzleConfig.gridSize.rows}x${puzzleConfig.gridSize.cols}` as '3x3' | '4x4' | '5x5' | '6x6'}
+            onBackToMenu={onBackToRoom}
+          />
+        ) : puzzleConfig.pieceShape === 'tetris' ? (
+          <TetrisPuzzleGame
+            puzzleConfig={puzzleConfig}
+            onGameComplete={handleGameComplete}
+            onBackToMenu={onBackToRoom}
+            isMultiplayer={true}
+          />
+        ) : (
+          <PuzzleGame
+            puzzleConfig={puzzleConfig}
+            onGameComplete={handleGameComplete}
+            onBackToMenu={onBackToRoom}
+            isMultiplayer={true}
+          />
+        )}
       </div>
     </div>
   );

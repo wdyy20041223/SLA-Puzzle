@@ -19,6 +19,7 @@ interface TetrisPuzzleGameProps {
     preloadedGameState?: GameState;
     onGameComplete?: (completionTime: number, moves: number) => void;
     onBackToMenu?: () => void;
+    isMultiplayer?: boolean;
 }
 
 export const TetrisPuzzleGame: React.FC<TetrisPuzzleGameProps> = ({
@@ -26,6 +27,7 @@ export const TetrisPuzzleGame: React.FC<TetrisPuzzleGameProps> = ({
     preloadedGameState,
     onGameComplete,
     onBackToMenu,
+    isMultiplayer = false,
 }) => {
     const [showAnswers, setShowAnswers] = useState(false);
     const [completionResult, setCompletionResult] = useState<GameCompletionResult | null>(null);
@@ -164,6 +166,14 @@ export const TetrisPuzzleGame: React.FC<TetrisPuzzleGameProps> = ({
 
             const processGameCompletion = async () => {
                 try {
+                    // 多人游戏模式下只调用完成回调，不进行奖励计算
+                    if (isMultiplayer) {
+                        if (onGameComplete) {
+                            onGameComplete(timer, gameState.moves);
+                        }
+                        return;
+                    }
+
                     if (authState.isAuthenticated && authState.user) {
                         // 根据拼图配置计算理想步数
                         const calculatePerfectMoves = (config: PuzzleConfig): number => {

@@ -57,6 +57,7 @@ export interface GameCompletionData {
 export interface PuzzleConfigData {
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   gridSize: string;
+  pieceShape?: 'square' | 'triangle' | 'irregular' | 'tetris';
   imageName?: string;
   imageData?: string;
 }
@@ -122,6 +123,7 @@ class ApiService {
    */
   private initializeApiUrl(): string {
     const configuredUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.sla.edev.uno/api';
+    //const configuredUrl = "http://localhost:3001/api";
     const supportHttps = import.meta.env.VITE_API_SUPPORT_HTTPS !== 'false';
     
     // 如果是localhost开发环境，根据当前页面协议选择

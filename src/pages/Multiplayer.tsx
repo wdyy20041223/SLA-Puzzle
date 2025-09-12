@@ -24,6 +24,7 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
   const [selectedDifficulty, setSelectedDifficulty] = useState<'easy' | 'medium' | 'hard' | 'expert'>('medium');
   const [selectedGridSize, setSelectedGridSize] = useState('4x4');
   const [selectedPuzzle, setSelectedPuzzle] = useState<string>('random');
+  const [selectedPieceShape, setSelectedPieceShape] = useState<'square' | 'triangle' | 'irregular' | 'tetris'>('square');
 
   // 当前房间状态
   const [currentRoom, setCurrentRoom] = useState<MultiplayerRoom | null>(null);
@@ -113,6 +114,7 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
       const puzzleConfig: PuzzleConfigData = {
         difficulty: selectedDifficulty,
         gridSize: selectedGridSize,
+        pieceShape: selectedPieceShape,
       };
 
       // 如果选择了特定拼图而不是随机
@@ -361,6 +363,44 @@ export const Multiplayer: React.FC<MultiplayerProps> = ({ onBackToMenu, onStartG
                 {size}
               </button>
             ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>拼图形状</label>
+          <div className="piece-shape-options">
+            <button
+              className={`piece-shape-option ${selectedPieceShape === 'square' ? 'selected' : ''}`}
+              onClick={() => setSelectedPieceShape('square')}
+              disabled={loading}
+            >
+              <span className="shape-icon">⬜</span>
+              <span className="shape-label">方形拼图</span>
+            </button>
+            <button
+              className={`piece-shape-option ${selectedPieceShape === 'triangle' ? 'selected' : ''}`}
+              onClick={() => setSelectedPieceShape('triangle')}
+              disabled={loading}
+            >
+              <span className="shape-icon">🔺</span>
+              <span className="shape-label">三角拼图</span>
+            </button>
+            <button
+              className={`piece-shape-option ${selectedPieceShape === 'irregular' ? 'selected' : ''}`}
+              onClick={() => setSelectedPieceShape('irregular')}
+              disabled={loading}
+            >
+              <span className="shape-icon">🧩</span>
+              <span className="shape-label">异形拼图</span>
+            </button>
+            <button
+              className={`piece-shape-option ${selectedPieceShape === 'tetris' ? 'selected' : ''}`}
+              onClick={() => setSelectedPieceShape('tetris')}
+              disabled={loading}
+            >
+              <span className="shape-icon">🎯</span>
+              <span className="shape-label">俄罗斯方块</span>
+            </button>
           </div>
         </div>
 
