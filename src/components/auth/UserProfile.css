@@ -114,7 +114,7 @@
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(248, 165, 194, 0.4);  /* 使用主题色阴影 */
   min-width: 220px;
-  z-index: 1000;
+  z-index: 9999;
   animation: dropdownSlideIn 0.2s ease-out;
   border: 2px solid var(--primary-pink);  /* 使用主题色边框 */
   backdrop-filter: blur(10px);  /* 添加模糊效果 */
