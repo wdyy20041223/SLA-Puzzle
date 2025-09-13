@@ -259,6 +259,13 @@ export const IrregularPuzzleGame: React.FC<IrregularPuzzleGameProps> = ({
     const piece = puzzleConfig.pieces.find(p => p.id === pieceId);
     if (!piece) return;
 
+    // 检查是否是自我替换（拼图块拖拽到自己当前所在的槽位）
+    const existingPieceInSlot = answerGrid[slotIndex];
+    if (existingPieceInSlot && existingPieceInSlot.id === pieceId) {
+      // 如果是拖拽到自己当前所在的槽位，直接返回，不进行任何操作
+      return;
+    }
+
     // 只对异形拼图专用判定，直接用piece当前属性
     const rows = puzzleConfig.gridSize?.rows || puzzleConfig.gridLayout?.gridSize?.rows;
     const cols = puzzleConfig.gridSize?.cols || puzzleConfig.gridLayout?.gridSize?.cols;
