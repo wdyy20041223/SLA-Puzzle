@@ -110,27 +110,35 @@ export const DailyChallengeGame: React.FC<DailyChallengeGameProps> = ({
 
   // 检查是否可以放置到该槽位（根据特效规则）
   const canPlaceToSlot = useCallback((slotIndex: number) => {
+    let canPlace = true;
+    let hasEffects = false;
+    
     // 作茧自缚特效：动态解锁机制
     if (challenge.effects?.includes('corner_start') || challenge.effects?.includes('作茧自缚')) {
+      hasEffects = true;
       // 如果还没有放置任何拼图块，只能放在角落
       if (gameState && gameState.answerGrid.every(slot => slot === null)) {
-        return isCornerSlot(slotIndex);
+        canPlace = canPlace && isCornerSlot(slotIndex);
+      } else {
+        // 否则检查该槽位是否已解锁
+        canPlace = canPlace && effectStates.unlockedSlots.has(slotIndex);
       }
-      // 否则检查该槽位是否已解锁
-      return effectStates.unlockedSlots.has(slotIndex);
     }
     
     // 亦步亦趋特效：只能在上次放置的拼图块周围放置
     if (challenge.effects?.includes('brightness') || challenge.effects?.includes('亦步亦趋')) {
+      hasEffects = true;
       // 如果还没有放置任何拼图块，可以放在任意位置
       if (gameState && gameState.answerGrid.every(slot => slot === null)) {
-        return true;
+        canPlace = canPlace && true;
+      } else {
+        // 否则检查是否在允许的槽位列表中
+        canPlace = canPlace && effectStates.stepFollowSlots.has(slotIndex);
       }
-      // 否则检查是否在允许的槽位列表中
-      return effectStates.stepFollowSlots.has(slotIndex);
     }
     
-    return true;
+    // 如果没有启用任何特效，可以直接放置
+    return hasEffects ? canPlace : true;
   }, [challenge.effects, gameState, isCornerSlot, effectStates.unlockedSlots, effectStates.stepFollowSlots]);
 
   // 获取特效CSS类名
