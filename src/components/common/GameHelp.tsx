@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Button } from './Button';
 import './GameHelp.css';
+import { createPortal } from 'react-dom';
 
 interface GameHelpProps {
   onClose?: () => void;
 }
 
 export const GameHelp: React.FC<GameHelpProps> = ({ onClose }) => {
-  return (
+  return createPortal(
     <div className="game-help-modal">
       <div className="help-content">
         <div className="help-header">
@@ -124,7 +125,8 @@ export const GameHelp: React.FC<GameHelpProps> = ({ onClose }) => {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
