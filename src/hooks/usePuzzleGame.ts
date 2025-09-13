@@ -116,6 +116,13 @@ export function usePuzzleGame({ userId, preloadedGameState }: UsePuzzleGameProps
       const piece = prev.config.pieces.find(p => p.id === pieceId);
       if (!piece) return prev;
 
+      // 检查是否是自我替换（拼图块拖拽到自己当前所在的槽位）
+      const existingPieceInSlot = prev.answerGrid[targetSlot];
+      if (existingPieceInSlot && existingPieceInSlot.id === pieceId) {
+        // 如果是拖拽到自己当前所在的槽位，直接返回，不进行任何操作
+        return prev;
+      }
+
       // 俄罗斯方块拼图特殊处理
       if (prev.config.pieceShape === 'tetris' && piece.tetrisShape && piece.occupiedPositions) {
         // 计算俄罗斯方块在新位置需要占据的所有槽位
